@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Growth Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ── SIDEBAR ── -->
+    <aside id="sidebar">
+      <div class="sidebar-logo">
+        <span class="logo-mark">Growth <em>Engine</em></span>
+        <span class="logo-sub">v0.1 — POC fase</span>
+      </div>
+
+      <nav id="main-nav">
+        <a class="nav-item active" data-page="home">
+          <span class="nav-icon">⌂</span>Home
+        </a>
+        <span class="nav-section">Analyse</span>
+        <a class="nav-item" data-page="dashboard">
+          <span class="nav-icon">◉</span>Dashboard
+        </a>
+
+        <span class="nav-section">Data</span>
+        <a class="nav-item" data-page="bronnen">
+          <span class="nav-icon">⇣</span>Bronnen
+        </a>
+        <a class="nav-item" data-page="atomspace">
+          <span class="nav-icon">◈</span>Atomspace
+        </a>
+
+        <span class="nav-section">Intelligentie</span>
+        <a class="nav-item" data-page="pln">
+          <span class="nav-icon">≋</span>PLN Analyse
+        </a>
+
+        <span class="nav-section">Generatie</span>
+        <a class="nav-item" data-page="genereren">
+          <span class="nav-icon">⚡</span>Genereren
+        </a>
+        <a class="nav-item" data-page="output">
+          <span class="nav-icon">▣</span>Output
+          <span class="nav-badge" id="output-badge" style="display:none">0</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div id="api-status" class="api-status">
+          <span class="status-dot"></span>
+          <span class="status-text">Verbinding controleren…</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <main id="content">
+      <div id="page-container"></div>
+    </main>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
