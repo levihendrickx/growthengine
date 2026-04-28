@@ -5,3 +5,7 @@ node_modules/
 
 # Obsidian — vault config & cache (notes themselves are tracked, settings are personal)
 docs/.obsidian/
+
+# Atomspace data — gegenereerde atoms zijn runtime-data, niet broncode
+# (bevat ook Stoney's metrics — gevoelig). Iedereen draait scripts/import_*.py opnieuw.
+atoms/
