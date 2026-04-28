@@ -2,3 +2,6 @@ node_modules/
 .env
 .env.local
 .claude/settings.local.json
+
+# Obsidian — vault config & cache (notes themselves are tracked, settings are personal)
+docs/.obsidian/
