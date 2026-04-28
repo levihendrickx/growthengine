@@ -853,8 +853,8 @@ button { cursor: pointer; font-family: var(--sans); }
 /* ── Left col ── */
 .lp-gen-title {
   font-family: 'Inter', sans-serif;
-  font-size: 30px; font-weight: 900;
-  line-height: 1.05; letter-spacing: -0.035em;
+  font-size: 26px; font-weight: 800;
+  line-height: 1.12; letter-spacing: -0.03em;
   color: #050505; margin: 10px 0 14px;
 }
 .lp-gen-title strong { font-weight: 900; }

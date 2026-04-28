@@ -1190,15 +1190,15 @@ function renderHome(el) {
         <!-- LEFT -->
         <div class="lp-gen-left">
           <div class="lp-eyebrow lp-eyebrow-purple">FROM INSIGHT TO OUTPUT</div>
-          <h2 class="lp-gen-title">Prompt your <strong>AI</strong> agents.<br>The engine builds the ads.</h2>
-          <p class="lp-gen-sub">Type what you want. Using your data, the engine selects the best creative angles and instantly generates new ad concepts.</p>
+          <h2 class="lp-gen-title">Do you really understand why some creatives work — and others don't?</h2>
+          <p class="lp-gen-sub">Ask what will work for the upcoming Easter. Or ask why last summer drove great revenue while the summer before underperformed. Using your historical data, the engine explains the why and turns it into new ad ideas.</p>
           <div class="lp-prompt-wrap">
-            <input class="lp-prompt-input" type="text" value="Generate 20 ads for my summer collection" readonly>
-            <button class="lp-prompt-btn" onclick="navigate('genereren')">✦ Generate</button>
+            <input class="lp-prompt-input" type="text" value="What will work for Easter this year?" readonly>
+            <button class="lp-prompt-btn" onclick="navigate('genereren')">✦ Ask the engine</button>
           </div>
           <div class="lp-gen-hint">
             <span class="lp-spark">✦</span>
-            <span>Based on your data, we expect the most traction from beach scenes, weekend moments, and warm close-ups.</span>
+            <span>You can ask about seasonal winners, revenue differences, and what patterns to repeat.</span>
           </div>
         </div>
 
@@ -1206,14 +1206,14 @@ function renderHome(el) {
         <div class="lp-gen-right">
           <div class="lp-carousel-wrap">
             <div class="lp-carousel">
-              ${lpAdCard(1,'https://images.unsplash.com/photo-1611085583191-a3b181a88401?auto=format&fit=crop&w=424&h=504&q=80','Summer<br>state of mind.','Waterproof jewelry for every moment.','High traction','#059669','Beach + weekend + sun','Lifestyle · Summer',false)}
-              ${lpAdCard(2,'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=424&h=504&q=80','Details that<br>make the difference.','Subtle. Timeless. Up close.','Best pattern','#6D28D9','Close-up + warm light','Product detail · Emotion',false)}
-              ${lpAdCard(3,'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=424&h=504&q=80','My everyday<br>must-haves.','Real. My style.','Data match','#0f766e','UGC with context','Real setting · Clear hook',false)}
-              ${lpAdCard(4,'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=424&h=504&q=80','Made for<br>sunny days.','Shop the collection now.','Strong hook','#1d4ed8','Collection + strong hook','Offer · Clear CTA',true)}
+              ${lpAdCard(1,'https://images.unsplash.com/photo-1573408301185-9519f94815b1?auto=format&fit=crop&w=424&h=504&q=80','Joy worth<br>giving.','Easter gifts she\'ll always remember.','High traction','#059669','Easter gifting moment','Lifestyle · Easter',false)}
+              ${lpAdCard(2,'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=424&h=504&q=80','Meaningful. Timeless.<br>Made for her.','Celebrate Easter with something that lasts.','Top performer','#6D28D9','Timeless Easter gift','Product detail · Emotion',false)}
+              ${lpAdCard(3,'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=424&h=504&q=80','New season.<br>New beginnings.','Shine into spring.','Seasonal winner','#0f766e','Spring refresh','Lifestyle · Seasonal',false)}
+              ${lpAdCard(4,'https://images.unsplash.com/photo-1611085583191-a3b181a88401?auto=format&fit=crop&w=424&h=504&q=80','Little details.<br>Big moments.','Make her Easter extra special.','Strong CTA','#1d4ed8','Gift with emotion','Offer · Clear CTA',false)}
             </div>
             <button class="lp-carousel-next">›</button>
           </div>
-          <div class="lp-carousel-footer">ⓘ These ads were generated from patterns found in your data.</div>
+          <div class="lp-carousel-footer">✦ Generated from patterns found in your data.</div>
         </div>
 
       </div>
