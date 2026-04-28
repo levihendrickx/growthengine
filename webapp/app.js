@@ -1017,47 +1017,55 @@ function adCard(ad, i) {
 /* Slide data for the hero ad preview card */
 const HP_SLIDES = [
   {
-    img: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?auto=format&fit=crop&w=900&h=700&q=85',
-    headline: 'Summer\nstate of mind.',
-    sub: 'Waterproof jewelry for every moment.',
-    roas: '4.6×', ctr: '+28%',
+    img: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=900&h=700&q=85',
+    headline: 'Made for\nthe moment.',
+    sub: 'Visuals that match the season.',
+    whyTitle: 'What we found in your historical data',
+    m1Label: 'ROAS', m1Val: '1.9×',
+    m2Label: 'CVR',  m2Val: '+26%',
     why: [
-      'Warm close-up increases product clarity',
-      'Lifestyle context builds more trust',
-      'Clear emotional hook improved conversion'
+      'Summer performs best with bright, airy close-ups',
+      'Winter performs best with warmer tones and subtle seasonal cues',
+      'Matching the visual tone to the season improves efficiency'
+    ]
+  },
+  {
+    img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=900&h=700&q=85',
+    headline: 'My everyday\nmust-haves.',
+    sub: 'Real. Personal. Trusted.',
+    whyTitle: 'What the engine learned',
+    m1Label: 'CVR',  m1Val: '+31%',
+    m2Label: 'ROAS', m2Val: '1.8×',
+    why: [
+      'High-click attention ads bring traffic, but weaker purchase intent',
+      'Authentic UGC and product-in-context creatives convert better',
+      'Clarity + trust outperform broad awareness concepts'
+    ]
+  },
+  {
+    img: 'https://images.unsplash.com/photo-1576022162879-fd7fac3e2b73?auto=format&fit=crop&w=900&h=700&q=85',
+    headline: 'A subtle\nfestive glow.',
+    sub: 'Seasonal, not overdone.',
+    whyTitle: 'Pattern detected',
+    m1Label: 'ROAS', m1Val: '2.0×',
+    m2Label: 'CTR',  m2Val: '+22%',
+    why: [
+      'Starting 3 weeks before Christmas, subtle festive creatives begin to outperform',
+      'Small Christmas accents perform better than neutral visuals',
+      'Overly festive ads underperform — a light seasonal mood works best'
     ]
   },
   {
     img: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=900&h=700&q=85',
     headline: 'Details that\nmake the difference.',
     sub: 'Subtle. Timeless. Up close.',
-    roas: '5.3×', ctr: '+34%',
+    whyTitle: 'What your data revealed',
+    m1Label: 'ROAS', m1Val: '2.1×',
+    m2Label: 'CVR',  m2Val: '+34%',
     why: [
-      'Product detail drives purchase intent',
-      'Minimal aesthetic matches premium brand feel',
-      'Gold tones outperform silver 3-1 in summer'
-    ]
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=900&h=700&q=85',
-    headline: 'My everyday\nmust-haves.',
-    sub: 'Real. My style.',
-    roas: '4.2×', ctr: '+19%',
-    why: [
-      'UGC-style builds authentic connection',
-      'Personal narrative lowers ad fatigue',
-      'Lifestyle framing outperforms product-only'
-    ]
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=900&h=700&q=85',
-    headline: 'Made for\nsunny days.',
-    sub: 'Shop the collection now.',
-    roas: '3.8×', ctr: '+22%',
-    why: [
-      'Beach setting triggers seasonal relevance',
-      'Flatlay format increases purchase intent',
-      'Clear CTA with seasonal hook drives clicks'
+      'During heatwaves, lifestyle creatives with women outdoors perform worse than expected',
+      'Close-up product images with light tones perform significantly better',
+      'Soft tones + product focus become the best fit'
     ]
   }
 ];
@@ -1150,19 +1158,19 @@ function renderHome(el) {
 
             <!-- Why this worked -->
             <div class="hp-why">
-              <div class="hp-why-title">Why this worked</div>
+              <div class="hp-why-title" id="hp-why-title">${first.whyTitle}</div>
               <div class="hp-why-body">
                 <ul class="hp-why-items" id="hp-why-items">
                   ${first.why.map(w => `<li class="hp-why-item"><span class="hp-check"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6.5" stroke="#D1D5DB"/><path d="M4.5 7l2 2 3-3" stroke="#6D28D9" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>${w}</li>`).join('')}
                 </ul>
                 <div class="hp-why-metrics">
                   <div class="hp-metric">
-                    <div class="hp-metric-label">ROAS</div>
-                    <div class="hp-metric-val" id="hp-roas">${first.roas}</div>
+                    <div class="hp-metric-label" id="hp-m1-label">${first.m1Label}</div>
+                    <div class="hp-metric-val" id="hp-m1-val">${first.m1Val}</div>
                   </div>
                   <div class="hp-metric">
-                    <div class="hp-metric-label">CTR</div>
-                    <div class="hp-metric-val" id="hp-ctr">${first.ctr}</div>
+                    <div class="hp-metric-label" id="hp-m2-label">${first.m2Label}</div>
+                    <div class="hp-metric-val" id="hp-m2-val">${first.m2Val}</div>
                   </div>
                 </div>
               </div>
@@ -1373,25 +1381,31 @@ function initHeroSlider(el) {
       }, TRANS + 50);
     }));
 
-    /* ── update "Why this worked" section ── */
-    const itemsEl  = el.querySelector('#hp-why-items');
-    const roasEl   = el.querySelector('#hp-roas');
-    const ctrEl    = el.querySelector('#hp-ctr');
+    /* ── update "Why" section ── */
+    const itemsEl   = el.querySelector('#hp-why-items');
+    const titleEl   = el.querySelector('#hp-why-title');
+    const m1LblEl  = el.querySelector('#hp-m1-label');
+    const m1ValEl  = el.querySelector('#hp-m1-val');
+    const m2LblEl  = el.querySelector('#hp-m2-label');
+    const m2ValEl  = el.querySelector('#hp-m2-val');
     if (!itemsEl) return;
 
-    itemsEl.style.opacity = '0';
-    roasEl.style.opacity  = '0';
-    ctrEl.style.opacity   = '0';
+    itemsEl.style.opacity  = '0';
+    m1ValEl.style.opacity  = '0';
+    m2ValEl.style.opacity  = '0';
 
     setTimeout(() => {
+      if (titleEl)  titleEl.textContent   = s.whyTitle;
+      if (m1LblEl) m1LblEl.textContent   = s.m1Label;
+      if (m2LblEl) m2LblEl.textContent   = s.m2Label;
       itemsEl.innerHTML = s.why.map(w =>
         `<li class="hp-why-item"><span class="hp-check"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6.5" stroke="#D1D5DB"/><path d="M4.5 7l2 2 3-3" stroke="#6D28D9" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>${w}</li>`
       ).join('');
-      roasEl.textContent = s.roas;
-      ctrEl.textContent  = s.ctr;
+      m1ValEl.textContent   = s.m1Val;
+      m2ValEl.textContent   = s.m2Val;
       itemsEl.style.opacity = '1';
-      roasEl.style.opacity  = '1';
-      ctrEl.style.opacity   = '1';
+      m1ValEl.style.opacity = '1';
+      m2ValEl.style.opacity = '1';
     }, 280);
   }
 
