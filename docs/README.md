@@ -25,3 +25,5 @@ Productdocumentatie, beslissingen en notities. Tegelijk ook de **Obsidian-vault*
 3. Schrijven en linken werkt direct (`[[bestandsnaam]]`-syntax voor interne links)
 
 Obsidian-instellingen worden lokaal bewaard in `.obsidian/` en zijn via `.gitignore` uitgesloten van de repo — iedereen kan z'n eigen voorkeuren hebben.
+
+[[2026-04-28-setup]]
