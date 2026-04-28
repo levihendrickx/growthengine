@@ -1191,7 +1191,7 @@ function renderHome(el) {
         <div class="lp-gen-left">
           <div class="lp-eyebrow lp-eyebrow-purple">FROM INSIGHT TO OUTPUT</div>
           <h2 class="lp-gen-title">Do you really understand why some creatives work — and others don't?</h2>
-          <p class="lp-gen-sub">Ask what will work for the upcoming Easter. Or ask why last summer drove great revenue while the summer before underperformed. Using your historical data, the engine explains the why and turns it into new ad ideas.</p>
+          <p class="lp-gen-sub">Using your historical data, the engine explains the why and turns it into new ad ideas.</p>
           <div class="lp-prompt-wrap">
             <input class="lp-prompt-input" type="text" value="What will work for Easter this year?" readonly>
             <button class="lp-prompt-btn" onclick="navigate('genereren')">✦ Ask the engine</button>
