@@ -8,4 +8,7 @@ docs/.obsidian/
 
 # Atomspace data — generated atoms are runtime data, not source code
 # (also contains Stoney's metrics — sensitive). Everyone runs scripts/import_*.py again.
+# Exception: sample_data/atoms/ is a committed snapshot for backend development.
 atoms/
+!sample_data/atoms/
+!sample_data/atoms/**
