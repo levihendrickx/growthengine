@@ -1,13 +1,13 @@
 """
-import_meta_api.py — Importeer ad-performance uit Meta Marketing API.
+import_meta_api.py — Import ad performance from the Meta Marketing API.
 
-Schrijft één performance-atom per ad naar atoms/performance/<ad_id>.json.
+Writes one performance atom per ad to atoms/performance/<ad_id>.json.
 
-API:        Meta Graph API (versie uit .env)
-Scope:      ads_read (read-only)
-Auth:       System User Token uit .env
+API:    Meta Graph API (version from .env)
+Scope:  ads_read (read-only)
+Auth:   System User Token from .env
 
-Gebruik:
+Usage:
     python scripts/import_meta_api.py
     python scripts/import_meta_api.py --days 30 --limit 50
     python scripts/import_meta_api.py --dry-run
@@ -57,7 +57,7 @@ def fetch_insights(token: str, api_version: str, ad_account_id: str, days: int, 
             return r.json().get("data", [])[:limit]
         if r.status_code in (429, 500, 502, 503, 504) and attempt < 3:
             wait = 2 ** attempt
-            print(f"  [retry {attempt}] HTTP {r.status_code}, wachten {wait}s...")
+            print(f"  [retry {attempt}] HTTP {r.status_code}, waiting {wait}s...")
             time.sleep(wait)
             continue
         print(f"\n[ERROR] Meta API {r.status_code}: {r.text[:300]}")
@@ -94,10 +94,10 @@ def main() -> None:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
 
-    parser = argparse.ArgumentParser(description="Importeer ad-performance uit Meta Marketing API.")
-    parser.add_argument("--days", type=int, default=90, help="Aantal dagen historie (default 90)")
-    parser.add_argument("--limit", type=int, default=100, help="Max aantal ads (veiligheid, default 100)")
-    parser.add_argument("--dry-run", action="store_true", help="Toon wat zou gebeuren, schrijf niets")
+    parser = argparse.ArgumentParser(description="Import ad performance from the Meta Marketing API.")
+    parser.add_argument("--days", type=int, default=90, help="Days of history (default 90)")
+    parser.add_argument("--limit", type=int, default=100, help="Max number of ads (safety, default 100)")
+    parser.add_argument("--dry-run", action="store_true", help="Show what would happen, write nothing")
     args = parser.parse_args()
 
     load_dotenv(REPO_ROOT / ".env")
@@ -106,20 +106,20 @@ def main() -> None:
     ad_account_id = os.environ.get("META_AD_ACCOUNT_ID")
 
     if not token or not ad_account_id:
-        print("[ERROR] META_ACCESS_TOKEN en/of META_AD_ACCOUNT_ID ontbreekt in .env")
+        print("[ERROR] META_ACCESS_TOKEN and/or META_AD_ACCOUNT_ID missing in .env")
         sys.exit(1)
 
     print(f"Account:  {ad_account_id}")
     print(f"API:      {api_version}")
-    print(f"Periode:  laatste {args.days} dagen")
-    print(f"Limiet:   {args.limit} ads")
-    print(f"Mode:     {'DRY-RUN (niets schrijven)' if args.dry_run else 'ECHT (schrijven naar atoms/performance/)'}")
+    print(f"Period:   last {args.days} days")
+    print(f"Limit:    {args.limit} ads")
+    print(f"Mode:     {'DRY-RUN (writing nothing)' if args.dry_run else 'LIVE (writing to atoms/performance/)'}")
     print()
 
     rows = fetch_insights(token, api_version, ad_account_id, args.days, args.limit)
 
     if not rows:
-        print("Geen data ontvangen voor deze periode.")
+        print("No data received for this period.")
         return
 
     written = 0
@@ -131,7 +131,7 @@ def main() -> None:
             written += 1
 
     print()
-    print(f"Klaar: {written} atoms {'gesimuleerd' if args.dry_run else 'geschreven'}.")
+    print(f"Done: {written} atoms {'simulated' if args.dry_run else 'written'}.")
     if not args.dry_run:
         print(f"Output: {PERFORMANCE_DIR.resolve()}")
 
