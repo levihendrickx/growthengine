@@ -12,3 +12,7 @@ docs/.obsidian/
 atoms/
 !sample_data/atoms/
 !sample_data/atoms/**
+
+# Downloaded ad images — runtime output from import_meta_creative.py.
+# Same reasoning as atoms/: regenerate from the API, do not commit.
+images/
