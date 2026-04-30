@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Growth Engine — Architectuur</title>
+<title>Growth Engine — Architecture</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -520,18 +520,18 @@
 <header>
   <div class="logo-area">
     <h1>Growth <span>Engine</span></h1>
-    <p>Systeem architectuur — van input tot output</p>
+    <p>System architecture — from input to output</p>
   </div>
-  <div class="header-badge">v0.1 — POC fase</div>
+  <div class="header-badge">v0.1 — POC phase</div>
 </header>
 
 <div class="schema">
 
-  <!-- ── LAAG 1: BRONNEN ── -->
+  <!-- ── LAYER 1: SOURCES ── -->
   <div class="layer">
     <div class="layer-header">
       <span class="layer-num">01</span>
-      <span class="layer-title">Bronnen</span>
+      <span class="layer-title">Sources</span>
       <div class="layer-line"></div>
     </div>
     <div class="nodes">
@@ -543,7 +543,7 @@
           <li>ad_id · creative_id</li>
           <li>CTR · CPC · ROAS</li>
           <li>spend · impressions</li>
-          <li>campagne · adset</li>
+          <li>campaign · adset</li>
         </ul>
       </div>
 
@@ -554,7 +554,7 @@
           <li>creative_id → image_url</li>
           <li>headline · body · CTA</li>
           <li>download → ad_id.jpg</li>
-          <li>CDN direct downloaden</li>
+          <li>CDN direct download</li>
         </ul>
       </div>
 
@@ -565,31 +565,31 @@
           <li>orders per product</li>
           <li>utm_ad per order</li>
           <li>revenue · AOV · conv_rate</li>
-          <li>return rate · datum</li>
+          <li>return rate · date</li>
         </ul>
       </div>
 
       <div class="node c-green">
-        <div class="node-label">Temporeel</div>
-        <h3>Weer + Kalender</h3>
+        <div class="node-label">Temporal</div>
+        <h3>Weather + Calendar</h3>
         <ul>
-          <li>Open-Meteo API (gratis)</li>
-          <li>Nager.Date feestdagen</li>
-          <li>temp · neerslag · zon</li>
-          <li>historisch + live</li>
+          <li>Open-Meteo API (free)</li>
+          <li>Nager.Date holidays</li>
+          <li>temp · precipitation · sun</li>
+          <li>historical + live</li>
         </ul>
       </div>
 
       <div class="node c-coral">
-        <div class="node-label">Branding</div>
-        <h3>Branding input</h3>
+        <div class="node-label">Brand</div>
+        <h3>Brand input</h3>
         <ul>
-          <li>Optie A: Shopify URL scrape</li>
-          <li>Optie B: brandboek upload</li>
-          <li>kleuren · fonts · tone</li>
-          <li>logo · producten · prijsrange</li>
+          <li>Option A: Shopify URL scrape</li>
+          <li>Option B: brand-book upload</li>
+          <li>colors · fonts · tone</li>
+          <li>logo · products · price range</li>
         </ul>
-        <span class="tag tag-static">eenmalig · statisch</span>
+        <span class="tag tag-static">one-off · static</span>
       </div>
 
     </div>
@@ -603,11 +603,11 @@
     </div>
   </div>
 
-  <!-- ── LAAG 2: VERWERKING ── -->
+  <!-- ── LAYER 2: PROCESSING ── -->
   <div class="layer">
     <div class="layer-header">
       <span class="layer-num">02</span>
-      <span class="layer-title">Verwerking per bron</span>
+      <span class="layer-title">Per-source processing</span>
       <div class="layer-line"></div>
     </div>
     <div class="nodes">
@@ -616,9 +616,9 @@
         <div class="node-label">Script</div>
         <h3>Parse metrics</h3>
         <ul>
-          <li>CSV → gestructureerde data</li>
+          <li>CSV → structured data</li>
           <li>CTR · CPC · ROAS · spend</li>
-          <li>per ad_id opgeslagen</li>
+          <li>stored per ad_id</li>
         </ul>
       </div>
 
@@ -627,7 +627,7 @@
         <h3>Download .jpg</h3>
         <ul>
           <li>image_url → images/ad_id.jpg</li>
-          <li>meteen lokaal opslaan</li>
+          <li>save locally right away</li>
           <li>carousel → ad_id_1.jpg etc.</li>
         </ul>
       </div>
@@ -638,28 +638,28 @@
         <ul>
           <li>utm_ad · product_id</li>
           <li>revenue · AOV</li>
-          <li>conv_rate · datum</li>
+          <li>conv_rate · date</li>
         </ul>
       </div>
 
       <div class="node c-green">
         <div class="node-label">Script</div>
-        <h3>Dag atom aanmaken</h3>
+        <h3>Build day atom</h3>
         <ul>
-          <li>datum als sleutel</li>
-          <li>seizoen · dag van week</li>
-          <li>weer · temp · feestdag</li>
-          <li>één atom per dag gedeeld</li>
+          <li>date as key</li>
+          <li>season · day of week</li>
+          <li>weather · temp · holiday</li>
+          <li>one shared atom per day</li>
         </ul>
       </div>
 
       <div class="node c-coral">
         <div class="node-label">LLM</div>
-        <h3>Branding parser</h3>
+        <h3>Brand parser</h3>
         <ul>
-          <li>scrape of PDF → atoms</li>
-          <li>kleuren · fonts · tone</li>
-          <li>logo_ref · doelgroep</li>
+          <li>scrape or PDF → atoms</li>
+          <li>colors · fonts · tone</li>
+          <li>logo_ref · target audience</li>
         </ul>
       </div>
 
@@ -671,25 +671,25 @@
     <div class="step-arrow">
       <div class="arrow-track"></div>
       <div class="arrow-head"></div>
-      <div class="connector-label">afbeelding naar vision LLM</div>
+      <div class="connector-label">image to vision LLM</div>
     </div>
   </div>
 
-  <!-- ── LAAG 3: VISION LLM ── -->
+  <!-- ── LAYER 3: VISION LLM ── -->
   <div class="layer">
     <div class="layer-header">
       <span class="layer-num">03</span>
-      <span class="layer-title">Vision LLM — afbeelding naar tekst</span>
+      <span class="layer-title">Vision LLM — image to text</span>
       <div class="layer-line"></div>
     </div>
     <div class="nodes centered">
 
       <div class="node c-amber wide">
-        <div class="node-label">GPT-4o Vision of Claude 3.5 Sonnet</div>
-        <h3>Vision LLM — feitelijke beschrijving</h3>
-        <p>Elke ad-afbeelding wordt eenmalig doorgestuurd. De LLM beschrijft alleen wat letterlijk zichtbaar is — geen interpretatie, geen hooks, geen oordeel. Prompt bevat expliciet verbod op aannames. Bij onduidelijke details: "niet zichtbaar" in plaats van raden.</p>
+        <div class="node-label">GPT-4o Vision or Claude Sonnet</div>
+        <h3>Vision LLM — factual description</h3>
+        <p>Each ad image is forwarded once. The LLM describes only what is literally visible — no interpretation, no hooks, no judgment. Prompt explicitly forbids assumptions. For unclear details: "not visible" instead of guessing.</p>
         <div style="margin-top:10px;padding:10px 14px;background:rgba(0,0,0,0.04);border-radius:6px;border-left:2px solid var(--amber)">
-          <p style="font-family:var(--mono);font-size:11px;color:var(--text-2);font-style:italic;line-height:1.7">"Vrouw van circa 30 jaar op strandbed. Zilveren armband aan linkerpols. Twee kinderen spelen op achtergrond in het zand. Zonnige dag, warme kleuren. Geen tekst zichtbaar in afbeelding."</p>
+          <p style="font-family:var(--mono);font-size:11px;color:var(--text-2);font-style:italic;line-height:1.7">"Woman around 30 years old on a beach lounger. Silver bracelet on left wrist. Two children playing in the sand in the background. Sunny day, warm tones. No text visible in image."</p>
         </div>
       </div>
 
@@ -701,11 +701,11 @@
     <div class="step-arrow">
       <div class="arrow-track"></div>
       <div class="arrow-head"></div>
-      <div class="connector-label">merge op ad_id + utm_ad + datum</div>
+      <div class="connector-label">merge on ad_id + utm_ad + date</div>
     </div>
   </div>
 
-  <!-- ── LAAG 4: MERGE ── -->
+  <!-- ── LAYER 4: MERGE ── -->
   <div class="layer">
     <div class="layer-header">
       <span class="layer-num">04</span>
@@ -715,19 +715,19 @@
     <div class="nodes">
       <div class="node c-gray full">
         <div class="node-label">Python script</div>
-        <h3>Samenvoegen tot één record per ad</h3>
+        <h3>Join into one record per ad</h3>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px">
           <div>
             <p style="color:var(--blue);font-family:var(--mono);font-size:10px;letter-spacing:0.5px;margin-bottom:4px">ad_id</p>
-            <p>Koppelt Meta CSV aan afbeelding en performance metrics</p>
+            <p>Links Meta CSV to image and performance metrics</p>
           </div>
           <div>
             <p style="color:var(--teal);font-family:var(--mono);font-size:10px;letter-spacing:0.5px;margin-bottom:4px">utm_ad</p>
-            <p>Koppelt Meta ad aan Shopify orders die eruit kwamen</p>
+            <p>Links Meta ad to the Shopify orders it produced</p>
           </div>
           <div>
-            <p style="color:var(--green);font-family:var(--mono);font-size:10px;letter-spacing:0.5px;margin-bottom:4px">datum</p>
-            <p>Koppelt elke ad aan dag atom voor temporele context</p>
+            <p style="color:var(--green);font-family:var(--mono);font-size:10px;letter-spacing:0.5px;margin-bottom:4px">date</p>
+            <p>Links each ad to the day atom for temporal context</p>
           </div>
         </div>
       </div>
@@ -739,11 +739,11 @@
     <div class="step-arrow">
       <div class="arrow-track"></div>
       <div class="arrow-head"></div>
-      <div class="connector-label">ingest naar Atomspace</div>
+      <div class="connector-label">ingest into Atomspace</div>
     </div>
   </div>
 
-  <!-- ── LAAG 5: ATOMSPACE ── -->
+  <!-- ── LAYER 5: ATOMSPACE ── -->
   <div class="layer">
     <div class="layer-header">
       <span class="layer-num">05</span>
@@ -761,10 +761,10 @@
           <h3>Creative atom</h3>
           <ul>
             <li>ad_id</li>
-            <li>beschrijving [vision LLM tekst]</li>
+            <li>description [vision LLM text]</li>
             <li>headline · body · CTA</li>
             <li>image_ref: images/ad_id.jpg</li>
-            <li>datum</li>
+            <li>date</li>
           </ul>
         </div>
 
@@ -775,8 +775,8 @@
             <li>ad_id</li>
             <li>CTR · CPC · ROAS</li>
             <li>spend · impressions</li>
-            <li>campagne · adset</li>
-            <li>datum</li>
+            <li>campaign · adset</li>
+            <li>date</li>
           </ul>
         </div>
 
@@ -788,43 +788,43 @@
             <li>orders · revenue</li>
             <li>conv_rate · AOV</li>
             <li>product_id</li>
-            <li>datum</li>
+            <li>date</li>
           </ul>
         </div>
 
         <div class="node c-green">
-          <div class="node-label">Gedeeld per datum</div>
-          <h3>Dag atom</h3>
+          <div class="node-label">Shared per date</div>
+          <h3>Day atom</h3>
           <ul>
-            <li>datum [sleutel]</li>
-            <li>seizoen</li>
-            <li>weer · temperatuur</li>
-            <li>feestdag · event</li>
-            <li>dag van de week</li>
+            <li>date [key]</li>
+            <li>season</li>
+            <li>weather · temperature</li>
+            <li>holiday · event</li>
+            <li>day of the week</li>
           </ul>
         </div>
 
         <div class="node c-coral">
-          <div class="node-label">Eenmalig · statisch</div>
+          <div class="node-label">One-off · static</div>
           <h3>Brand atom</h3>
           <ul>
-            <li>kleuren · fonts</li>
+            <li>colors · fonts</li>
             <li>tone of voice</li>
             <li>logo_ref</li>
-            <li>producten · prijsrange</li>
-            <li>doelgroep</li>
+            <li>products · price range</li>
+            <li>target audience</li>
           </ul>
-          <span class="tag tag-static">buiten PLN analyse</span>
+          <span class="tag tag-static">outside PLN analysis</span>
         </div>
 
       </div>
 
       <div class="pattern-box">
-        <p style="font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Koppelingen</p>
+        <p style="font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Links</p>
         <p>
           <span>creative ↔ performance</span><em> via ad_id</em> &nbsp;·&nbsp;
           <span>performance ↔ commerce</span><em> via ad_id + utm_ad</em> &nbsp;·&nbsp;
-          <span>alle atoms ↔ dag atom</span><em> via datum</em> &nbsp;·&nbsp;
+          <span>all atoms ↔ day atom</span><em> via date</em> &nbsp;·&nbsp;
           <span>commerce ↔ product</span><em> via product_id</em>
         </p>
       </div>
@@ -836,28 +836,28 @@
     <div class="step-arrow">
       <div class="arrow-track"></div>
       <div class="arrow-head"></div>
-      <div class="connector-label">PLN redeneert over atoms</div>
+      <div class="connector-label">PLN reasons over atoms</div>
     </div>
   </div>
 
-  <!-- ── LAAG 6: MeTTa / PLN ── -->
+  <!-- ── LAYER 6: MeTTa / PLN ── -->
   <div class="layer">
     <div class="layer-header">
       <span class="layer-num">06</span>
-      <span class="layer-title">MeTTa / PLN — redenering</span>
+      <span class="layer-title">MeTTa / PLN — reasoning</span>
       <div class="layer-line"></div>
     </div>
     <div class="nodes">
       <div class="node c-purple full">
-        <div class="node-label">Hyperon — probabilistische logica</div>
-        <h3>MeTTa / PLN — redeneert continu over alle atoms</h3>
-        <p style="margin-top:6px">Detecteert patronen · berekent confidence scores · signaleert kansen · leert van elke nieuwe campagnecyclus. Brand atom staat buiten de analyse — wordt pas actief bij output.</p>
+        <div class="node-label">Hyperon — probabilistic logic</div>
+        <h3>MeTTa / PLN — reasons continuously over all atoms</h3>
+        <p style="margin-top:6px">Detects patterns · computes confidence scores · surfaces opportunities · learns from each new campaign cycle. Brand atom is outside the analysis — only becomes active at output.</p>
         <div class="pattern-box" style="margin-top:12px">
-          <p style="font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Voorbeeldpatronen die PLN detecteert</p>
+          <p style="font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Example patterns PLN detects</p>
           <p><span>"lifestyle + weekend + winter"</span><em> → ROAS 3.8 · conf: 0.79 · n=14</em></p>
-          <p><span>"urgency + feestdag -3 dagen"</span><em> → CTR hoog maar conv laag · conf: 0.71</em></p>
-          <p><span>"Valentijn dag -10 starten"</span><em> → 40% hogere ROAS dan dag -3 · conf: 0.84</em></p>
-          <p><span>"armband zilver + strand + zomer"</span><em> → beste seizoenscombinatie · conf: 0.88</em></p>
+          <p><span>"urgency + holiday -3 days"</span><em> → CTR high but conv low · conf: 0.71</em></p>
+          <p><span>"Valentine day -10 start"</span><em> → 40% higher ROAS than day -3 · conf: 0.84</em></p>
+          <p><span>"silver bracelet + beach + summer"</span><em> → best seasonal combination · conf: 0.88</em></p>
         </div>
       </div>
     </div>
@@ -871,44 +871,44 @@
     </div>
   </div>
 
-  <!-- ── LAAG 7: AGENT ── -->
+  <!-- ── LAYER 7: AGENT ── -->
   <div class="layer">
     <div class="layer-header">
       <span class="layer-num">07</span>
-      <span class="layer-title">Agent — interface tussen PLN en gebruiker</span>
+      <span class="layer-title">Agent — interface between PLN and user</span>
       <div class="layer-line"></div>
     </div>
     <div class="nodes" style="align-items:stretch">
 
       <div class="node c-green">
-        <div class="node-label">Automatisch</div>
-        <h3>Proactief</h3>
+        <div class="node-label">Automatic</div>
+        <h3>Proactive</h3>
         <ul>
-          <li>PLN signaleert kans</li>
-          <li>agent notificeert user</li>
-          <li>incl. reden + confidence</li>
+          <li>PLN surfaces opportunity</li>
+          <li>agent notifies user</li>
+          <li>incl. reason + confidence</li>
           <li>push · email · in-app</li>
         </ul>
         <div style="margin-top:10px;padding:8px 10px;background:rgba(0,0,0,0.04);border-radius:5px;border-left:2px solid var(--green)">
-          <p>"Valentijn over 12 dagen. Vorig jaar: ROAS 4.1 bij urgency + cadeau-framing. Start nu?"</p>
+          <p>"Valentine's Day in 12 days. Last year: ROAS 4.1 with urgency + gift framing. Start now?"</p>
         </div>
       </div>
 
       <div class="node c-blue wide">
-        <div class="node-label">Op verzoek</div>
-        <h3>Reactief + suggesties</h3>
+        <div class="node-label">On request</div>
+        <h3>Reactive + suggestions</h3>
         <div class="chat-preview" style="margin-top:6px">
-          <div class="chat-bar">AGENT CONVERSATIE</div>
+          <div class="chat-bar">AGENT CONVERSATION</div>
           <div class="chat-messages">
             <div class="msg user">
               <div class="msg-icon">👤</div>
-              <div class="msg-bubble">Genereer 10 ads voor de zilveren armband.</div>
+              <div class="msg-bubble">Generate 10 ads for the silver bracelet.</div>
             </div>
             <div class="msg agent">
               <div class="msg-icon">🤖</div>
               <div class="msg-bubble">
                 <strong>Agent</strong>
-                Goed plan, ik maak 10 ads voor de zilveren armband. Tip: overweeg ook de gouden versie — afgelopen weekend scoorde die 3.8x ROAS bij lifestyle hooks. Het weekend komt eraan. Zal ik die ook meenemen?
+                Good plan, I'll create 10 ads for the silver bracelet. Tip: also consider the gold version — last weekend it scored 3.8x ROAS on lifestyle hooks. The weekend is coming up. Want me to include it?
               </div>
             </div>
           </div>
@@ -916,13 +916,13 @@
       </div>
 
       <div class="node c-gray">
-        <div class="node-label">Van gebruiker</div>
+        <div class="node-label">From user</div>
         <h3>User input</h3>
         <ul>
-          <li>product · aantal · doel</li>
-          <li>extra instructies</li>
-          <li>goedkeuring suggesties</li>
-          <li>feedback op output</li>
+          <li>product · count · goal</li>
+          <li>extra instructions</li>
+          <li>approve suggestions</li>
+          <li>feedback on output</li>
         </ul>
       </div>
 
@@ -934,43 +934,43 @@
     <div class="step-arrow">
       <div class="arrow-track"></div>
       <div class="arrow-head"></div>
-      <div class="connector-label">pattern atoms + dag atom + brand atom + image_ref + user input</div>
+      <div class="connector-label">pattern atoms + day atom + brand atom + image_ref + user input</div>
     </div>
   </div>
 
-  <!-- ── LAAG 8: PLN AD SPECIFICATIES ── -->
+  <!-- ── LAYER 8: PLN AD SPECS ── -->
   <div class="layer">
     <div class="layer-header">
       <span class="layer-num">08</span>
-      <span class="layer-title">PLN — Ad specificaties ophalen</span>
+      <span class="layer-title">PLN — fetch ad specifications</span>
       <div class="layer-line"></div>
     </div>
     <div class="nodes">
 
       <div class="node c-purple wide">
-        <div class="node-label">PLN query op Atomspace</div>
-        <h3>PLN bepaalt wát er gegenereerd wordt</h3>
-        <p style="margin-top:6px">Gebruiker vraagt: "10 ads voor zilveren armband." PLN doorzoekt Atomspace op alle atoms die relevant zijn voor dit product, dit seizoen en deze dag. Sorteert op confidence score. Selecteert de sterkste bewezen combinaties én een set onderbelichte variaties met potentieel.</p>
+        <div class="node-label">PLN query on Atomspace</div>
+        <h3>PLN decides what gets generated</h3>
+        <p style="margin-top:6px">User asks: "10 ads for silver bracelet." PLN searches the Atomspace for all atoms relevant to this product, season and day. Sorts by confidence score. Selects the strongest proven combinations plus a set of underexplored variations with potential.</p>
         <div class="pattern-box" style="margin-top:10px">
-          <p style="font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Wat PLN teruggeeft — 10 ad specs</p>
-          <p><span>Ad 1–4</span><em> · bewezen combinaties · conf &gt;0.80 · lifestyle + model + weekend</em></p>
-          <p><span>Ad 5–7</span><em> · sterke variaties · conf 0.65–0.79 · lifestyle + product-shot</em></p>
-          <p><span>Ad 8–10</span><em> · onderbelicht potentieel · conf 0.50–0.64 · nieuwe combinatie testen</em></p>
+          <p style="font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">What PLN returns — 10 ad specs</p>
+          <p><span>Ads 1–4</span><em> · proven combinations · conf &gt;0.80 · lifestyle + model + weekend</em></p>
+          <p><span>Ads 5–7</span><em> · strong variations · conf 0.65–0.79 · lifestyle + product shot</em></p>
+          <p><span>Ads 8–10</span><em> · underexplored potential · conf 0.50–0.64 · test new combination</em></p>
         </div>
       </div>
 
       <div class="node c-gray">
         <div class="node-label">Per ad spec</div>
-        <h3>Inhoud van één spec</h3>
+        <h3>Contents of one spec</h3>
         <ul>
           <li>visual_style · setting</li>
           <li>hook_type · emotional_angle</li>
           <li>product focus · context</li>
-          <li>dag/seizoen context</li>
-          <li>brand kleuren · tone</li>
-          <li>image_ref (beste match)</li>
+          <li>day/season context</li>
+          <li>brand colors · tone</li>
+          <li>image_ref (best match)</li>
           <li>confidence score</li>
-          <li>basis-atoms (traceerbaar)</li>
+          <li>base atoms (traceable)</li>
         </ul>
       </div>
 
@@ -982,38 +982,38 @@
     <div class="step-arrow">
       <div class="arrow-track"></div>
       <div class="arrow-head"></div>
-      <div class="connector-label">10 ad specs → LLM voor tekstgeneratie</div>
+      <div class="connector-label">10 ad specs → LLM for text generation</div>
     </div>
   </div>
 
-  <!-- ── LAAG 9: LLM PROMPT GENERATIE ── -->
+  <!-- ── LAYER 9: LLM PROMPT GENERATION ── -->
   <div class="layer">
     <div class="layer-header">
       <span class="layer-num">09</span>
-      <span class="layer-title">LLM — Prompt generatie (alleen tekst)</span>
+      <span class="layer-title">LLM — prompt generation (text only)</span>
       <div class="layer-line"></div>
     </div>
     <div class="nodes">
 
       <div class="node c-amber wide">
-        <div class="node-label">Tekst generatie · geen creatieve beslissingen</div>
-        <h3>LLM zet ad specs om naar image prompts</h3>
-        <p style="margin-top:6px">De LLM krijgt per ad een strak gestructureerde spec van PLN. Zijn enige taak: die spec vertalen naar een gedetailleerde image prompt. Alle creatieve keuzes zijn al gemaakt door PLN. De LLM vult alleen de taal in.</p>
+        <div class="node-label">Text generation · no creative decisions</div>
+        <h3>LLM converts ad specs into image prompts</h3>
+        <p style="margin-top:6px">The LLM receives a tightly structured PLN spec for each ad. Its only task: translate that spec into a detailed image prompt. All creative choices have already been made by PLN. The LLM only fills in the language.</p>
         <div class="pattern-box" style="margin-top:10px">
-          <p style="font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Voorbeeld: spec → prompt</p>
-          <p><span>Spec</span><em> · lifestyle · strand · model · zilveren armband · warm-goud · zomer</em></p>
+          <p style="font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Example: spec → prompt</p>
+          <p><span>Spec</span><em> · lifestyle · beach · model · silver bracelet · warm gold · summer</em></p>
           <p><span>Prompt</span><em> · "Woman relaxing on sunlit beach, close-up of silver bracelet on wrist, warm golden tones, natural light, editorial style, soft background blur, luxury feel"</em></p>
         </div>
       </div>
 
       <div class="node c-gray">
-        <div class="node-label">Tevens gegenereerd</div>
+        <div class="node-label">Also generated</div>
         <h3>Ad copy per ad</h3>
         <ul>
-          <li>headline op basis van spec</li>
+          <li>headline based on spec</li>
           <li>body copy · tone of voice</li>
-          <li>CTA uit brand atom</li>
-          <li>alles traceerbaar naar spec</li>
+          <li>CTA from brand atom</li>
+          <li>everything traceable to spec</li>
         </ul>
       </div>
 
@@ -1025,60 +1025,60 @@
     <div class="step-arrow">
       <div class="arrow-track"></div>
       <div class="arrow-head"></div>
-      <div class="connector-label">10 prompts → verificatieloop</div>
+      <div class="connector-label">10 prompts → verification loop</div>
     </div>
   </div>
 
-  <!-- ── LAAG 10: VERIFICATIE LOOP 1 ── -->
+  <!-- ── LAYER 10: VERIFICATION LOOP 1 ── -->
   <div class="layer">
     <div class="layer-header">
       <span class="layer-num">10</span>
-      <span class="layer-title">Verificatieloop 1 — Prompt check</span>
+      <span class="layer-title">Verification loop 1 — prompt check</span>
       <div class="layer-line"></div>
     </div>
 
     <div class="nodes">
 
       <div class="node c-green">
-        <div class="node-label">Geautomatiseerde check</div>
-        <h3>Controle: volgt prompt de spec?</h3>
+        <div class="node-label">Automated check</div>
+        <h3>Check: does the prompt follow the spec?</h3>
         <ul>
-          <li>elk veld uit spec aanwezig?</li>
-          <li>geen toegevoegde elementen?</li>
-          <li>brand kleuren correct?</li>
+          <li>every spec field present?</li>
+          <li>no added elements?</li>
+          <li>brand colors correct?</li>
           <li>tone of voice correct?</li>
-          <li>geen hallucinaties in copy?</li>
+          <li>no hallucinations in copy?</li>
         </ul>
       </div>
 
       <div class="node c-green">
-        <div class="node-label">PLN variatie check</div>
-        <h3>Controle: zijn variaties correct gestuurd?</h3>
+        <div class="node-label">PLN variation check</div>
+        <h3>Check: are variations correctly steered?</h3>
         <ul>
-          <li>elke prompt uniek?</li>
-          <li>variaties binnen PLN-kaders?</li>
-          <li>confidence-verdeling correct?</li>
-          <li>geen overlap tussen ads?</li>
+          <li>every prompt unique?</li>
+          <li>variations within PLN bounds?</li>
+          <li>confidence distribution correct?</li>
+          <li>no overlap between ads?</li>
         </ul>
       </div>
 
       <div class="node c-coral">
-        <div class="node-label">Bij fout</div>
-        <h3>Afwijzing → hergeneratie</h3>
+        <div class="node-label">On failure</div>
+        <h3>Reject → regenerate</h3>
         <ul>
-          <li>falende prompt terug naar LLM</li>
-          <li>met exact de afwijkingsreden</li>
-          <li>max 2 pogingen per prompt</li>
-          <li>bij blijvende fout: flag voor user</li>
+          <li>failing prompt back to LLM</li>
+          <li>with the exact mismatch reason</li>
+          <li>max 2 retries per prompt</li>
+          <li>on persistent failure: flag for user</li>
         </ul>
       </div>
 
     </div>
 
-    <!-- Goedgekeurd badge -->
+    <!-- Approved badge -->
     <div class="feedback" style="margin-top:12px;border-color:rgba(21,128,61,0.3);background:rgba(21,128,61,0.04)">
       <div class="feedback-icon">✓</div>
-      <p><strong style="color:var(--green)">Goedgekeurd</strong> — alle 10 prompts voldoen aan de spec. Geen hallucinaties. Variaties binnen PLN-kaders. Klaar voor image generator.</p>
+      <p><strong style="color:var(--green)">Approved</strong> — all 10 prompts meet the spec. No hallucinations. Variations within PLN bounds. Ready for image generator.</p>
     </div>
   </div>
 
@@ -1087,11 +1087,11 @@
     <div class="step-arrow">
       <div class="arrow-track"></div>
       <div class="arrow-head"></div>
-      <div class="connector-label">goedgekeurde prompts → image generator</div>
+      <div class="connector-label">approved prompts → image generator</div>
     </div>
   </div>
 
-  <!-- ── LAAG 11: IMAGE GENERATOR ── -->
+  <!-- ── LAYER 11: IMAGE GENERATOR ── -->
   <div class="layer">
     <div class="layer-header">
       <span class="layer-num">11</span>
@@ -1101,19 +1101,19 @@
     <div class="nodes">
 
       <div class="node c-amber wide">
-        <div class="node-label">Generatie · bijv. DALL·E 3 of Midjourney API</div>
-        <h3>Image generator ontvangt goedgekeurde prompts</h3>
-        <p style="margin-top:6px">Elke goedgekeurde prompt + image_ref (stijlreferentie uit Atomspace) worden naar de image generator gestuurd. De image_ref stuurt de stijl — de prompt stuurt de inhoud. Output: 10 afbeeldingen, één per ad spec.</p>
+        <div class="node-label">Generation · e.g. DALL·E 3 or Midjourney API</div>
+        <h3>Image generator receives approved prompts</h3>
+        <p style="margin-top:6px">Each approved prompt + image_ref (style reference from Atomspace) is sent to the image generator. The image_ref drives the style — the prompt drives the content. Output: 10 images, one per ad spec.</p>
       </div>
 
       <div class="node c-gray">
-        <div class="node-label">Input per generatie</div>
-        <h3>Wat de generator krijgt</h3>
+        <div class="node-label">Input per generation</div>
+        <h3>What the generator receives</h3>
         <ul>
-          <li>gedetailleerde image prompt</li>
-          <li>image_ref als stijlreferentie</li>
-          <li>formaat · ratio (Meta specs)</li>
-          <li>brand kleurpalet als sturing</li>
+          <li>detailed image prompt</li>
+          <li>image_ref as style reference</li>
+          <li>format · ratio (Meta specs)</li>
+          <li>brand color palette as guidance</li>
         </ul>
       </div>
 
@@ -1125,15 +1125,15 @@
     <div class="step-arrow">
       <div class="arrow-track"></div>
       <div class="arrow-head"></div>
-      <div class="connector-label">gegenereerde afbeeldingen → verificatieloop 2</div>
+      <div class="connector-label">generated images → verification loop 2</div>
     </div>
   </div>
 
-  <!-- ── LAAG 12: VERIFICATIE LOOP 2 ── -->
+  <!-- ── LAYER 12: VERIFICATION LOOP 2 ── -->
   <div class="layer">
     <div class="layer-header">
       <span class="layer-num">12</span>
-      <span class="layer-title">Verificatieloop 2 — Afbeelding check</span>
+      <span class="layer-title">Verification loop 2 — image check</span>
       <div class="layer-line"></div>
     </div>
 
@@ -1141,35 +1141,35 @@
 
       <div class="node c-amber">
         <div class="node-label">Vision LLM scan</div>
-        <h3>Afbeelding → beschrijving</h3>
+        <h3>Image → description</h3>
         <ul>
-          <li>gegenereerde afbeelding inladen</li>
-          <li>vision LLM beschrijft wat er staat</li>
-          <li>zelfde methode als input pipeline</li>
-          <li>puur feitelijk · geen oordeel</li>
+          <li>load generated image</li>
+          <li>vision LLM describes what's there</li>
+          <li>same method as input pipeline</li>
+          <li>purely factual · no judgment</li>
         </ul>
       </div>
 
       <div class="node c-green">
-        <div class="node-label">PLN vergelijking</div>
-        <h3>Beschrijving vs. spec</h3>
+        <div class="node-label">PLN comparison</div>
+        <h3>Description vs. spec</h3>
         <ul>
           <li>vision output vs. PLN spec</li>
-          <li>alle vereiste elementen aanwezig?</li>
-          <li>geen ongewenste elementen?</li>
-          <li>stijl overeenkomstig image_ref?</li>
-          <li>brand kleuren correct?</li>
+          <li>all required elements present?</li>
+          <li>no unwanted elements?</li>
+          <li>style matches image_ref?</li>
+          <li>brand colors correct?</li>
         </ul>
       </div>
 
       <div class="node c-coral">
-        <div class="node-label">Bij afwijking</div>
-        <h3>Afwijzing → hergeneratie</h3>
+        <div class="node-label">On mismatch</div>
+        <h3>Reject → regenerate</h3>
         <ul>
-          <li>afbeelding terug naar generator</li>
-          <li>prompt aangescherpt op afwijking</li>
-          <li>max 2 pogingen per afbeelding</li>
-          <li>bij blijvende fout: flag voor user</li>
+          <li>image back to generator</li>
+          <li>prompt sharpened on mismatch</li>
+          <li>max 2 retries per image</li>
+          <li>on persistent failure: flag for user</li>
         </ul>
       </div>
 
@@ -1177,7 +1177,7 @@
 
     <div class="feedback" style="margin-top:12px;border-color:rgba(21,128,61,0.3);background:rgba(21,128,61,0.04)">
       <div class="feedback-icon">✓</div>
-      <p><strong style="color:var(--green)">Goedgekeurd</strong> — vision LLM bevestigt dat alle afbeeldingen overeenkomen met de PLN spec. Geen hallucinaties. Geen ongewenste elementen. Klaar voor output.</p>
+      <p><strong style="color:var(--green)">Approved</strong> — vision LLM confirms that all images match the PLN spec. No hallucinations. No unwanted elements. Ready for output.</p>
     </div>
   </div>
 
@@ -1189,56 +1189,56 @@
     </div>
   </div>
 
-  <!-- ── LAAG 13: OUTPUT ── -->
+  <!-- ── LAYER 13: OUTPUT ── -->
   <div class="layer">
     <div class="layer-header">
       <span class="layer-num">13</span>
-      <span class="layer-title">Output — klaar voor publicatie</span>
+      <span class="layer-title">Output — ready to publish</span>
       <div class="layer-line"></div>
     </div>
     <div class="nodes">
 
       <div class="node c-teal">
-        <div class="node-label">Tekst</div>
+        <div class="node-label">Text</div>
         <h3>Ad copy</h3>
         <ul>
           <li>headline · body · CTA</li>
           <li>on-brand tone of voice</li>
-          <li>traceerbaar naar atoms</li>
-          <li>confidence score zichtbaar</li>
+          <li>traceable to atoms</li>
+          <li>confidence score visible</li>
         </ul>
       </div>
 
       <div class="node c-teal">
-        <div class="node-label">Visueel</div>
-        <h3>Gegenereerde afbeelding</h3>
+        <div class="node-label">Visual</div>
+        <h3>Generated image</h3>
         <ul>
-          <li>geverifieerd door vision LLM</li>
-          <li>overeenkomstig PLN spec</li>
-          <li>in juist Meta formaat</li>
-          <li>klaar voor Ads Manager</li>
+          <li>verified by vision LLM</li>
+          <li>matches PLN spec</li>
+          <li>in correct Meta format</li>
+          <li>ready for Ads Manager</li>
         </ul>
       </div>
 
       <div class="node c-teal">
-        <div class="node-label">Strategie</div>
-        <h3>Timing advies</h3>
+        <div class="node-label">Strategy</div>
+        <h3>Timing advice</h3>
         <ul>
-          <li>startdag · looptijd</li>
-          <li>budget suggestie</li>
-          <li>doelgroep aanbeveling</li>
-          <li>verwachte ROAS + conf.</li>
+          <li>start day · duration</li>
+          <li>budget suggestion</li>
+          <li>target audience recommendation</li>
+          <li>expected ROAS + conf.</li>
         </ul>
       </div>
 
       <div class="node c-purple">
-        <div class="node-label">Transparantie</div>
-        <h3>Traceerbaarheid</h3>
+        <div class="node-label">Transparency</div>
+        <h3>Traceability</h3>
         <ul>
-          <li>welke atoms liggen eronder</li>
+          <li>which atoms underpin it</li>
           <li>confidence score per ad</li>
-          <li>reden van elke keuze</li>
-          <li>verificatie logs bewaard</li>
+          <li>reason for each choice</li>
+          <li>verification logs retained</li>
         </ul>
       </div>
 
@@ -1247,7 +1247,7 @@
     <!-- Feedback loop -->
     <div class="feedback" style="margin-top:16px">
       <div class="feedback-icon">↻</div>
-      <p><strong>Feedbackloop</strong> — na elke campagnecyclus stromen nieuwe Meta resultaten en Shopify conversies terug als nieuwe atoms. Patronen worden scherper, confidence scores groeien, verificatie wordt strenger. Hetzelfde dataformaat, dezelfde pipeline.</p>
+      <p><strong>Feedback loop</strong> — after each campaign cycle, new Meta results and Shopify conversions flow back as new atoms. Patterns sharpen, confidence scores grow, verification gets stricter. Same data format, same pipeline.</p>
     </div>
 
   </div>

@@ -1,125 +1,125 @@
-# Growth Engine — architectuur
+# Growth Engine — architecture
 
-**Versie:** v0.1 (POC)
-**Datum:** 2026-04-30
-**Status:** Levend document — wijzigingen via PR
+**Version:** v0.1 (POC)
+**Date:** 2026-04-30
+**Status:** Living document — change via PR
 
-> **Visueel diagram:** [`assets/growth_engine_architecture.html`](assets/growth_engine_architecture.html)
-> Open lokaal in browser voor de gekleurde, geanimeerde laag-voor-laag weergave.
+> **Visual diagram:** [`assets/growth_engine_architecture.html`](assets/growth_engine_architecture.html)
+> Open locally in a browser for the colored, animated layer-by-layer view.
 
-## Overzicht
+## Overview
 
-Growth Engine bestaat uit 13 lagen, gegroepeerd in drie fases:
+Growth Engine consists of 13 layers, grouped into three phases:
 
-1. **Input → Atomspace** (laag 1-5) — bronnen, verwerking, vision-LLM op input-ads, merge, ingest
-2. **Reasoning** (laag 6-8) — MeTTa/PLN redeneert continu, agent praat met user, PLN levert ad-specs
-3. **Generation + verificatie** (laag 9-13) — prompts, image-gen, twee verificatieloops, output + feedbackloop
+1. **Input → Atomspace** (layers 1-5) — sources, per-source processing, vision-LLM on input ads, merge, ingest
+2. **Reasoning** (layers 6-8) — MeTTa/PLN reasons continuously, agent talks to user, PLN produces ad specs
+3. **Generation + verification** (layers 9-13) — prompts, image generation, two verification loops, output + feedback loop
 
-## Eigenaarschap (per 2026-04-30)
+## Ownership (as of 2026-04-30)
 
-| Lagen | Onderwerp | Eigenaar |
+| Layers | Topic | Owner |
 |---|---|---|
-| 1-2 | Bronnen + verwerking per bron | **Robbin** (API's) |
-| 3 | Vision-LLM op input-ads | nog te bepalen — zie open vraag onderaan |
+| 1-2 | Sources + per-source processing | **Robbin** (APIs) |
+| 3 | Vision-LLM on input ads | TBD — see open question below |
 | 4-5 | Merge + Atomspace ingest | **Mubashir** (backend) |
 | 6 | MeTTa / PLN | **Mubashir** |
-| 7 | Agent-laag | nog te bepalen |
-| 8-13 | Ad-spec query → output | **Mubashir** + LLM-orchestratie |
+| 7 | Agent layer | TBD |
+| 8-13 | Ad-spec query → output | **Mubashir** + LLM orchestration |
 
-## Lagen in detail
+## Layers in detail
 
-### 01 — Bronnen
-Vijf input-bronnen voeden het systeem:
+### 01 — Sources
+Five input sources feed the system:
 
-- **Meta CSV** (Levi's bestaand `parse_meta_csv.py`): ad-id, creative-id, CTR, CPC, ROAS, spend, impressions, campaign, adset
-- **Meta API**: creative-id → image-url, headline, body, CTA. Inclusief downloaden van `.jpg` lokaal
-- **Shopify API**: orders per product, `utm_ad` per order, revenue, AOV, conversion-rate, return-rate, datum
-- **Weer + kalender**: Open-Meteo (gratis), Nager.Date feestdagen (historisch + live)
-- **Branding-input** (eenmalig, statisch): Shopify-scrape **of** brandboek-upload — kleuren, fonts, tone, logo, producten, prijsrange
+- **Meta CSV** (Levi's existing `parse_meta_csv.py`): ad-id, creative-id, CTR, CPC, ROAS, spend, impressions, campaign, adset
+- **Meta API**: creative-id → image-url, headline, body, CTA. Including downloading the `.jpg` locally
+- **Shopify API**: orders per product, `utm_ad` per order, revenue, AOV, conversion-rate, return-rate, date
+- **Weather + calendar**: Open-Meteo (free), Nager.Date holidays (historical + live)
+- **Brand input** (one-off, static): Shopify scrape **or** brand-book upload — colors, fonts, tone, logo, products, price range
 
-### 02 — Verwerking per bron
-Eén Python-script per bron, geen gedeelde base-class (per [ADR 0003](decisions/0003-import-architectuur.md)):
+### 02 — Per-source processing
+One Python script per source, no shared base class (per [ADR 0003](decisions/0003-import-architecture.md)):
 
-- `parse_meta_csv.py` — CSV → gestructureerde data per ad-id
+- `parse_meta_csv.py` — CSV → structured data per ad-id
 - `download_meta_creative.py` — image-url → `images/<ad_id>.jpg` (carousels: `<ad_id>_1.jpg` etc.)
 - `import_shopify.py` — utm-ad, product-id, revenue, AOV
-- `build_day_atom.py` — datum als sleutel, seizoen, dag-van-de-week, weer, feestdag (één atom per dag, gedeeld)
-- `parse_branding.py` — scrape of PDF → atoms via LLM
+- `build_day_atom.py` — date as key, season, day-of-week, weather, holiday (one shared atom per day)
+- `parse_branding.py` — scrape or PDF → atoms via LLM
 
-### 03 — Vision-LLM (input-ads)
-Elke input ad-afbeelding wordt eenmalig naar een vision-LLM gestuurd (GPT-4o Vision of Claude Sonnet) voor een **feitelijke beschrijving** — geen interpretatie, geen hooks, geen oordeel. Bij onduidelijke details: `"niet zichtbaar"` in plaats van raden. Output gaat in het creative-atom.
+### 03 — Vision-LLM (input ads)
+Each input ad image is sent once to a vision-LLM (GPT-4o Vision or Claude Sonnet) for a **factual description** — no interpretation, no hooks, no judgment. For unclear details: `"not visible"` instead of guessing. Output goes into the creative atom.
 
 ### 04 — Merge
-Eén Python-script voegt alle bronnen samen tot één record per ad. Drie sleutels:
+One Python script joins all sources into a single record per ad. Three keys:
 
-- `ad_id` — koppelt Meta CSV aan afbeelding en performance
-- `utm_ad` — koppelt Meta-ad aan Shopify-orders
-- `datum` — koppelt elke ad aan dag-atom voor temporele context
+- `ad_id` — links Meta CSV to image and performance
+- `utm_ad` — links Meta ad to Shopify orders
+- `date` — links each ad to the day-atom for temporal context
 
 ### 05 — Atomspace (Hyperon / MeTTa)
-Vijf atom-types:
+Five atom types:
 
-| Atom | Per | Inhoud |
+| Atom | Per | Contents |
 |---|---|---|
-| **Creative** | ad | ad-id, beschrijving (vision-LLM), headline, body, CTA, image-ref, datum |
-| **Performance** | ad | ad-id, CTR, CPC, ROAS, spend, impressions, campaign, adset, datum |
-| **Commerce** | ad → Shopify | ad-id, utm-ad, orders, revenue, conv-rate, AOV, product-id, datum |
-| **Day** | datum (gedeeld) | datum, seizoen, weer, temperatuur, feestdag, dag-van-de-week |
-| **Brand** | eenmalig, statisch | kleuren, fonts, tone, logo-ref, producten, prijsrange, doelgroep |
+| **Creative** | ad | ad-id, description (vision-LLM), headline, body, CTA, image-ref, date |
+| **Performance** | ad | ad-id, CTR, CPC, ROAS, spend, impressions, campaign, adset, date |
+| **Commerce** | ad → Shopify | ad-id, utm-ad, orders, revenue, conv-rate, AOV, product-id, date |
+| **Day** | date (shared) | date, season, weather, temperature, holiday, day-of-week |
+| **Brand** | one-off, static | colors, fonts, tone, logo-ref, products, price range, target audience |
 
-**Koppelingen:** `creative ↔ performance` via `ad_id` · `performance ↔ commerce` via `ad_id + utm_ad` · `alle atoms ↔ day` via `datum` · `commerce ↔ product` via `product_id`. Brand-atom staat **buiten PLN-analyse** — wordt pas actief bij output.
+**Links:** `creative ↔ performance` via `ad_id` · `performance ↔ commerce` via `ad_id + utm_ad` · `all atoms ↔ day` via `date` · `commerce ↔ product` via `product_id`. The brand atom is **outside the PLN analysis** — it only becomes active at output time.
 
-### 06 — MeTTa / PLN (redenering)
-Hyperon's probabilistische logica redeneert continu over alle atoms. Detecteert patronen, berekent confidence-scores, signaleert kansen, leert van elke campagnecyclus.
+### 06 — MeTTa / PLN (reasoning)
+Hyperon's probabilistic logic reasons continuously across all atoms. Detects patterns, computes confidence scores, surfaces opportunities, learns from each campaign cycle.
 
-Voorbeeldpatronen die PLN detecteert:
+Example patterns PLN detects:
 - `"lifestyle + weekend + winter"` → ROAS 3.8 · conf 0.79 · n=14
-- `"urgency + feestdag -3 dagen"` → CTR hoog maar conv laag · conf 0.71
-- `"Valentijn dag -10 starten"` → 40% hogere ROAS dan dag -3 · conf 0.84
+- `"urgency + holiday -3 days"` → CTR high but conv low · conf 0.71
+- `"Valentine day -10 start"` → 40% higher ROAS than day -3 · conf 0.84
 
 ### 07 — Agent (interface PLN ↔ user)
-Twee modi:
+Two modes:
 
-- **Proactief** — PLN signaleert kans, agent stuurt notificatie (push/email/in-app) inclusief reden + confidence
-- **Reactief** — user vraagt iets ("Genereer 10 ads voor zilveren armband"), agent antwoordt + suggereert relevante variaties
+- **Proactive** — PLN surfaces an opportunity, agent sends a notification (push/email/in-app) including reason + confidence
+- **Reactive** — user asks something ("Generate 10 ads for the silver bracelet"), agent answers + suggests relevant variations
 
-### 08 — PLN ad-specificaties
-PLN doorzoekt Atomspace bij user-verzoek, sorteert op confidence. Mengsel van bewezen winners en onderbelichte variaties:
+### 08 — PLN ad specifications
+On a user request, PLN searches the Atomspace and sorts by confidence. Mix of proven winners and underexplored variations:
 
-- Ads 1-4: bewezen combinaties (conf > 0.80)
-- Ads 5-7: sterke variaties (conf 0.65-0.79)
-- Ads 8-10: onderbelicht potentieel (conf 0.50-0.64)
+- Ads 1-4: proven combinations (conf > 0.80)
+- Ads 5-7: strong variations (conf 0.65-0.79)
+- Ads 8-10: underexplored potential (conf 0.50-0.64)
 
-Per spec: visual-style, setting, hook-type, emotional-angle, product-focus, dag/seizoen-context, brand kleuren/tone, image-ref, confidence, basis-atoms (traceerbaar).
+Per spec: visual-style, setting, hook-type, emotional-angle, product-focus, day/season-context, brand colors/tone, image-ref, confidence, base atoms (traceable).
 
-### 09 — LLM prompt-generatie
-LLM krijgt PLN-spec en zet die om naar een image-prompt + ad-copy. **Geen creatieve beslissingen** — die zijn al gemaakt. LLM vult alleen taal in.
+### 09 — LLM prompt generation
+The LLM receives a PLN spec and converts it into an image prompt + ad copy. **No creative decisions** — those are already made. The LLM only fills in the language.
 
-### 10 — Verificatieloop 1 (prompt-check)
-Geautomatiseerde check: volgt prompt de spec? Brand-kleuren correct? Geen toegevoegde elementen? Geen hallucinaties in copy? Variaties uniek en binnen PLN-kaders? Bij fout: max 2 retries, daarna flag voor user.
+### 10 — Verification loop 1 (prompt check)
+Automated check: does the prompt follow the spec? Brand colors correct? No added elements? No hallucinations in copy? Variations unique and within PLN bounds? On failure: max 2 retries, then flag for the user.
 
 ### 11 — Image generator
-Goedgekeurde prompts + image-ref (stijl-referentie) → image-generator (DALL·E 3 / Midjourney API / Imagen). Output: 10 afbeeldingen.
+Approved prompts + image-ref (style reference) → image generator (DALL·E 3 / Midjourney API / Imagen). Output: 10 images.
 
-### 12 — Verificatieloop 2 (afbeelding-check)
-Vision-LLM scant gegenereerde afbeelding, PLN vergelijkt met spec. Alle vereiste elementen aanwezig? Stijl matched image-ref? Brand-kleuren correct? Bij afwijking: prompt aangescherpt en retry.
+### 12 — Verification loop 2 (image check)
+Vision-LLM scans the generated image, PLN compares to the spec. All required elements present? Style matches the image-ref? Brand colors correct? On mismatch: prompt sharpened and retry.
 
 ### 13 — Output
-Vier outputs per gegenereerde ad:
-- **Ad-copy** (headline, body, CTA, on-brand)
-- **Afbeelding** (geverifieerd, in Meta-formaat)
-- **Timing-advies** (startdag, looptijd, budget, doelgroep, verwachte ROAS)
-- **Traceerbaarheid** (welke atoms eronder liggen, confidence per ad, verificatie-logs)
+Four outputs per generated ad:
+- **Ad copy** (headline, body, CTA, on-brand)
+- **Image** (verified, in Meta format)
+- **Timing advice** (start day, duration, budget, target audience, expected ROAS)
+- **Traceability** (which atoms underpin it, confidence per ad, verification logs)
 
-**Feedbackloop:** na elke campagnecyclus stromen nieuwe Meta-resultaten en Shopify-conversies terug als nieuwe atoms. Patronen worden scherper, confidence-scores groeien.
+**Feedback loop:** after each campaign cycle, new Meta results and Shopify conversions flow back as new atoms. Patterns sharpen, confidence scores grow.
 
-## Open vragen (te bespreken)
+## Open questions (to discuss)
 
-1. **Vision-LLM op input-ads (laag 3) — wie?** Technisch een input-stap, maar al LLM-werk. Robbin of Mubashir?
-2. **Agent-laag (laag 7) — wie?** Notificatie-engine + chat-interface raakt zowel backend (PLN-trigger) als frontend.
-3. **Wat ADR 0003 mist:** dit diagram voegt Weer/Kalender, Branding én Vision-LLM toe als bronnen. Update ADR 0003 of schrijf ADR 0004 met de uitgebreide scope.
-4. **Live-pipeline (Robbin → Mubashir handover):** waar landen atoms zodat Mubashir ze kan ingesten? Bucket / DB / API. Dit is de hardste contract-grens. ADR 0004 (data-runtime) zou hier over gaan.
+1. **Vision-LLM on input ads (layer 3) — who owns it?** Technically an input step, but already LLM work. Robbin or Mubashir?
+2. **Agent layer (layer 7) — who owns it?** Notification engine + chat interface touches both backend (PLN trigger) and frontend.
+3. **What ADR 0003 misses:** this diagram adds Weather/Calendar, Branding and Vision-LLM as sources. Update ADR 0003 or write a new ADR for the expanded scope.
+4. **Live pipeline (Robbin → Mubashir handover):** where do atoms land so Mubashir can ingest them? Bucket / DB / API. This is the hardest contract boundary. The next ADR (data runtime) should cover this.
 
-## Geschiedenis
+## History
 
-- **2026-04-30** — eerste versie, op basis van Levi's HTML-mockup van dezelfde datum
+- **2026-04-30** — first version, based on Levi's HTML mockup of the same date
