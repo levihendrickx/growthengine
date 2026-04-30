@@ -5,18 +5,21 @@
 
 import express from 'express';
 import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
+import { readdir, readFile } from 'fs/promises';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const ATOMS_DIR = join(__dirname, '..', 'atoms', 'performance');
 
 const app  = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8001;
 
 app.use(cors());
 app.use(express.json());
@@ -122,6 +125,114 @@ Return ALLEEN de JSON array van ${count} objecten.`;
 
   } catch (err) {
     console.error('[Claude API fout]', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── PLN spec generatie (gpt-4o-mini) ─────────────────────────
+app.post('/api/pln-spec', async (req, res) => {
+  const { product, context, creativeAtoms = [], commerceAtoms = [] } = req.body;
+
+  if (!process.env.OPENAI_API_KEY) {
+    return res.status(500).json({ success: false, error: 'OPENAI_API_KEY niet ingesteld' });
+  }
+
+  let performanceAtoms = [];
+  try {
+    const files = await readdir(ATOMS_DIR);
+    performanceAtoms = await Promise.all(
+      files.filter(f => f.endsWith('.json'))
+           .map(async f => JSON.parse(await readFile(join(ATOMS_DIR, f), 'utf-8')))
+    );
+  } catch { /* atoms map bestaat nog niet */ }
+
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      max_tokens: 1024,
+      response_format: { type: 'json_object' },
+      messages: [
+        {
+          role: 'system',
+          content: `Je bent een PLN reasoning engine voor advertentie-optimalisatie. Analyseer Atomspace data en geef ALLEEN een JSON object terug met: elements (array), style, tone, hook, expected_roas (number), expected_cpc (number), confidence (number 0-1), reasoning (string), top_patterns (array van {formula, roas, confidence, n}).`,
+        },
+        {
+          role: 'user',
+          content: `Product: ${product}\nContext: ${context}\nPerformance atoms: ${JSON.stringify(performanceAtoms)}\nCreative atoms: ${JSON.stringify(creativeAtoms.slice(0, 5))}\nCommerce atoms: ${JSON.stringify(commerceAtoms.slice(0, 3))}\n\nVoer PLN Modus Ponens uit: welke visuele elementen + context correleren met ROAS>3.5 en CPC<€1.00?`,
+        },
+      ],
+    });
+
+    const spec = JSON.parse(completion.choices[0].message.content);
+    res.json({ success: true, spec, performanceAtoms });
+  } catch (err) {
+    console.error('[PLN spec fout]', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── DALL-E 3 beeld generatie ──────────────────────────────────
+app.post('/api/generate-image', async (req, res) => {
+  const { prompt } = req.body;
+
+  if (!process.env.OPENAI_API_KEY) {
+    return res.status(500).json({ success: false, error: 'OPENAI_API_KEY niet ingesteld in .env' });
+  }
+
+  try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const result = await openai.images.generate({
+      model: 'dall-e-3',
+      prompt,
+      n: 1,
+      size: '1024x1024',
+      response_format: 'b64_json',
+    });
+
+    res.json({
+      success: true,
+      imageBase64: result.data[0].b64_json,
+      mimeType: 'image/png',
+    });
+  } catch (err) {
+    console.error('[DALL-E fout]', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── gpt-4o-mini Vision verificatie ───────────────────────────
+app.post('/api/verify-image', async (req, res) => {
+  const { imageBase64, mimeType = 'image/png', specElements = [] } = req.body;
+
+  if (!process.env.OPENAI_API_KEY) {
+    return res.status(500).json({ success: false, error: 'OPENAI_API_KEY niet ingesteld' });
+  }
+
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      max_tokens: 512,
+      response_format: { type: 'json_object' },
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } },
+          {
+            type: 'text',
+            text: `Check which of these elements are present in the image: ${JSON.stringify(specElements)}. Return ONLY JSON: {"matched": bool, "matchPercent": number, "elementCheck": {"element": bool, ...}, "missing": [], "corrections": "short English correction prompt"}`,
+          },
+        ],
+      }],
+    });
+
+    const data = JSON.parse(completion.choices[0].message.content);
+    res.json({ success: true, ...data });
+  } catch (err) {
+    console.error('[Verificatie fout]', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });

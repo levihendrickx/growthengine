@@ -201,7 +201,7 @@ function navigate(page) {
 function renderPage(page) {
   const el = $('#page-container');
   el.innerHTML = '';
-  const map = { home:renderHome, dashboard:renderDashboard, bronnen:renderBronnen, atomspace:renderAtomspace, pln:renderPLN, genereren:renderGenereren, output:renderOutput };
+  const map = { home:renderHome, dashboard:renderDashboard, bronnen:renderBronnen, atomspace:renderAtomspace, pln:renderPLN, pipeline:renderPipeline, genereren:renderGenereren, output:renderOutput };
   if (map[page]) map[page](el);
 }
 
@@ -1465,6 +1465,526 @@ function wdStep(n, iconSvg, title, desc) {
     <div class="wd-step-title">${title}</div>
     <div class="wd-step-desc">${desc}</div>
   </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PAGE — PIPELINE (7-fase ad generatie architectuur)
+// ═══════════════════════════════════════════════════════════════
+function renderPipeline(el) {
+  // Pipeline state (local to this page render)
+  const ps = {
+    step: 0,           // 0=idle, 1=atoms, 2=input, 3=spec, 4=concepts, 5=images, 6=verify, 7=done
+    performanceAtoms: [],
+    product: '',
+    context: '',
+    spec: null,
+    concepts: [],
+    generatedAds: [],  // { concept, imageBase64, mimeType, verified, iterations }
+  };
+
+  el.innerHTML = `
+  <div class="page-header fade">
+    <div class="page-title">Pipeline</div>
+    <div class="page-sub">7-fase ad generatie · PLN + Atomspace + Gemini · OmegaClaw</div>
+  </div>
+  <div class="page-content">
+    <div id="pl-stepper" class="pl-stepper">
+      ${[
+        'Bronnen laden',
+        'Advertiser input',
+        'PLN spec',
+        'Concepten',
+        'Beeld generatie',
+        'Verificatie loop',
+        'Output',
+      ].map((label, i) => `
+        <div class="pl-step" id="pl-step-${i+1}">
+          <div class="pl-step-num">${i+1}</div>
+          <div class="pl-step-label">${label}</div>
+        </div>
+        ${i < 6 ? '<div class="pl-step-connector"></div>' : ''}
+      `).join('')}
+    </div>
+
+    <div id="pl-body" class="pl-body">
+      <div id="pl-phase-1" class="pl-phase active">
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Fase 1 — Bronnen laden</div></div>
+          <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">
+            Laadt echte Meta Ads performance atoms van schijf (<code>atoms/performance/*.json</code>) gegenereerd vanuit de Meta CSV export.
+          </p>
+          <button class="btn-primary" id="pl-load-atoms">Atoms laden ↓</button>
+          <div id="pl-atoms-result" style="margin-top:16px"></div>
+        </div>
+      </div>
+
+      <div id="pl-phase-2" class="pl-phase" style="display:none">
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Fase 2 — Advertiser input</div></div>
+          <div style="display:grid;gap:12px">
+            <div>
+              <label class="form-label">Product / collectie</label>
+              <input id="pl-product" class="form-input" placeholder="bijv. Zilveren armband collectie, €39–€89" value="Zilveren armband collectie, €39–€89"/>
+            </div>
+            <div>
+              <label class="form-label">Periode + context</label>
+              <input id="pl-context" class="form-input" placeholder="bijv. Week 24, zomer, zonnige voorspelling" value="Week 24, zomer, zonnige voorspelling"/>
+            </div>
+            <button class="btn-primary" id="pl-run-pln">PLN analyse uitvoeren →</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="pl-phase-3" class="pl-phase" style="display:none">
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Fase 3 — PLN formele specificatie</div></div>
+          <div id="pl-spec-box"></div>
+          <button class="btn-primary" id="pl-gen-concepts" style="margin-top:16px">10 concepten genereren →</button>
+        </div>
+      </div>
+
+      <div id="pl-phase-4" class="pl-phase" style="display:none">
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Fase 4 — Advertentie concepten (LLM)</div></div>
+          <div id="pl-concepts-list"></div>
+          <button class="btn-primary" id="pl-gen-images" style="margin-top:16px;display:none">Beelden genereren met Gemini →</button>
+        </div>
+      </div>
+
+      <div id="pl-phase-5" class="pl-phase" style="display:none">
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Fase 5 — Gemini beeld generatie</div></div>
+          <div id="pl-images-grid" class="pl-images-grid"></div>
+          <button class="btn-primary" id="pl-start-verify" style="margin-top:16px;display:none">Verificatie loop starten →</button>
+        </div>
+      </div>
+
+      <div id="pl-phase-6" class="pl-phase" style="display:none">
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Fase 6 — Verificatie feedback loop</div></div>
+          <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">
+            Vision model decompose → PLN vergelijkt met spec → corrigeert tot 100% match.
+          </p>
+          <div id="pl-verify-list"></div>
+          <button class="btn-primary" id="pl-to-output" style="margin-top:16px;display:none">Naar output →</button>
+        </div>
+      </div>
+
+      <div id="pl-phase-7" class="pl-phase" style="display:none">
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Fase 7 — Geverifieerde advertenties</div></div>
+          <div id="pl-final-output"></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  addPipelineStyles();
+  bindPipelineEvents(el, ps);
+}
+
+function addPipelineStyles() {
+  if (document.getElementById('pl-styles')) return;
+  const s = document.createElement('style');
+  s.id = 'pl-styles';
+  s.textContent = `
+    .pl-stepper { display:flex; align-items:center; gap:0; margin-bottom:24px; overflow-x:auto; padding:4px 0 12px; }
+    .pl-step { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:80px; }
+    .pl-step-num { width:32px; height:32px; border-radius:50%; border:2px solid rgba(255,255,255,0.12); display:flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:12px; color:var(--text-muted); transition:.3s; }
+    .pl-step.done .pl-step-num { background:var(--green); border-color:var(--green); color:#fff; }
+    .pl-step.active .pl-step-num { border-color:var(--purple); color:var(--purple); box-shadow:0 0 0 3px rgba(109,40,217,.15); }
+    .pl-step-label { font-size:10px; color:var(--text-muted); text-align:center; white-space:nowrap; }
+    .pl-step.active .pl-step-label { color:var(--purple); }
+    .pl-step.done .pl-step-label { color:var(--green); }
+    .pl-step-connector { flex:1; height:2px; background:rgba(255,255,255,0.08); min-width:16px; }
+    .pl-body { display:flex; flex-direction:column; gap:16px; }
+    .pl-phase { display:flex; flex-direction:column; gap:12px; }
+    .pl-spec-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px; }
+    .pl-spec-label { color:var(--text-muted); }
+    .pl-spec-val { color:var(--text); font-family:'DM Mono',monospace; }
+    .pl-elem-tag { display:inline-block; padding:2px 8px; border-radius:4px; background:rgba(93,202,165,.12); border:1px solid rgba(93,202,165,.2); color:#5DCAA5; font-size:11px; margin:2px; }
+    .pl-concept { padding:12px; border:1px solid rgba(255,255,255,0.07); border-radius:8px; margin-bottom:8px; font-size:13px; }
+    .pl-concept-head { font-weight:600; color:var(--text); margin-bottom:4px; }
+    .pl-concept-body { color:var(--text-muted); margin-bottom:4px; }
+    .pl-concept-meta { font-family:'DM Mono',monospace; font-size:11px; color:var(--text-muted); }
+    .pl-images-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; }
+    .pl-img-card { border:1px solid rgba(255,255,255,0.07); border-radius:8px; overflow:hidden; background:rgba(255,255,255,0.02); }
+    .pl-img-placeholder { height:140px; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text-muted); flex-direction:column; gap:6px; }
+    .pl-img-thumb { width:100%; height:140px; object-fit:cover; }
+    .pl-img-label { padding:8px; font-size:11px; color:var(--text-muted); font-family:'DM Mono',monospace; }
+    .pl-verify-item { border:1px solid rgba(255,255,255,0.07); border-radius:8px; padding:12px; margin-bottom:8px; }
+    .pl-verify-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:13px; font-weight:600; }
+    .pl-check-list { display:flex; flex-wrap:wrap; gap:6px; font-size:12px; }
+    .pl-check-ok { color:#5DCAA5; }
+    .pl-check-fail { color:#E24B4A; }
+    .pl-iter { font-family:'DM Mono',monospace; font-size:11px; color:var(--text-muted); margin-top:6px; }
+    .pl-verified-badge { padding:2px 8px; border-radius:4px; font-size:11px; font-family:'DM Mono',monospace; }
+    .pl-verified-badge.ok { background:rgba(93,202,165,.12); color:#5DCAA5; border:1px solid rgba(93,202,165,.2); }
+    .pl-verified-badge.pending { background:rgba(239,159,39,.1); color:#EF9F27; border:1px solid rgba(239,159,39,.2); }
+    .pl-final-ad { border:1px solid rgba(93,202,165,.2); border-radius:10px; padding:14px; margin-bottom:12px; display:grid; grid-template-columns:140px 1fr; gap:14px; align-items:start; }
+    .pl-final-img { width:140px; height:140px; object-fit:cover; border-radius:6px; background:rgba(255,255,255,0.03); }
+    .pl-final-img-ph { width:140px; height:140px; border-radius:6px; background:rgba(255,255,255,0.03); display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text-muted); }
+    .pl-proof { font-family:'DM Mono',monospace; font-size:10px; color:rgba(93,202,165,.6); margin-top:6px; }
+    .pl-atoms-table { width:100%; border-collapse:collapse; font-size:12px; }
+    .pl-atoms-table th { text-align:left; padding:6px 8px; color:var(--text-muted); font-weight:500; border-bottom:1px solid rgba(255,255,255,0.07); }
+    .pl-atoms-table td { padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.04); font-family:'DM Mono',monospace; }
+    .pl-spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.1); border-top-color:var(--purple); border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .conf-bar { height:4px; border-radius:2px; background:rgba(255,255,255,0.08); margin-top:4px; overflow:hidden; }
+    .conf-bar-fill { height:100%; border-radius:2px; background:var(--green); transition:width .8s ease; }
+    .form-label { display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; }
+    .form-input { width:100%; padding:8px 12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:var(--text); font-size:13px; outline:none; }
+    .form-input:focus { border-color:var(--purple); }
+  `;
+  document.head.appendChild(s);
+}
+
+function bindPipelineEvents(el, ps) {
+  function setStep(n) {
+    ps.step = n;
+    el.querySelectorAll('.pl-step').forEach((s, i) => {
+      s.classList.toggle('done', i + 1 < n);
+      s.classList.toggle('active', i + 1 === n);
+    });
+  }
+
+  function showPhase(n) {
+    el.querySelectorAll('.pl-phase').forEach((p, i) => {
+      p.style.display = (i + 1 === n) ? '' : 'none';
+    });
+    setStep(n);
+  }
+
+  // ── Phase 1: load atoms ───────────────────────────────────────
+  el.querySelector('#pl-load-atoms').addEventListener('click', async () => {
+    const btn = el.querySelector('#pl-load-atoms');
+    const result = el.querySelector('#pl-atoms-result');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="pl-spinner"></span> Laden…';
+
+    try {
+      // Trigger a lightweight PLN spec call just to get the performanceAtoms back
+      const r = await fetch('/api/pln-spec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product: '__probe__', context: '__probe__', creativeAtoms: [], commerceAtoms: [] }),
+      });
+      const data = await r.json();
+      ps.performanceAtoms = data.performanceAtoms || [];
+
+      if (ps.performanceAtoms.length === 0) {
+        result.innerHTML = `<p style="color:var(--amber);font-size:13px">⚠ Geen atoms gevonden. Voer eerst <code>py scripts/parse_meta_csv.py sample_data/meta_export.csv</code> uit.</p>`;
+        btn.disabled = false;
+        btn.textContent = 'Atoms laden ↓';
+        return;
+      }
+
+      result.innerHTML = `
+        <p style="color:#5DCAA5;font-size:13px;margin-bottom:10px">✓ ${ps.performanceAtoms.length} performance atoms geladen</p>
+        <table class="pl-atoms-table">
+          <tr><th>ad_id</th><th>ROAS</th><th>CPC</th><th>CTR</th><th>spend</th><th>campagne</th></tr>
+          ${ps.performanceAtoms.map(a => `
+            <tr>
+              <td>${a.ad_id}</td>
+              <td style="color:${a.ROAS >= 4 ? '#5DCAA5' : a.ROAS >= 2.5 ? '' : '#E24B4A'}">${a.ROAS}</td>
+              <td>€${a.CPC}</td>
+              <td>${(a.CTR * 100).toFixed(1)}%</td>
+              <td>€${a.spend}</td>
+              <td>${a.campagne}</td>
+            </tr>`).join('')}
+        </table>
+        <button class="btn-primary" id="pl-next-1" style="margin-top:14px">Doorgaan naar advertiser input →</button>`;
+
+      el.querySelector('#pl-next-1').addEventListener('click', () => showPhase(2));
+
+    } catch (e) {
+      result.innerHTML = `<p style="color:#E24B4A;font-size:13px">Fout: ${e.message}</p>`;
+      btn.disabled = false;
+      btn.textContent = 'Atoms laden ↓';
+    }
+  });
+
+  // ── Phase 2 → 3: run PLN spec ─────────────────────────────────
+  el.querySelector('#pl-run-pln').addEventListener('click', async () => {
+    const btn = el.querySelector('#pl-run-pln');
+    ps.product = el.querySelector('#pl-product').value.trim() || 'Sieraden';
+    ps.context = el.querySelector('#pl-context').value.trim() || 'Zomer';
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="pl-spinner"></span> PLN analyseert…';
+    showPhase(3);
+
+    const specBox = el.querySelector('#pl-spec-box');
+    specBox.innerHTML = `<div style="color:var(--text-muted);font-size:13px"><span class="pl-spinner"></span> PLN doorzoekt Atomspace…</div>`;
+
+    try {
+      const r = await fetch('/api/pln-spec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product: ps.product,
+          context: ps.context,
+          creativeAtoms: ATOMS.creative,
+          commerceAtoms: ATOMS.commerce,
+        }),
+      });
+      const data = await r.json();
+      if (!data.success) throw new Error(data.error);
+      ps.spec = data.spec;
+
+      specBox.innerHTML = `
+        <div class="pl-spec-row"><span class="pl-spec-label">Visuele elementen</span><span>${ps.spec.elements.map(e => `<span class="pl-elem-tag">${e}</span>`).join('')}</span></div>
+        <div class="pl-spec-row"><span class="pl-spec-label">Stijl</span><span class="pl-spec-val">${ps.spec.style}</span></div>
+        <div class="pl-spec-row"><span class="pl-spec-label">Toon</span><span class="pl-spec-val">${ps.spec.tone}</span></div>
+        <div class="pl-spec-row"><span class="pl-spec-label">Hook type</span><span class="pl-spec-val">${ps.spec.hook}</span></div>
+        <div class="pl-spec-row">
+          <span class="pl-spec-label">Verwachte ROAS</span>
+          <span class="pl-spec-val" style="color:#5DCAA5">${ps.spec.expected_roas}× <small style="color:var(--text-muted)">(conf: ${(ps.spec.confidence * 100).toFixed(0)}%)</small></span>
+        </div>
+        <div class="pl-spec-row"><span class="pl-spec-label">Verwachte CPC</span><span class="pl-spec-val">€${ps.spec.expected_cpc}</span></div>
+        <div style="margin-top:10px;padding:10px;background:rgba(93,202,165,.05);border-radius:6px;border:1px solid rgba(93,202,165,.1)">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">PLN redenering</div>
+          <div style="font-size:12px;color:var(--text)">${ps.spec.reasoning}</div>
+          <div class="conf-bar" style="margin-top:8px"><div class="conf-bar-fill" style="width:${ps.spec.confidence * 100}%"></div></div>
+        </div>
+        <div style="margin-top:10px">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">Top patronen</div>
+          ${(ps.spec.top_patterns || []).map(p => `
+            <div style="font-size:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+              <span style="color:var(--text)">${p.formula}</span>
+              <span style="float:right;font-family:'DM Mono',monospace;color:#5DCAA5">ROAS ${p.roas} · conf ${(p.confidence * 100).toFixed(0)}% · n=${p.n}</span>
+            </div>`).join('')}
+        </div>`;
+
+    } catch (e) {
+      specBox.innerHTML = `<p style="color:#E24B4A;font-size:13px">PLN fout: ${e.message}</p>`;
+    }
+    btn.disabled = false;
+    btn.textContent = 'PLN analyse uitvoeren →';
+  });
+
+  // ── Phase 3 → 4: generate concepts ───────────────────────────
+  el.querySelector('#pl-gen-concepts').addEventListener('click', async () => {
+    const btn = el.querySelector('#pl-gen-concepts');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="pl-spinner"></span> Claude genereert concepten…';
+    showPhase(4);
+
+    const list = el.querySelector('#pl-concepts-list');
+    list.innerHTML = `<div style="color:var(--text-muted);font-size:13px"><span class="pl-spinner"></span> LLM genereert 10 advertentie concepten…</div>`;
+
+    try {
+      const patterns = ps.spec ? ps.spec.top_patterns || [] : PATTERNS.slice(0, 3);
+      const r = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product: ps.product,
+          count: 10,
+          instructions: `Visuele spec: ${ps.spec ? ps.spec.elements.join(', ') : ''}. Stijl: ${ps.spec ? ps.spec.style : ''}`,
+          patterns,
+          brandAtom: ATOMS.brand,
+        }),
+      });
+      const data = await r.json();
+      if (!data.success) throw new Error(data.error);
+      ps.concepts = data.ads;
+
+      list.innerHTML = ps.concepts.map((c, i) => `
+        <div class="pl-concept">
+          <div class="pl-concept-head">${i + 1}. ${c.headline}</div>
+          <div class="pl-concept-body">${c.body}</div>
+          <div class="pl-concept-meta">CTA: ${c.cta} · ROAS: ${c.expected_roas} · conf: ${(c.confidence * 100).toFixed(0)}%</div>
+          <div class="pl-concept-meta" style="margin-top:4px;font-size:10px">🖼 ${c.image_prompt}</div>
+        </div>`).join('');
+
+      el.querySelector('#pl-gen-images').style.display = '';
+    } catch (e) {
+      list.innerHTML = `<p style="color:#E24B4A;font-size:13px">Fout: ${e.message}</p>`;
+    }
+    btn.disabled = false;
+    btn.textContent = '10 concepten genereren →';
+  });
+
+  // ── Phase 4 → 5: generate images ─────────────────────────────
+  el.querySelector('#pl-gen-images').addEventListener('click', async () => {
+    const btn = el.querySelector('#pl-gen-images');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="pl-spinner"></span> Gemini genereert beelden…';
+    showPhase(5);
+
+    const grid = el.querySelector('#pl-images-grid');
+    // Render placeholders
+    grid.innerHTML = ps.concepts.map((c, i) => `
+      <div class="pl-img-card" id="pl-imgcard-${i}">
+        <div class="pl-img-placeholder"><span class="pl-spinner"></span><span>Genereren…</span></div>
+        <div class="pl-img-label">${i + 1}. ${c.headline.slice(0, 22)}…</div>
+      </div>`).join('');
+
+    // Generate images sequentially to avoid rate limits
+    for (let i = 0; i < ps.concepts.length; i++) {
+      const card = el.querySelector(`#pl-imgcard-${i}`);
+      try {
+        const r = await fetch('/api/generate-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: ps.concepts[i].image_prompt }),
+        });
+        const data = await r.json();
+        if (data.success && data.imageBase64) {
+          card.querySelector('.pl-img-placeholder').outerHTML =
+            `<img class="pl-img-thumb" src="data:${data.mimeType};base64,${data.imageBase64}" alt="${ps.concepts[i].headline}"/>`;
+          ps.generatedAds[i] = { concept: ps.concepts[i], imageBase64: data.imageBase64, mimeType: data.mimeType, verified: false, iterations: 0 };
+        } else {
+          card.querySelector('.pl-img-placeholder').innerHTML = `<span style="color:#EF9F27">⚠ ${data.error || 'Geen beeld'}</span>`;
+          ps.generatedAds[i] = { concept: ps.concepts[i], imageBase64: null, mimeType: null, verified: false, iterations: 0 };
+        }
+      } catch (e) {
+        card.querySelector('.pl-img-placeholder').innerHTML = `<span style="color:#E24B4A">✗ ${e.message}</span>`;
+        ps.generatedAds[i] = { concept: ps.concepts[i], imageBase64: null, mimeType: null, verified: false, iterations: 0 };
+      }
+    }
+
+    el.querySelector('#pl-start-verify').style.display = '';
+    btn.disabled = false;
+    btn.textContent = 'Beelden genereren met Gemini →';
+  });
+
+  // ── Phase 5 → 6: verification loop ───────────────────────────
+  el.querySelector('#pl-start-verify').addEventListener('click', async () => {
+    showPhase(6);
+    const list = el.querySelector('#pl-verify-list');
+    const specElements = ps.spec ? ps.spec.elements : ['product', 'model', 'achtergrond'];
+
+    // Render all verify items
+    list.innerHTML = ps.generatedAds.map((ad, i) => `
+      <div class="pl-verify-item" id="pl-vitem-${i}">
+        <div class="pl-verify-head">
+          <span>${i + 1}. ${ad.concept.headline}</span>
+          <span class="pl-verified-badge pending" id="pl-vbadge-${i}">Wachten…</span>
+        </div>
+        <div class="pl-check-list" id="pl-vchecks-${i}">
+          ${specElements.map(e => `<span id="pl-vcheck-${i}-${e.replace(/\s/g,'_')}">◌ ${e}</span>`).join('')}
+        </div>
+        <div class="pl-iter" id="pl-viter-${i}"></div>
+      </div>`).join('');
+
+    for (let i = 0; i < ps.generatedAds.length; i++) {
+      const ad = ps.generatedAds[i];
+      const badge = el.querySelector(`#pl-vbadge-${i}`);
+      const iterEl = el.querySelector(`#pl-viter-${i}`);
+
+      if (!ad.imageBase64) {
+        badge.textContent = 'Overgeslagen';
+        badge.className = 'pl-verified-badge pending';
+        continue;
+      }
+
+      let currentBase64 = ad.imageBase64;
+      let currentMime = ad.mimeType;
+      let maxIter = 3;
+
+      for (let iter = 1; iter <= maxIter; iter++) {
+        iterEl.textContent = `Iteratie ${iter}/${maxIter}`;
+        badge.innerHTML = `<span class="pl-spinner"></span> Verificeren…`;
+
+        try {
+          const r = await fetch('/api/verify-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageBase64: currentBase64, mimeType: currentMime, specElements }),
+          });
+          const v = await r.json();
+
+          // Update checkmarks
+          specElements.forEach(e => {
+            const key = e.replace(/\s/g, '_');
+            const checkEl = el.querySelector(`#pl-vcheck-${i}-${key}`);
+            if (checkEl) {
+              const present = v.elementCheck && v.elementCheck[e] !== undefined
+                ? v.elementCheck[e]
+                : !v.missing?.includes(e);
+              checkEl.className = present ? 'pl-check-ok' : 'pl-check-fail';
+              checkEl.textContent = (present ? '✓ ' : '✗ ') + e;
+            }
+          });
+
+          if (v.matched || v.matchPercent >= 100) {
+            badge.textContent = `✓ 100% match`;
+            badge.className = 'pl-verified-badge ok';
+            ad.verified = true;
+            ad.iterations = iter;
+            iterEl.textContent = `Goedgekeurd na ${iter} iteratie(s)`;
+            break;
+          } else if (iter < maxIter) {
+            // Regenerate with correction
+            iterEl.textContent = `Iteratie ${iter}/${maxIter} — corrigeren: ${v.corrections || v.missing?.join(', ')}`;
+            const correctionPrompt = `${ad.concept.image_prompt}. ${v.corrections || `Add: ${v.missing?.join(', ')}`}`;
+            try {
+              const ir = await fetch('/api/generate-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: correctionPrompt }),
+              });
+              const id = await ir.json();
+              if (id.success && id.imageBase64) {
+                currentBase64 = id.imageBase64;
+                currentMime = id.mimeType;
+                // Update thumbnail in phase 5
+                const thumb = el.querySelector(`#pl-imgcard-${i} img`);
+                if (thumb) thumb.src = `data:${currentMime};base64,${currentBase64}`;
+                ad.imageBase64 = currentBase64;
+                ad.mimeType = currentMime;
+              }
+            } catch { /* keep current image */ }
+          } else {
+            badge.textContent = `${v.matchPercent ?? '?'}% match`;
+            badge.className = 'pl-verified-badge pending';
+            ad.iterations = iter;
+          }
+        } catch (e) {
+          badge.textContent = `Fout`;
+          badge.className = 'pl-verified-badge pending';
+          break;
+        }
+      }
+    }
+
+    el.querySelector('#pl-to-output').style.display = '';
+  });
+
+  // ── Phase 6 → 7: final output ────────────────────────────────
+  el.querySelector('#pl-to-output').addEventListener('click', () => {
+    showPhase(7);
+    const out = el.querySelector('#pl-final-output');
+
+    out.innerHTML = `
+      <p style="color:#5DCAA5;font-size:13px;margin-bottom:16px">
+        ✓ ${ps.generatedAds.filter(a => a.verified).length} van ${ps.generatedAds.length} advertenties geverifieerd
+      </p>
+      ${ps.generatedAds.map((ad, i) => `
+        <div class="pl-final-ad">
+          ${ad.imageBase64
+            ? `<img class="pl-final-img" src="data:${ad.mimeType};base64,${ad.imageBase64}" alt="${ad.concept.headline}"/>`
+            : `<div class="pl-final-img-ph">Geen beeld</div>`}
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px">${ad.concept.headline}</div>
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">${ad.concept.body}</div>
+            <div style="font-size:12px;margin-bottom:4px"><strong>CTA:</strong> ${ad.concept.cta}</div>
+            <div style="font-size:12px;margin-bottom:4px">
+              <strong>Verwachte ROAS:</strong>
+              <span style="color:#5DCAA5">${ad.concept.expected_roas}×</span>
+              · conf: ${(ad.concept.confidence * 100).toFixed(0)}%
+            </div>
+            <div style="font-size:12px;margin-bottom:4px"><strong>Budget:</strong> ${ad.concept.budget}</div>
+            <div style="font-size:12px;margin-bottom:4px"><strong>Timing:</strong> ${ad.concept.timing}</div>
+            <div class="pl-proof">
+              PLN patroon: ${ad.concept.pattern_used} · atoms: ${(ad.concept.atoms_used || []).join(', ')}
+              ${ad.verified ? '· ✓ spec 100% match' : `· ${ad.iterations} iteraties`}
+            </div>
+          </div>
+        </div>`).join('')}`;
+  });
 }
 
 // ── API STATUS CHECK ──────────────────────────────────────────
