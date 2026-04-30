@@ -1,29 +1,27 @@
 # Growth Engine — Docs
 
-Productdocumentatie, beslissingen en notities. Tegelijk ook de **Obsidian-vault** voor Robbin.
+Product documentation, decisions and notes.
 
-## Structuur
+## Key documents
 
-| Map | Wat hoort hier |
+- [`architecture.md`](architecture.md) — system architecture, 13 layers, ownership. **Start here.**
+- [`assets/growth_engine_architecture.html`](assets/growth_engine_architecture.html) — visual diagram (open locally in browser)
+- [`decisions/`](decisions) — Architectural Decision Records (ADRs)
+
+## Structure
+
+| Folder | Contents |
 |---|---|
-| `notes/` | Losse notities, dagboekjes, ideeën. Bestandsnaam `YYYY-MM-DD-onderwerp.md`. |
-| `decisions/` | Architectural Decision Records (ADRs). Korte beslisnotities: *wat hebben we besloten en waarom*. Genummerd `0001-…`, `0002-…`. |
-| `specs/` | Productspecs en uitgewerkte features (later toe te voegen). |
-| `meetings/` | Verslagen van overleg met Levi en derden (later toe te voegen). |
+| `notes/` | Loose notes, journals, ideas. Filename: `YYYY-MM-DD-topic.md`. |
+| `decisions/` | ADRs. Short decision records: *what we decided and why*. Numbered `0001-…`, `0002-…`. |
+| `assets/` | Non-text resources: diagrams, mockups, images. |
+| `specs/` | Product specs and feature designs (to be added later). |
+| `meetings/` | Notes from syncs with Levi and others (to be added later). |
 
-## Werkwijze
+## Conventions
 
-- Schrijf in **Markdown** (`.md`). Werkt in Obsidian én is leesbaar op GitHub.
-- Eén onderwerp per bestand.
-- Wijzigingen volgen de normale Git-flow: `pull` → schrijven → `add` → `commit` → `push`.
-- Persoonlijke krabbels die niet voor Levi bedoeld zijn → niet hier opslaan.
-
-## Obsidian openen
-
-1. Open Obsidian
-2. **Open folder as vault** → wijs naar `growthengine/docs/`
-3. Schrijven en linken werkt direct (`[[bestandsnaam]]`-syntax voor interne links)
-
-Obsidian-instellingen worden lokaal bewaard in `.obsidian/` en zijn via `.gitignore` uitgesloten van de repo — iedereen kan z'n eigen voorkeuren hebben.
-
-[[2026-04-28-setup]]
+- Write in **Markdown** (`.md`). GitHub renders this nicely and it's readable in any editor.
+- Use standard markdown links: `[label](path/to/file.md)`. No wiki-link syntax (`[[...]]`) — that doesn't render on GitHub.
+- One topic per file.
+- Changes follow the PR flow ([ADR 0002](decisions/0002-pr-flow.md)) for anything bigger than a few lines.
+- **Language: English.** Both code, docs and commit messages — Mubashir is on the team and English is our shared language.

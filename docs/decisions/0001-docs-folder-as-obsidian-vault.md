@@ -1,30 +1,29 @@
-# 0001 — `docs/` als Obsidian-vault in de repo
+# 0001 — `docs/` folder in the repo
 
-**Datum:** 2026-04-28
-**Status:** Aanvaard
-**Beslissers:** Robbin
+**Date:** 2026-04-28
+**Status:** Partially superseded by [ADR 0004](0004-drop-obsidian-and-switch-to-english.md) (2026-04-30) — the *Obsidian-vault* part is dropped, the *`docs/` in the repo* part still stands.
+**Decided by:** Robbin
 
 ## Context
 
-Het Growth Engine team (Robbin + Levi) heeft een plek nodig voor productnotities, beslissingen, specs en overleggen. Drie opties stonden op tafel:
+The Growth Engine team (Robbin + Levi) needs a place for product notes, decisions, specs and meeting notes. Three options were on the table:
 
-- A. Aparte map buiten de repo
-- B. OneDrive-vault, alleen voor Robbin
-- C. **`docs/` map in de growthengine repo**
+- A. Separate folder outside the repo
+- B. OneDrive-vault, only for Robbin
+- C. **`docs/` folder inside the growthengine repo**
 
-## Beslissing
+## Decision
 
-Optie C: notities leven als Markdown-bestanden in `docs/` binnen de repo. Diezelfde map is tegelijk een Obsidian-vault.
+Option C: notes live as Markdown files in `docs/` inside the repo. Initially that folder doubled as an Obsidian vault — that part has been dropped (see ADR 0004).
 
-## Waarom
+## Why
 
-- **Eén bron van waarheid.** Code en context staan in dezelfde repo. Bij het lezen van een functie kun je de bijbehorende beslisnotitie ernaast vinden.
-- **Versiebeheerd.** Beslissingen zijn over 6 maanden nog terug te zoeken inclusief context (commit message, datum, wie). Cruciaal nu de POC-fase loopt.
-- **Gedeeld met Levi.** Hij ziet beslissingen op het moment dat ze gemaakt worden, niet pas in een vergadering.
-- **Markdown is niet duur.** Werkt in Obsidian, GitHub, VS Code, en elk ander tekstprogramma. Geen lock-in.
+- **Single source of truth.** Code and context live in the same repo. When reading a function you can find the matching decision note next to it.
+- **Versioned.** Decisions are still findable 6 months from now, including context (commit message, date, author). Crucial during the POC phase.
+- **Shared with Levi.** He sees decisions the moment they are made, not in some meeting later.
+- **Markdown is cheap.** Works in GitHub, VS Code, and any other text editor. No lock-in.
 
-## Gevolgen
+## Consequences
 
-- Persoonlijke krabbels (zonder context voor Levi) horen *niet* hier — die kunnen los, bv. in een aparte OneDrive-vault.
-- `.obsidian/` (vault-instellingen) is via `.gitignore` uitgesloten — ieder z'n eigen voorkeuren.
-- Bij grotere groei kunnen specs en meetings later naar eigen subfolders.
+- Personal scribbles (without context for the team) do *not* belong here — those can live elsewhere, e.g. in a separate OneDrive folder.
+- For larger scale, specs and meeting notes can later move to their own subfolders.
