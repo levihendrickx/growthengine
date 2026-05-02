@@ -773,6 +773,162 @@ button { cursor: pointer; font-family: var(--sans); }
 }
 
 /* ══════════════════════════════════════════════════════════
+   SECTION 1 — HERO (exact reference match, ge- prefix)
+   ══════════════════════════════════════════════════════════ */
+
+.lp-hero-v2 {
+  background: #ececec !important;
+  border-bottom: none !important;
+  padding: 48px 40px !important;
+}
+.lp-hero-inner-v2 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 56px !important;
+  align-items: start !important;
+  max-width: 1180px !important;
+  width: 100% !important;
+}
+
+/* ── Left column ── */
+.ge-left { padding-top: 8px; }
+
+.ge-eyebrow {
+  font-family: 'JetBrains Mono', 'DM Mono', ui-monospace, monospace;
+  font-size: 12px; font-weight: 500;
+  letter-spacing: 0.14em; color: #4a3aff;
+  text-transform: uppercase; margin: 0 0 28px 0;
+}
+.ge-eyebrow .ge-dot { opacity: .7; margin: 0 6px; }
+
+.ge-headline {
+  font-family: 'Inter', sans-serif;
+  font-size: 52px; line-height: 1.04;
+  letter-spacing: -0.025em; font-weight: 800;
+  color: #0b0b10; margin: 0 0 28px 0;
+}
+.ge-headline .ge-accent { color: #4a3aff; display: inline; }
+
+.ge-sub {
+  font-size: 16px; line-height: 1.55;
+  color: #4a4a55; max-width: 420px; margin: 0 0 32px 0;
+}
+
+.ge-cta-row { display: flex; align-items: center; gap: 18px; margin-bottom: 36px; }
+
+.ge-btn-primary {
+  appearance: none; border: 0;
+  background: #4a3aff; color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px; font-weight: 600;
+  padding: 14px 22px; border-radius: 10px; cursor: pointer;
+  box-shadow: 0 1px 0 rgba(255,255,255,.15) inset, 0 8px 20px -8px rgba(74,58,255,.55);
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.ge-btn-primary:hover { background: #3f30ee; transform: translateY(-1px); }
+.ge-btn-primary:active { transform: translateY(0); }
+
+.ge-meta { display: inline-flex; align-items: center; gap: 8px; color: #6b6b75; font-size: 14px; }
+.ge-meta svg { flex-shrink: 0; }
+
+.ge-why {
+  background: #fff; border: 1px solid #e6e6ea;
+  border-radius: 14px; padding: 18px 20px;
+  box-shadow: 0 1px 0 rgba(16,16,24,.03), 0 10px 24px -18px rgba(16,16,24,.18);
+  max-width: 420px;
+}
+.ge-why h3 { font-size: 14px; font-weight: 600; margin: 0 0 12px 0; color: #0b0b10; }
+.ge-why ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.ge-why li { display: flex; align-items: center; gap: 12px; font-size: 14px; color: #2a2a32; }
+.ge-why li .ge-ic {
+  width: 22px; height: 22px; color: #4a3aff;
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* ── Right — product card ── */
+.ge-product {
+  background: #fff; border-radius: 22px; padding: 14px;
+  box-shadow: 0 1px 0 rgba(16,16,24,.04), 0 30px 60px -30px rgba(16,16,24,.18), 0 12px 30px -18px rgba(16,16,24,.12);
+}
+
+.ge-hero-img {
+  border-radius: 14px; overflow: hidden;
+  height: 220px; background: #2a2f3a; position: relative;
+}
+.ge-hero-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.ge-steps {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  align-items: center; gap: 14px;
+  padding: 22px 8px 14px 8px;
+}
+.ge-step-title { font-size: 15px; font-weight: 600; color: #4a3aff; }
+.ge-step-arrow { color: #c9c9d3; }
+
+.ge-step-bodies {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 0; padding: 0 8px 18px 8px; align-items: start;
+}
+
+.ge-bars { display: grid; gap: 14px; padding-right: 18px; }
+.ge-bar-item .ge-label { font-size: 13px; color: #2a2a32; margin-bottom: 8px; }
+.ge-bar {
+  height: 6px; background: #eceaff;
+  border-radius: 99px; overflow: hidden; position: relative;
+}
+.ge-bar > span { display: block; height: 100%; background: #4a3aff; border-radius: 99px; }
+.ge-bar-caption { font-size: 12px; color: #6b6b75; margin-top: 6px; }
+
+.ge-insights {
+  display: grid; gap: 14px; padding: 4px 12px;
+  border-left: 1px solid #ededf1; border-right: 1px solid #ededf1;
+}
+.ge-insight { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #2a2a32; }
+.ge-check {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px solid #4a3aff; color: #4a3aff;
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+.ge-output { display: grid; justify-items: center; gap: 8px; padding-left: 18px; }
+.ge-thumb { width: 110px; height: 110px; border-radius: 10px; overflow: hidden; background: #ddd; }
+.ge-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ge-cap { font-size: 12.5px; color: #2a2a32; }
+
+.ge-pattern-note {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; border-top: 1px solid #ededf1;
+  padding: 14px 8px; font-size: 13px; color: #6b6b75;
+}
+.ge-pattern-note svg { color: #8a8a93; }
+
+.ge-stats {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px; padding: 8px 8px 18px 8px;
+}
+.ge-stat { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.ge-ic-circle {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: #e8f6ee; color: #16a34a;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.ge-num { font-size: 22px; font-weight: 700; color: #16a34a; letter-spacing: -0.01em; }
+.ge-lbl { font-size: 11px; color: #6b6b75; letter-spacing: 0.08em; margin-top: 2px; text-align: center; }
+
+.ge-generate-btn {
+  width: 100%; appearance: none; border: 0;
+  background: #4a3aff; color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px; font-weight: 600;
+  padding: 16px 20px; border-radius: 12px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  box-shadow: 0 8px 22px -10px rgba(74,58,255,.55);
+  transition: transform .15s ease, background .15s ease;
+}
+.ge-generate-btn:hover { background: #3f30ee; transform: translateY(-1px); }
+
+/* ══════════════════════════════════════════════════════════
    INSIGHT CARD — right col hero
    ══════════════════════════════════════════════════════════ */
 .ic-card {
