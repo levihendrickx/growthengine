@@ -1311,118 +1311,172 @@ function renderHome(el) {
       </div>
     </section>
 
-    <!-- ══ SECTION 3: WHY IT'S DIFFERENT ═══════════════════ -->
-    <section class="wd-section">
-      <div class="wd-inner">
+    <!-- ══ SECTION 3: A SYSTEM THAT LEARNS ══════════════════ -->
+    <section class="s3-section">
+      <div class="s3-page">
 
-        <!-- Intro -->
-        <div class="wd-intro">
-          <div class="wd-eyebrow">WHY IT'S DIFFERENT</div>
-          <p class="wd-intro-desc">Growth Engine connects ad performance, webshop outcomes, and context.<br>It finds patterns, shows exactly where they come from, and gets smarter after every cycle.</p>
-        </div>
+        <!-- LEFT -->
+        <section class="s3-left">
+          <p class="s3-eyebrow">Why it gets smarter</p>
+          <h1 class="s3-headline">More than prompts.<br/>A system that<br/>learns from<br/>every ad.</h1>
+          <p class="s3-sub">Growth Engine reads every creative, connects it to real purchase data, and remembers what worked so every new recommendation gets smarter.</p>
 
-        <!-- Row 1: Patterns at scale + One connected view -->
-        <div class="wd-row wd-row-1">
-
-          <div class="wd-card">
-            <h3 class="wd-card-h">Patterns at scale</h3>
-            <div class="wd-stats">
-              ${wdStat('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>','12.4M+','Ad interactions analyzed',false)}
-              ${wdStat('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 9-7 2-2 7z"/></svg>','1.8M+','Clicks linked to your store',false)}
-              ${wdStat('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>','247K+','Purchases attributed',false)}
-              ${wdStat('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>','Thousands','Patterns discovered',true)}
+          <!-- Generic AI vs Growth Engine -->
+          <div class="s3-vs-card">
+            <h3 class="s3-vs-title">Generic AI vs Growth Engine</h3>
+            <div class="s3-vs-grid">
+              <div class="s3-vs-col s3-vs-left">
+                <h4>Generic AI</h4>
+                <div class="s3-vs-list">
+                  <div class="s3-vs-item">
+                    <span class="s3-ic">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>
+                    </span>
+                    Starts from a blank prompt
+                  </div>
+                  <div class="s3-vs-item">
+                    <span class="s3-ic">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+                    </span>
+                    Forgets what worked
+                  </div>
+                  <div class="s3-vs-item">
+                    <span class="s3-ic">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="1"/><circle cx="12" cy="6" r="1"/><circle cx="18" cy="6" r="1"/><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/><circle cx="6" cy="18" r="1"/><circle cx="12" cy="18" r="1"/><circle cx="18" cy="18" r="1"/></svg>
+                    </span>
+                    Gives generic ideas
+                  </div>
+                </div>
+              </div>
+              <div class="s3-vs-col s3-vs-right">
+                <h4>Growth Engine</h4>
+                <div class="s3-vs-list">
+                  <div class="s3-vs-item">
+                    <span class="s3-ic">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+                    </span>
+                    Starts from your data
+                  </div>
+                  <div class="s3-vs-item">
+                    <span class="s3-ic">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                    </span>
+                    Remembers every result
+                  </div>
+                  <div class="s3-vs-item">
+                    <span class="s3-ic">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </span>
+                    Explains every recommendation
+                  </div>
+                </div>
+              </div>
+              <div class="s3-vs-pill">vs</div>
             </div>
           </div>
+        </section>
 
-          <div class="wd-card">
-            <h3 class="wd-card-h">One connected view</h3>
-            <p class="wd-card-p">The engine connects signals across platforms to see what actually drives profit.</p>
-            <div class="wd-platforms">
-              <div class="wd-platform">
-                <div class="wd-plat-logo wd-plat-meta"><svg width="16" height="9" viewBox="0 0 100 56" fill="white"><path d="M50 0C32 0 19 9 12 20 8 13 5 5 0 0v34c0 12 9 22 21 22 8 0 15-4 20-11l9-13 9 13c5 7 12 11 20 11 12 0 21-10 21-22V0c-5 5-8 13-12 20C81 9 68 0 50 0z"/></svg></div>
-                <div class="wd-plat-name">Meta Ads</div>
-                <div class="wd-plat-sub">Ad performance &amp; clicks</div>
-              </div>
-              <div class="wd-plat-line"><span class="wd-plat-dots">· · · ·</span><span class="wd-plat-arrow">›</span></div>
-              <div class="wd-platform">
-                <div class="wd-plat-logo wd-plat-shopify"><svg width="10" height="12" viewBox="0 0 38 44" fill="white"><path d="M32 8.5c0-.2-.2-.3-.3-.3s-3.6-.3-3.6-.3-2.4-2.3-2.6-2.5V44l10.5-2.3L38 10l-6-1.5zm-6 0L24.5 8c-.2-.7-1-3-3-3-.1 0-.3 0-.4.1C20.5 4 20 3.6 19.2 3.6c-6 0-8.9 7.5-9.8 11.3L5 16.2 2 42l22 3.8V8.5z"/></svg></div>
-                <div class="wd-plat-name">Shopify</div>
-                <div class="wd-plat-sub">Purchases &amp; conversion data</div>
-              </div>
-              <div class="wd-plat-line"><span class="wd-plat-dots">· · · ·</span><span class="wd-plat-arrow">›</span></div>
-              <div class="wd-platform">
-                <div class="wd-plat-logo wd-plat-weather"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></div>
-                <div class="wd-plat-name">Weather &amp; Season</div>
-                <div class="wd-plat-sub">Context, timing &amp; seasonality</div>
-              </div>
-            </div>
-            <div class="wd-brain-area">
-              <svg class="wd-brain-svg" viewBox="0 0 420 56" fill="none" preserveAspectRatio="none">
-                <path d="M 70 4 C 70 46 210 46 210 52" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="5 4"/>
-                <line x1="210" y1="4" x2="210" y2="48" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="5 4"/>
-                <path d="M 350 4 C 350 46 210 46 210 52" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <!-- RIGHT — loop card -->
+        <section class="s3-loop-card">
+          <h2 class="s3-loop-title">The loop behind better ads</h2>
+
+          <div class="s3-loop">
+            <!-- Arrows overlay -->
+            <div class="s3-loop-arrows" aria-hidden="true">
+              <svg viewBox="0 0 600 340" preserveAspectRatio="none">
+                <defs>
+                  <marker id="s3arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M0,0 L10,5 L0,10 z" fill="#b8b8c2"/>
+                  </marker>
+                </defs>
+                <path d="M252,60 L348,60" stroke="#b8b8c2" stroke-width="1.4" fill="none" marker-end="url(#s3arr)"/>
+                <path d="M470,100 L470,240" stroke="#b8b8c2" stroke-width="1.4" fill="none" marker-end="url(#s3arr)"/>
+                <path d="M348,280 L252,280" stroke="#b8b8c2" stroke-width="1.4" fill="none" marker-end="url(#s3arr)"/>
+                <path d="M130,240 L130,100" stroke="#b8b8c2" stroke-width="1.4" fill="none" marker-end="url(#s3arr)"/>
+                <path d="M250,90 L290,160" stroke="#cfcfd6" stroke-width="1.2" stroke-dasharray="3 4" fill="none"/>
+                <path d="M350,90 L310,160" stroke="#cfcfd6" stroke-width="1.2" stroke-dasharray="3 4" fill="none"/>
+                <path d="M250,250 L290,180" stroke="#cfcfd6" stroke-width="1.2" stroke-dasharray="3 4" fill="none"/>
+                <path d="M350,250 L310,180" stroke="#cfcfd6" stroke-width="1.2" stroke-dasharray="3 4" fill="none"/>
               </svg>
-              <div class="wd-brain-node">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3"/><circle cx="6" cy="17" r="2"/><circle cx="18" cy="17" r="2"/><line x1="9.5" y1="9.5" x2="7.2" y2="15.2"/><line x1="14.5" y1="9.5" x2="16.8" y2="15.2"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+            </div>
+
+            <!-- 1. Reads every creative -->
+            <div class="s3-step">
+              <span class="s3-ic-circle">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+              </span>
+              <div>
+                <h3>1. Reads every creative</h3>
+                <p>Objects, mood, setting, copy, product focus</p>
               </div>
+            </div>
+
+            <!-- 2. Connects it to purchases -->
+            <div class="s3-step">
+              <span class="s3-ic-circle">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V12"/><path d="M12 20V8"/><path d="M19 20v-6"/><path d="M3 20h18"/></svg>
+              </span>
+              <div>
+                <h3>2. Connects it to purchases</h3>
+                <p>CVR, ROAS, revenue, product sales</p>
+              </div>
+            </div>
+
+            <!-- 4. Generates better ads -->
+            <div class="s3-step">
+              <span class="s3-ic-circle">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/><path d="M19 15l.7 2.1L22 18l-2.3.9L19 21l-.7-2.1L16 18l2.3-.9L19 15z"/></svg>
+              </span>
+              <div>
+                <h3>4. Generates better ads</h3>
+                <p>New ads based on proven patterns</p>
+              </div>
+            </div>
+
+            <!-- 3. Remembers what works -->
+            <div class="s3-step">
+              <span class="s3-ic-circle">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
+              </span>
+              <div>
+                <h3>3. Remembers what works</h3>
+                <p>What worked, when, for which product</p>
+              </div>
+            </div>
+
+            <!-- Brand memory pill -->
+            <div class="s3-memory">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5a3 3 0 0 0-5.99-.14A3.5 3.5 0 0 0 3 8a3.5 3.5 0 0 0 1 2.45 3.5 3.5 0 0 0 .5 5.05A3 3 0 0 0 7.5 19a3 3 0 0 0 4.5 1.7"/>
+                <path d="M12 5a3 3 0 0 1 5.99-.14A3.5 3.5 0 0 1 21 8a3.5 3.5 0 0 1-1 2.45 3.5 3.5 0 0 1-.5 5.05A3 3 0 0 1 16.5 19a3 3 0 0 1-4.5 1.7"/>
+                <path d="M12 5v15.7"/>
+              </svg>
+              Your brand memory
             </div>
           </div>
 
-        </div>
-
-        <!-- Row 2: 100% traceable + System gets smarter -->
-        <div class="wd-row wd-row-2">
-
-          <div class="wd-card">
-            <h3 class="wd-card-h">100% traceable</h3>
-            <p class="wd-card-p">Every pattern is backed by real data.<br>See exactly where it comes from.</p>
-            <div class="wd-sources">
-              <div class="wd-source">
-                <div class="wd-src-icon wd-src-meta"><svg width="14" height="8" viewBox="0 0 100 56" fill="white"><path d="M50 0C32 0 19 9 12 20 8 13 5 5 0 0v34c0 12 9 22 21 22 8 0 15-4 20-11l9-13 9 13c5 7 12 11 20 11 12 0 21-10 21-22V0c-5 5-8 13-12 20C81 9 68 0 50 0z"/></svg></div>
-                <div class="wd-src-lbl">Meta Ads</div>
-              </div>
-              <div class="wd-source">
-                <div class="wd-src-icon wd-src-shopify"><svg width="9" height="11" viewBox="0 0 38 44" fill="white"><path d="M32 8.5c0-.2-.2-.3-.3-.3s-3.6-.3-3.6-.3-2.4-2.3-2.6-2.5V44l10.5-2.3L38 10l-6-1.5zm-6 0L24.5 8c-.2-.7-1-3-3-3-.1 0-.3 0-.4.1C20.5 4 20 3.6 19.2 3.6c-6 0-8.9 7.5-9.8 11.3L5 16.2 2 42l22 3.8V8.5z"/></svg></div>
-                <div class="wd-src-lbl">Shopify</div>
-              </div>
-              <div class="wd-source">
-                <div class="wd-src-icon wd-src-analytics"><svg width="18" height="16" viewBox="0 0 24 22" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round"><rect x="0" y="10" width="5" height="12"/><rect x="9" y="5" width="5" height="17"/><rect x="18" y="0" width="5" height="22"/></svg></div>
-                <div class="wd-src-lbl">Analytics</div>
-              </div>
-              <div class="wd-source">
-                <div class="wd-src-icon wd-src-weather"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/></svg></div>
-                <div class="wd-src-lbl">Weather</div>
-              </div>
+          <!-- Footer -->
+          <div class="s3-loop-foot">
+            <div class="s3-traceable">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              Every recommendation is traceable to source creatives, purchase outcomes and timing context.
             </div>
-            <div class="wd-traceable-badge">
-              <span class="wd-trace-pct">100%</span>
-              <span class="wd-trace-lbl">Traceable</span>
+            <div class="s3-chips">
+              <span class="s3-chip">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Traceable recommendations
+              </span>
+              <span class="s3-chip">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                Read-only data
+              </span>
+              <span class="s3-chip">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                Built from your own history
+              </span>
             </div>
           </div>
-
-          <div class="wd-card">
-            <h3 class="wd-card-h">The system gets smarter with every ad</h3>
-            <p class="wd-card-p">More data. More learning. Better results.</p>
-            <div class="wd-steps">
-              ${wdStep(1,'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21"/></svg>','You launch an ad','We collect performance, clicks &amp; conversions.')}
-              <div class="wd-step-arr">→</div>
-              ${wdStep(2,'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3"/><circle cx="6" cy="17" r="2"/><circle cx="18" cy="17" r="2"/><line x1="9.5" y1="9.5" x2="7" y2="15"/><line x1="14.5" y1="9.5" x2="17" y2="15"/><line x1="8" y1="17" x2="16" y2="17"/></svg>','The engine learns','It analyzes what worked, what didn\'t, and why.')}
-              <div class="wd-step-arr">→</div>
-              ${wdStep(3,'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>','Patterns get stronger','New insights are added to your data brain.')}
-              <div class="wd-step-arr">→</div>
-              ${wdStep(4,'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0018 8 6 6 0 006 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 018.91 14"/></svg>','Better ad ideas','Predictions improve. Hit rate gets higher.')}
-              <div class="wd-step-arr">→</div>
-              ${wdStep(5,'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>','Repeat','The system keeps learning and improving.')}
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Footer banner -->
-        <div class="wd-footer-banner">
-          <span class="wd-footer-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></span>
-          <span class="wd-footer-text"><strong>No black box.</strong> Everything is transparent, traceable, and based on your data.</span>
-        </div>
+        </section>
 
       </div>
     </section>
