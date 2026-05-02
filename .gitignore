@@ -16,3 +16,6 @@ atoms/
 # Downloaded ad images — runtime output from import_meta_creative.py.
 # Same reasoning as atoms/: regenerate from the API, do not commit.
 images/
+# Exception: webapp/images/ holds static UI assets (hero photos etc.)
+!webapp/images/
+!webapp/images/**

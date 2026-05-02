@@ -1133,7 +1133,7 @@ function renderHome(el) {
         <div class="ge-product">
 
           <div class="ge-hero-img">
-            <img alt="Featured creative" src="https://images.unsplash.com/photo-1581651811607-40622ec12713?auto=format&fit=crop&w=1200&q=70">
+            <img alt="Featured creative" src="images/hero-ring.png">
           </div>
 
           <div class="ge-steps">
@@ -1182,7 +1182,7 @@ function renderHome(el) {
             <!-- Step 3: output thumb -->
             <div class="ge-output">
               <div class="ge-thumb">
-                <img alt="Generated creative" src="https://images.unsplash.com/photo-1689775703655-6d999e38e64c?auto=format&fit=crop&w=400&q=70">
+                <img alt="Generated creative" src="images/output-necklace.png">
               </div>
               <div class="ge-cap">New gifting creative</div>
             </div>
