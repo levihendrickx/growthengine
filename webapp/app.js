@@ -1083,142 +1083,143 @@ function renderHome(el) {
       <div class="lp-hero-inner lp-hero-inner-v2">
 
         <!-- LEFT -->
-        <div class="lp-left">
-          <div class="lp-eyebrow-label">— GROWTH ENGINE · V0.1 POC</div>
+        <div class="ge-left">
+          <p class="ge-eyebrow">— Growth Engine <span class="ge-dot">·</span> v0.1 POC</p>
 
-          <h1 class="lp-title-v2">
+          <h1 class="ge-headline">
             Find the patterns<br>
             behind your<br>
             winning ads.<br>
             Turn them into<br>
-            <span class="lp-accent">profitable new creatives.</span>
+            <span class="ge-accent">profitable new creatives.</span>
           </h1>
 
-          <p class="lp-sub-v2">Connect Meta and Shopify. Discover what actually drives purchases — and generate new ads from your proven patterns.</p>
+          <p class="ge-sub">Connect Meta and Shopify. Discover what actually drives purchases — and generate new ads from your proven patterns.</p>
 
-          <div class="lp-cta-row">
-            <button class="lp-btn-primary" onclick="navigate('bronnen')">Start free analysis</button>
-            <div class="lp-cta-micro">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <div class="ge-cta-row">
+            <button class="ge-btn-primary" onclick="navigate('bronnen')">Start free analysis</button>
+            <span class="ge-meta">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
               Value in under 10 minutes
-            </div>
+            </span>
           </div>
 
-          <div class="lp-wid-card">
-            <div class="lp-wid-title">Why it's different</div>
-            <div class="lp-wid-item">
-              <span class="lp-wid-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
-              <span>Analyzes every creative detail</span>
-            </div>
-            <div class="lp-wid-item">
-              <span class="lp-wid-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
-              <span>Learns what drives real purchases</span>
-            </div>
-            <div class="lp-wid-item">
-              <span class="lp-wid-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
-              <span>Generates ads from proven patterns</span>
-            </div>
+          <div class="ge-why">
+            <h3>Why it's different</h3>
+            <ul>
+              <li>
+                <span class="ge-ic">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+                </span>
+                Analyzes every creative detail
+              </li>
+              <li>
+                <span class="ge-ic">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>
+                </span>
+                Learns what drives real purchases
+              </li>
+              <li>
+                <span class="ge-ic">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M12 18v3"/><path d="M3 12h3"/><path d="M18 12h3"/><path d="M5.6 5.6l2.1 2.1"/><path d="M16.3 16.3l2.1 2.1"/><path d="M5.6 18.4l2.1-2.1"/><path d="M16.3 7.7l2.1-2.1"/></svg>
+                </span>
+                Generates ads from proven patterns
+              </li>
+            </ul>
           </div>
         </div>
 
-        <!-- RIGHT: panel card -->
-        <div class="lp-right">
-          <div class="lp-panel-card">
+        <!-- RIGHT — PRODUCT CARD -->
+        <div class="ge-product">
 
-            <!-- Top image -->
-            <div class="lp-panel-img-wrap">
-              <img src="https://images.unsplash.com/photo-1576022162879-fd7fac3e2b73?auto=format&fit=crop&w=760&h=280&q=85"
-                   alt="Winter diamond ring" class="lp-panel-img">
+          <div class="ge-hero-img">
+            <img alt="Featured creative" src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=1200&q=70">
+          </div>
+
+          <div class="ge-steps">
+            <div class="ge-step-title">1. Pattern</div>
+            <div class="ge-step-arrow">
+              <svg width="22" height="14" viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 7h19"/><path d="M15 2l5 5-5 5"/></svg>
             </div>
+            <div class="ge-step-title">2. Insight</div>
+            <div class="ge-step-arrow">
+              <svg width="22" height="14" viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 7h19"/><path d="M15 2l5 5-5 5"/></svg>
+            </div>
+            <div class="ge-step-title">3. Output</div>
+          </div>
 
-            <div class="lp-panel-body">
-
-              <!-- Steps nav -->
-              <div class="lp-steps-row">
-                <span class="lp-step-item lp-step-active">1. Pattern</span>
-                <span class="lp-step-arrow">→</span>
-                <span class="lp-step-item">2. Insight</span>
-                <span class="lp-step-arrow">→</span>
-                <span class="lp-step-item">3. Output</span>
+          <div class="ge-step-bodies">
+            <!-- Step 1: bars -->
+            <div class="ge-bars">
+              <div class="ge-bar-item">
+                <div class="ge-label">Christmas visuals too early</div>
+                <div class="ge-bar"><span style="width:55%"></span></div>
+                <div class="ge-bar-caption">Underperform</div>
               </div>
-
-              <!-- 3-column content -->
-              <div class="lp-panel-cols">
-
-                <!-- Pattern -->
-                <div class="lp-pcol">
-                  <div class="lp-bar-group">
-                    <div class="lp-bar-label">Christmas visuals too early</div>
-                    <div class="lp-bar-track"><div class="lp-bar-fill" style="width:34%"></div></div>
-                    <div class="lp-bar-sub">Underperform</div>
-                  </div>
-                  <div class="lp-bar-group">
-                    <div class="lp-bar-label">Last 2 weeks: winter close-ups</div>
-                    <div class="lp-bar-track"><div class="lp-bar-fill" style="width:67%"></div></div>
-                    <div class="lp-bar-sub">Perform best</div>
-                  </div>
-                </div>
-
-                <div class="lp-pcol-div"></div>
-
-                <!-- Insight -->
-                <div class="lp-pcol">
-                  <div class="lp-insight-item">
-                    <span class="lp-insight-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
-                    <span>Timing matters</span>
-                  </div>
-                  <div class="lp-insight-item">
-                    <span class="lp-insight-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
-                    <span>Close-ups convert</span>
-                  </div>
-                </div>
-
-                <div class="lp-pcol-div"></div>
-
-                <!-- Output -->
-                <div class="lp-pcol">
-                  <img src="https://images.unsplash.com/photo-1573408301185-9519f94815b1?auto=format&fit=crop&w=220&h=120&q=80"
-                       alt="New gifting creative" class="lp-output-thumb">
-                  <div class="lp-output-label">New gifting creative</div>
-                </div>
-
-              </div><!-- /lp-panel-cols -->
-
-              <!-- Traceability -->
-              <div class="lp-trace-line">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-                <span>Pattern backed by historical ad + purchase data</span>
-              </div>
-
-            </div><!-- /lp-panel-body -->
-
-            <!-- Metrics -->
-            <div class="lp-metrics-row">
-              <div class="lp-metric-item">
-                <div class="lp-metric-icon-wrap">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-                </div>
-                <div>
-                  <div class="lp-metric-val">+31%</div>
-                  <div class="lp-metric-lbl">CVR</div>
-                </div>
-              </div>
-              <div class="lp-metric-item">
-                <div class="lp-metric-icon-wrap">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                </div>
-                <div>
-                  <div class="lp-metric-val">1.8×</div>
-                  <div class="lp-metric-lbl">ROAS</div>
-                </div>
+              <div class="ge-bar-item">
+                <div class="ge-label">Last 2 weeks: winter close-ups</div>
+                <div class="ge-bar"><span style="width:82%"></span></div>
+                <div class="ge-bar-caption">Perform best</div>
               </div>
             </div>
 
-            <!-- Bottom CTA -->
-            <button class="lp-panel-cta" onclick="navigate('genereren')">Generate ads on your data →</button>
+            <!-- Step 2: insights -->
+            <div class="ge-insights">
+              <div class="ge-insight">
+                <span class="ge-check">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                Timing matters
+              </div>
+              <div class="ge-insight">
+                <span class="ge-check">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                Close-ups convert
+              </div>
+            </div>
 
-          </div><!-- /lp-panel-card -->
-        </div>
+            <!-- Step 3: output thumb -->
+            <div class="ge-output">
+              <div class="ge-thumb">
+                <img alt="Generated creative" src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=400&q=70">
+              </div>
+              <div class="ge-cap">New gifting creative</div>
+            </div>
+          </div>
+
+          <div class="ge-pattern-note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Pattern backed by historical ad + purchase data
+          </div>
+
+          <div class="ge-stats">
+            <div class="ge-stat">
+              <span class="ge-ic-circle">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>
+              </span>
+              <div>
+                <div class="ge-num">+31%</div>
+                <div class="ge-lbl">CVR</div>
+              </div>
+            </div>
+            <div class="ge-stat">
+              <span class="ge-ic-circle">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V10"/><path d="M12 20V4"/><path d="M19 20v-7"/></svg>
+              </span>
+              <div>
+                <div class="ge-num">1.8x</div>
+                <div class="ge-lbl">ROAS</div>
+              </div>
+            </div>
+          </div>
+
+          <button class="ge-generate-btn" onclick="navigate('genereren')">
+            Generate ads on your data
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+          </button>
+
+        </div><!-- /ge-product -->
 
       </div>
     </section>
