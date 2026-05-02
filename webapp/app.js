@@ -1224,38 +1224,89 @@ function renderHome(el) {
       </div>
     </section>
 
-    <!-- ══ SECTION 2: GENERATE ══════════════════════════════ -->
-    <section class="lp-generate">
-      <div class="lp-gen-inner">
+    <!-- ══ SECTION 2: ASK THE ENGINE ════════════════════════ -->
+    <section class="s2-section">
+      <div class="s2-inner">
 
         <!-- LEFT -->
-        <div class="lp-gen-left">
-          <div class="lp-eyebrow lp-eyebrow-purple">FROM INSIGHT TO OUTPUT</div>
-          <h2 class="lp-gen-title">Do you really understand why some creatives work — and others don't?</h2>
-          <p class="lp-gen-sub">Using your historical data, the engine explains the why and turns it into new ad ideas.</p>
-          <div class="lp-prompt-wrap">
-            <input class="lp-prompt-input" type="text" value="What will work for Easter this year?" readonly>
-            <button class="lp-prompt-btn" onclick="navigate('genereren')">✦ Ask the engine</button>
-          </div>
-          <div class="lp-gen-hint">
-            <span class="lp-spark">✦</span>
-            <span>You can ask about seasonal winners, revenue differences, and what patterns to repeat.</span>
-          </div>
-        </div>
+        <section class="s2-left">
+          <p class="s2-eyebrow">From insight to output</p>
+          <h1 class="s2-headline">Ask the engine what to make next. Get ads built from your proven product patterns.</h1>
+          <p class="s2-sub">Type a product, season, or campaign goal. Growth Engine uses your historical Meta + Shopify data to generate ad concepts based on what already works for these products.</p>
 
-        <!-- RIGHT: carousel -->
-        <div class="lp-gen-right">
-          <div class="lp-carousel-wrap">
-            <div class="lp-carousel">
-              ${lpAdCard(1,'https://images.unsplash.com/photo-1573408301185-9519f94815b1?auto=format&fit=crop&w=424&h=504&q=80','Joy worth<br>giving.','Easter gifts she\'ll always remember.','High traction','#059669','Easter gifting moment','Lifestyle · Easter',false)}
-              ${lpAdCard(2,'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=424&h=504&q=80','Meaningful. Timeless.<br>Made for her.','Celebrate Easter with something that lasts.','Top performer','#6D28D9','Timeless Easter gift','Product detail · Emotion',false)}
-              ${lpAdCard(3,'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=424&h=504&q=80','New season.<br>New beginnings.','Shine into spring.','Seasonal winner','#0f766e','Spring refresh','Lifestyle · Seasonal',false)}
-              ${lpAdCard(4,'https://images.unsplash.com/photo-1611085583191-a3b181a88401?auto=format&fit=crop&w=424&h=504&q=80','Little details.<br>Big moments.','Make her Easter extra special.','Strong CTA','#1d4ed8','Gift with emotion','Offer · Clear CTA',false)}
-            </div>
-            <button class="lp-carousel-next">›</button>
+          <form class="s2-ask" onsubmit="event.preventDefault(); navigate('genereren')">
+            <input type="text" placeholder="What should we test for Easter gifting?" />
+            <button type="submit">Ask the engine</button>
+          </form>
+
+          <span class="s2-footnote">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M12 18v3"/><path d="M3 12h3"/><path d="M18 12h3"/><path d="M5.6 5.6l2.1 2.1"/><path d="M16.3 16.3l2.1 2.1"/><path d="M5.6 18.4l2.1-2.1"/><path d="M16.3 7.7l2.1-2.1"/></svg>
+            Answers are based on your own Meta + Shopify data.
+          </span>
+        </section>
+
+        <!-- RIGHT -->
+        <section class="s2-right">
+          <div class="s2-right-head">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M12 18v3"/><path d="M3 12h3"/><path d="M18 12h3"/><path d="M5.6 5.6l2.1 2.1"/><path d="M16.3 16.3l2.1 2.1"/><path d="M5.6 18.4l2.1-2.1"/><path d="M16.3 7.7l2.1-2.1"/></svg>
+            Generated for your products
           </div>
-          <div class="lp-carousel-footer">✦ Generated from patterns found in your data.</div>
-        </div>
+
+          <div class="s2-cards">
+            <article class="s2-card">
+              <div class="s2-card-img"><img alt="Easter gifting moment" src="assets/ad-01-easter-gift.png" onerror="this.style.display='none'"/></div>
+              <div class="s2-card-meta">
+                <span class="s2-ad-num">Ad 01</span>
+                <span class="s2-pill s2-pill-green">High traction</span>
+              </div>
+              <div class="s2-card-body">
+                <h3 class="s2-card-title">Easter gifting moment</h3>
+                <p class="s2-card-desc">Based on lifestyle<br/>+ Easter winners</p>
+              </div>
+            </article>
+
+            <article class="s2-card">
+              <div class="s2-card-img"><img alt="Timeless Easter gift" src="assets/ad-02-ring.png" onerror="this.style.display='none'"/></div>
+              <div class="s2-card-meta">
+                <span class="s2-ad-num">Ad 02</span>
+                <span class="s2-pill s2-pill-purple">Top performer</span>
+              </div>
+              <div class="s2-card-body">
+                <h3 class="s2-card-title">Timeless Easter gift</h3>
+                <p class="s2-card-desc">Based on product-detail patterns</p>
+              </div>
+            </article>
+
+            <article class="s2-card">
+              <div class="s2-card-img"><img alt="Spring refresh" src="assets/ad-03-spring.png" onerror="this.style.display='none'"/></div>
+              <div class="s2-card-meta">
+                <span class="s2-ad-num">Ad 03</span>
+                <span class="s2-pill s2-pill-green">Seasonal winner</span>
+              </div>
+              <div class="s2-card-body">
+                <h3 class="s2-card-title">Spring refresh</h3>
+                <p class="s2-card-desc">Based on seasonal winner patterns</p>
+              </div>
+            </article>
+
+            <article class="s2-card">
+              <div class="s2-card-img"><img alt="Gift with emotion" src="assets/ad-04-necklace.png" onerror="this.style.display='none'"/></div>
+              <div class="s2-card-meta">
+                <span class="s2-ad-num">Ad 04</span>
+                <span class="s2-pill s2-pill-purple">Strong CTA</span>
+              </div>
+              <div class="s2-card-body">
+                <h3 class="s2-card-title">Gift with emotion</h3>
+                <p class="s2-card-desc">Based on high-converting CTA patterns</p>
+              </div>
+            </article>
+          </div>
+
+          <div class="s2-pattern-note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Recommended from patterns found in your data for these products.
+          </div>
+        </section>
 
       </div>
     </section>
