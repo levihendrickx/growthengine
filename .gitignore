@@ -19,3 +19,8 @@ images/
 # Exception: webapp/images/ holds static UI assets (hero photos etc.)
 !webapp/images/
 !webapp/images/**
+# Exception: sample_data/images/ is a curated subset of real Stoney ad images
+# committed alongside sample_data/atoms/ so backend/PLN/demo dev can render
+# the actual creatives without needing Meta credentials.
+!sample_data/images/
+!sample_data/images/**
