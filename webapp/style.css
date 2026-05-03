@@ -2475,6 +2475,75 @@ button { cursor: pointer; font-family: var(--sans); }
   flex-shrink: 0;
 }
 
+/* ── Sidebar signed-in user block ── */
+.am-sidebar-user {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: rgba(74,58,255,0.06);
+  border: 1px solid rgba(74,58,255,0.14);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+.am-sidebar-user-info {
+  display: flex; align-items: center; gap: 8px;
+  min-width: 0; flex: 1;
+}
+.am-sidebar-avatar--photo {
+  background: rgba(74,58,255,0.10);
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.am-sidebar-initials {
+  font-size: 10px; font-weight: 700;
+  color: #4a3aff; font-family: 'Inter', sans-serif;
+}
+.am-sidebar-email {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px; font-weight: 500;
+  color: #3a3a44;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 140px;
+}
+.am-sidebar-logout {
+  width: 26px; height: 26px;
+  border: none; background: transparent; cursor: pointer;
+  color: #8a8a93; border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.13s ease, color 0.13s ease;
+  padding: 0;
+}
+.am-sidebar-logout:hover { background: rgba(192,57,43,0.08); color: #c0392b; }
+.am-sidebar-logout:focus-visible { outline: 2px solid #4a3aff; outline-offset: 2px; }
+
+/* ── Email sent confirmation ── */
+.am-sent-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: rgba(74,58,255,0.08);
+  color: #4a3aff;
+  margin: 0 auto;
+}
+.am-sent-note {
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px; line-height: 1.5;
+  color: #8a8a93;
+  margin-top: 14px;
+  text-align: center;
+}
+.am-back--center {
+  display: block; margin: 14px auto 0;
+  font-size: 13px; color: #4a3aff; font-weight: 500;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+
 /* ── Mobile ── */
 @media (max-width: 480px) {
   #am-modal {

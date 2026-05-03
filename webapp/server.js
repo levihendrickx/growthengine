@@ -1,11 +1,12 @@
 /**
  * Growth Engine — server.js
- * Express server + Claude API proxy voor ad copy generatie
+ * Express server + Claude API proxy + Supabase JWT verification
  */
 
 import express from 'express';
 import Anthropic from '@anthropic-ai/sdk';
 import cors from 'cors';
+import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import dotenv from 'dotenv';
@@ -13,23 +14,89 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname  = dirname(__filename);
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
 
-// ── Health check ─────────────────────────────────────────────
-app.get('/api/health', (_req, res) => {
-  const hasKey = !!process.env.ANTHROPIC_API_KEY;
-  res.json({ ok: true, apiKey: hasKey });
+// ── Auth callback route (must come before static middleware) ──
+// Serves the PKCE / magic-link exchange page.
+app.get('/auth/callback', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'auth-callback.html'));
 });
 
-// ── Ad generatie ─────────────────────────────────────────────
-app.post('/api/generate', async (req, res) => {
+// ── Placeholder legal pages ────────────────────────────────────
+app.get('/terms',   (_req, res) => res.sendFile(path.join(__dirname, 'terms.html')));
+app.get('/privacy', (_req, res) => res.sendFile(path.join(__dirname, 'privacy.html')));
+
+// ── Static files ───────────────────────────────────────────────
+app.use(express.static(__dirname));
+
+// ── Public config for client-side Supabase init ───────────────
+// Only exposes the anon key (designed to be public).
+// The service-role key is never sent to the browser.
+app.get('/api/config', (_req, res) => {
+  res.json({
+    supabaseUrl:     process.env.SUPABASE_URL     || '',
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
+  });
+});
+
+// ── Health check ──────────────────────────────────────────────
+app.get('/api/health', (_req, res) => {
+  res.json({
+    ok:            true,
+    apiKey:        !!process.env.ANTHROPIC_API_KEY,
+    supabaseReady: !!(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
+  });
+});
+
+// ── JWT verification middleware ───────────────────────────────
+// Uses Supabase's own /auth/v1/user endpoint to validate the
+// Bearer token — no extra npm packages needed.
+async function requireAuth(req, res, next) {
+  const SUPABASE_URL      = process.env.SUPABASE_URL;
+  const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+
+  // If Supabase is not yet configured, allow through in dev mode
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.warn('[Auth] Supabase not configured — skipping JWT check (dev mode).');
+    req.user = null;
+    return next();
+  }
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ success: false, error: 'Unauthorised. Please sign in.' });
+  }
+
+  const token = authHeader.slice(7); // strip "Bearer "
+
+  try {
+    const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'apikey':        SUPABASE_ANON_KEY,
+      },
+    });
+
+    if (!response.ok) {
+      return res.status(401).json({ success: false, error: 'Session expired. Please sign in again.' });
+    }
+
+    req.user = await response.json();
+    next();
+  } catch (err) {
+    console.error('[Auth] Token verification failed:', err.message);
+    return res.status(500).json({ success: false, error: 'Auth check failed. Please try again.' });
+  }
+}
+
+// ── Ad generatie (protected) ──────────────────────────────────
+app.post('/api/generate', requireAuth, async (req, res) => {
   const { product, count, instructions, patterns, brandAtom } = req.body;
 
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -38,7 +105,6 @@ app.post('/api/generate', async (req, res) => {
 
   const client = new Anthropic();
 
-  // Systeem prompt (gecached — verandert niet per request)
   const systemPrompt = `Je bent een expert in direct-response advertenties voor premium lifestyle sieradenmerken in Nederland.
 Je schrijft Meta advertentieteksten op basis van bewezen data-patronen uit de Growth Engine.
 
@@ -91,35 +157,25 @@ Return ALLEEN de JSON array van ${count} objecten.`;
     const message = await client.messages.create({
       model: 'claude-sonnet-4-5',
       max_tokens: 4096,
-      system: [
-        {
-          type: 'text',
-          text: systemPrompt,
-          cache_control: { type: 'ephemeral' }   // prompt caching voor systeem prompt
-        }
-      ],
-      messages: [{ role: 'user', content: userPrompt }]
+      system: [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }],
+      messages: [{ role: 'user', content: userPrompt }],
     });
 
-    const raw = message.content[0].text.trim();
-
-    // Extraheer JSON array (ook als er per ongeluk tekst omheen staat)
+    const raw   = message.content[0].text.trim();
     const match = raw.match(/\[[\s\S]*\]/);
     if (!match) throw new Error('Geen JSON array gevonden in Claude response');
 
     const ads = JSON.parse(match[0]);
-
     res.json({
       success: true,
       ads,
       usage: {
-        input_tokens: message.usage.input_tokens,
-        output_tokens: message.usage.output_tokens,
+        input_tokens:                message.usage.input_tokens,
+        output_tokens:               message.usage.output_tokens,
         cache_creation_input_tokens: message.usage.cache_creation_input_tokens ?? 0,
-        cache_read_input_tokens: message.usage.cache_read_input_tokens ?? 0
-      }
+        cache_read_input_tokens:     message.usage.cache_read_input_tokens      ?? 0,
+      },
     });
-
   } catch (err) {
     console.error('[Claude API fout]', err.message);
     res.status(500).json({ success: false, error: err.message });
@@ -127,5 +183,6 @@ Return ALLEEN de JSON array van ${count} objecten.`;
 });
 
 app.listen(PORT, () => {
-  console.log(`\n  Growth Engine draait op → http://localhost:${PORT}\n`);
+  console.log(`\n  Growth Engine draait op → http://localhost:${PORT}`);
+  console.log(`  Supabase: ${process.env.SUPABASE_URL ? '✓ configured' : '✗ not configured (set SUPABASE_URL + SUPABASE_ANON_KEY)'}\n`);
 });
