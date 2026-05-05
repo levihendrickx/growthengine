@@ -26,18 +26,28 @@
       if (!res.ok) throw new Error(`Config endpoint returned ${res.status}`);
       const cfg = await res.json();
 
+      console.log('[Supabase] Config received:', {
+        hasUrl: !!cfg.supabaseUrl,
+        hasKey: !!cfg.supabaseAnonKey,
+        url: cfg.supabaseUrl || '(empty)',
+        keyPrefix: cfg.supabaseAnonKey ? cfg.supabaseAnonKey.slice(0, 20) + '…' : '(empty)',
+      });
+
       if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) {
-        // Supabase not yet configured — resolve with null so the app
-        // degrades gracefully rather than crashing.
-        console.warn(
-          '[Supabase] Not configured. ' +
-          'Add SUPABASE_URL and SUPABASE_ANON_KEY to your .env file.'
+        console.error(
+          '[Supabase] ❌ Not configured — /api/config returned empty values.\n' +
+          'Check that your .env file has SUPABASE_URL and SUPABASE_ANON_KEY,\n' +
+          'and that the server was restarted after editing .env.'
         );
         _resolve(null);
         return;
       }
 
       // window.supabase is the namespace injected by the CDN bundle
+      if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+        throw new Error('Supabase CDN script not loaded — check index.html script tag.');
+      }
+
       const client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
         auth: {
           autoRefreshToken:   true,
@@ -46,10 +56,11 @@
         },
       });
 
+      console.log('[Supabase] ✅ Client ready.');
       window._sb = client;
       _resolve(client);
     } catch (err) {
-      console.error('[Supabase] Init failed:', err.message);
+      console.error('[Supabase] ❌ Init failed:', err.message);
       _resolve(null); // graceful degradation — not a crash
     }
   }

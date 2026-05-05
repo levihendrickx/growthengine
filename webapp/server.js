@@ -11,10 +11,12 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import dotenv from 'dotenv';
 
-dotenv.config();
-
+// Resolve __dirname first so dotenv always finds .env next to server.js,
+// regardless of which directory the user runs `node` from.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -26,6 +28,11 @@ app.use(express.json());
 // Serves the PKCE / magic-link exchange page.
 app.get('/auth/callback', (_req, res) => {
   res.sendFile(path.join(__dirname, 'auth-callback.html'));
+});
+
+// ── Connect page — first authenticated screen after login ──────
+app.get('/connect', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'connect.html'));
 });
 
 // ── Placeholder legal pages ────────────────────────────────────

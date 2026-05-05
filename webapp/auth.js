@@ -254,6 +254,16 @@
       views[k].classList.toggle('am-view--hidden', k !== name);
     });
     clearErr('email');
+
+    // Always reset the submit button when returning to email view
+    if (name === 'email') {
+      const btn = document.getElementById('am-submit-email');
+      if (btn) {
+        btn.disabled  = false;
+        btn.innerHTML = 'Send sign-in link';
+      }
+    }
+
     if (focusFirst) {
       const firstInput = views[name]?.querySelector('input');
       if (firstInput) setTimeout(() => firstInput.focus(), 60);
