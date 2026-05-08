@@ -306,21 +306,15 @@
     const btn = document.getElementById('am-btn-google');
     setBusy(btn, true);
     try {
-      if (!CFG.googleClientId) {
-        // Dev mode: simulate success
-        console.info('[Auth] Google — set CFG.googleClientId to enable real OAuth.');
-        await delay(900);
-        close();
-        return;
-      }
-      /* Production (Google Identity Services):
-         google.accounts.id.initialize({
-           client_id: CFG.googleClientId,
-           callback: onGoogleToken,
-           ux_mode: 'popup',
-         });
-         google.accounts.id.prompt();
-      */
+      const sb = window._sb;
+      if (!sb) throw new Error('Supabase not initialized');
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/auth/callback',
+        }
+      });
+      if (error) throw error;
     } catch (err) {
       console.error('[Auth] Google error', err);
     } finally {
