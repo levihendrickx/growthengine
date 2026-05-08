@@ -1097,7 +1097,7 @@ function renderHome(el) {
           <p class="ge-sub">Connect Meta and Shopify. Discover what actually drives purchases — and generate new ads from your proven patterns.</p>
 
           <div class="ge-cta-row">
-            <button class="ge-btn-primary" onclick="navigate('bronnen')">Start free analysis</button>
+            <button class="ge-btn-primary" onclick="window.authModal && window.authModal.open()">Start free analysis</button>
             <span class="ge-meta">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
               Value in under 10 minutes
