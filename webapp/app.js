@@ -7,12 +7,16 @@
 
 // ── STATE ─────────────────────────────────────────────────────
 const state = {
-  page: 'dashboard',
-  generatedAds: [],
-  apiOnline: false,
+  page:            'home',
+  generatedAds:    [],
+  apiOnline:       false,
   pipelineRunning: false,
-  uploadedRows: 0,
+  uploadedRows:    0,
+  user:            null,   // Supabase user object when signed in
 };
+
+// Pages that require a signed-in session
+const PROTECTED_PAGES = new Set(['dashboard','bronnen','atomspace','pln','genereren','output']);
 
 // ── SIMULATED DATA ────────────────────────────────────────────
 
@@ -191,6 +195,11 @@ function renderLineChart(el, data, color = '#6d28d9') {
 
 // ── NAVIGATION ────────────────────────────────────────────────
 function navigate(page) {
+  // Guard: protected pages require a signed-in user
+  if (PROTECTED_PAGES.has(page) && !state.user) {
+    if (window.authModal) window.authModal.open();
+    return;
+  }
   state.page = page;
   document.querySelectorAll('.nav-item').forEach(el => {
     el.classList.toggle('active', el.dataset.page === page);
@@ -864,9 +873,17 @@ async function startPipeline(product, count, instructions) {
 // ── API CALL ──────────────────────────────────────────────────
 async function generateAds(product, count, instructions) {
   try {
+    // Attach the Supabase session token so the server can verify the user
+    const headers = { 'Content-Type': 'application/json' };
+    const sb = window._sb;
+    if (sb) {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+
     const res = await fetch('/api/generate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         product, count, instructions,
         patterns: PATTERNS.slice(0, 5),
@@ -1214,7 +1231,7 @@ function renderHome(el) {
             </div>
           </div>
 
-          <button class="ge-generate-btn" onclick="navigate('genereren')">
+          <button class="ge-generate-btn" onclick="window.authModal && window.authModal.open()">
             Generate ads on your data
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
           </button>
@@ -1371,7 +1388,6 @@ function renderHome(el) {
                   </div>
                 </div>
               </div>
-              <div class="s3-vs-pill">vs</div>
             </div>
           </div>
         </section>
@@ -1634,6 +1650,51 @@ document.addEventListener('DOMContentLoaded', () => {
     item.addEventListener('click', () => navigate(item.dataset.page));
   });
 
-  // Initial page
-  checkAPI().then(() => navigate('home'));
+  // ── Auth events from auth.js ──────────────────────────────
+  // auth:ready fires once on page load with the current session (or null)
+  window.addEventListener('auth:ready', (e) => {
+    state.user = e.detail.user;
+
+    // If user is already signed in, honour ?page= param from OAuth redirect
+    const params   = new URLSearchParams(window.location.search);
+    const pageParam = params.get('page');
+
+    // Clean the URL (remove query params) without triggering a reload
+    if (pageParam) {
+      const clean = window.location.pathname;
+      window.history.replaceState({}, '', clean);
+    }
+
+    // Show auth error toast if redirect brought one
+    const authError = params.get('auth_error');
+    if (authError) {
+      setTimeout(() => {
+        alert('Sign-in failed. Please try again.');
+      }, 300);
+    }
+
+    const startPage = (state.user && pageParam) ? pageParam : 'home';
+    checkAPI().then(() => navigate(startPage));
+  });
+
+  // auth:signedIn fires whenever a sign-in event happens mid-session
+  window.addEventListener('auth:signedIn', (e) => {
+    state.user = e.detail.user;
+    // Navigate to dashboard after successful sign-in
+    navigate('dashboard');
+  });
+
+  // auth:signedOut fires on logout
+  window.addEventListener('auth:signedOut', () => {
+    state.user = null;
+    navigate('home');
+  });
+
+  // Fallback: if auth.js / Supabase never fires auth:ready
+  // (e.g. Supabase not configured), just start the app normally
+  setTimeout(() => {
+    if (state.page === 'home' && !document.querySelector('#page-container')?.children.length) {
+      checkAPI().then(() => navigate('home'));
+    }
+  }, 3000);
 });

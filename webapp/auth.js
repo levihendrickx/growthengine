@@ -1,32 +1,50 @@
 /* ═══════════════════════════════════════════════════════════
    GROWTH ENGINE — auth.js
-   Login / account creation modal
-   Providers: Google · Apple · Email
+   Login / account creation modal — powered by Supabase Auth
+   Providers: Google · Apple · Email magic link
    ═══════════════════════════════════════════════════════════ */
 
-(function () {
+;(function () {
   'use strict';
 
-  /* ── CONFIG ─────────────────────────────────────────────────
-     Fill these in when you set up your OAuth apps.
-     Until then the buttons run a dev-mode placeholder flow.
-  ──────────────────────────────────────────────────────────── */
-  const CFG = {
-    googleClientId:  '',   // '123456789.apps.googleusercontent.com'
-    appleClientId:   '',   // 'com.yourcompany.growthengine'
-    appleRedirectURI: window.location.origin + '/auth/apple/callback',
+  /* ── Analytics helper (no-op until real analytics is wired) ── */
+  function track(event, props) {
+    if (window.analytics?.track) { window.analytics.track(event, props); return; }
+    console.debug('[Analytics]', event, props || '');
+  }
+
+  /* ── Supabase helper ─────────────────────────────────────── */
+  async function getSB() {
+    return window.sbReady ? window.sbReady : null;
+  }
+
+  /* ── Human-readable error messages ──────────────────────── */
+  const ERR_MAP = {
+    'Invalid login credentials':        'Incorrect email or password.',
+    'Email not confirmed':              'Please confirm your email first. Check your inbox.',
+    'User already registered':          'This email is already in use. Try signing in instead.',
+    'over_email_send_rate_limit':       'Too many attempts. Please wait a moment and try again.',
+    'Email rate limit exceeded':        'Too many attempts. Please wait a moment and try again.',
+    'invalid_grant':                    'Your session expired. Please sign in again.',
+    'provider_email_needs_verification':'A confirmation email has been sent. Please check your inbox.',
   };
 
-  /* ── MODULE STATE ─────────────────────────────────────────── */
-  let _open     = false;
-  let _view     = 'main';   // 'main' | 'email-signup' | 'email-login'
-  let _prevFocus = null;
+  function humanError(rawMsg) {
+    if (!rawMsg) return 'Something went wrong. Please try again.';
+    for (const [key, msg] of Object.entries(ERR_MAP)) {
+      if (rawMsg.toLowerCase().includes(key.toLowerCase())) return msg;
+    }
+    return rawMsg.length < 120 ? rawMsg : 'Something went wrong. Please try again.';
+  }
 
-  /* ── DOM REFS (populated in build) ──────────────────────────── */
+  /* ── Module state ────────────────────────────────────────── */
+  let _open      = false;
+  let _view      = 'main';   // 'main' | 'email' | 'email-sent'
+  let _prevFocus = null;
   let overlay, modal, views = {};
 
   /* ─────────────────────────────────────────────────────────────
-     BUILD
+     BUILD MODAL
   ───────────────────────────────────────────────────────────── */
   function build() {
     overlay = document.createElement('div');
@@ -59,11 +77,10 @@
     </button>
   </div>
 
-  <!-- ══════════════════════════════════════════
+  <!-- ══════════════════════════════════════════════
        VIEW 1 — main (Google / Apple / Email)
-  ══════════════════════════════════════════════ -->
+  ══════════════════════════════════════════════════ -->
   <div class="am-view" id="am-v-main">
-
     <div class="am-titles">
       <div class="am-eyebrow">Start analyzing.</div>
       <h2 class="am-headline" id="am-title">Create your free account</h2>
@@ -99,9 +116,9 @@
 
     <p class="am-legal">
       By continuing, you agree to our
-      <a href="#" tabindex="0">Terms of Service</a>
+      <a href="/terms" target="_blank" tabindex="0">Terms of Service</a>
       and
-      <a href="#" tabindex="0">Privacy Policy</a>.
+      <a href="/privacy" target="_blank" tabindex="0">Privacy Policy</a>.
     </p>
 
     <div class="am-sso">
@@ -112,15 +129,13 @@
       </svg>
       <span>SSO available on Business and Enterprise plans</span>
     </div>
-
   </div><!-- /am-v-main -->
 
-  <!-- ══════════════════════════════════════════
-       VIEW 2 — email signup
-  ══════════════════════════════════════════════ -->
-  <div class="am-view am-view--hidden" id="am-v-signup">
-
-    <button class="am-back" id="am-back-signup" aria-label="Back to sign-in options">
+  <!-- ══════════════════════════════════════════════
+       VIEW 2 — email magic link
+  ══════════════════════════════════════════════════ -->
+  <div class="am-view am-view--hidden" id="am-v-email">
+    <button class="am-back" id="am-back-email" aria-label="Back to sign-in options">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true">
         <path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/>
@@ -129,83 +144,59 @@
     </button>
 
     <div class="am-titles">
-      <h2 class="am-headline">Create account with email</h2>
+      <h2 class="am-headline">Sign in or create account</h2>
+      <p class="am-sub">Enter your email and we'll send you a secure sign-in link. No password needed.</p>
     </div>
 
-    <form class="am-form" id="am-form-signup" novalidate>
+    <form class="am-form" id="am-form-email" novalidate>
       <div class="am-field">
-        <label class="am-label" for="am-signup-email">Email address</label>
-        <input class="am-input" id="am-signup-email" type="email"
+        <label class="am-label" for="am-email-input">Email address</label>
+        <input class="am-input" id="am-email-input" type="email"
                autocomplete="email" placeholder="you@company.com" required>
       </div>
-      <div class="am-field">
-        <label class="am-label" for="am-signup-pw">Password</label>
-        <input class="am-input" id="am-signup-pw" type="password"
-               autocomplete="new-password" placeholder="Create a password (min. 8 chars)" required minlength="8">
-      </div>
-      <div class="am-error" id="am-err-signup" role="alert" aria-live="polite"></div>
-      <button class="am-email-btn" type="submit" id="am-submit-signup">Create account</button>
+      <div class="am-error" id="am-err-email" role="alert" aria-live="polite"></div>
+      <button class="am-email-btn" type="submit" id="am-submit-email">Send sign-in link</button>
     </form>
 
-    <p class="am-switch">
-      Already have an account?
-      <button class="am-switch-btn" id="am-to-login" type="button">Sign in</button>
+    <p class="am-legal" style="margin-top:14px">
+      By continuing, you agree to our
+      <a href="/terms" target="_blank">Terms of Service</a>
+      and <a href="/privacy" target="_blank">Privacy Policy</a>.
     </p>
+  </div><!-- /am-v-email -->
 
-  </div><!-- /am-v-signup -->
-
-  <!-- ══════════════════════════════════════════
-       VIEW 3 — email login
-  ══════════════════════════════════════════════ -->
-  <div class="am-view am-view--hidden" id="am-v-login">
-
-    <button class="am-back" id="am-back-login" aria-label="Back to sign-in options">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-           stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true">
-        <path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/>
+  <!-- ══════════════════════════════════════════════
+       VIEW 3 — email sent confirmation
+  ══════════════════════════════════════════════════ -->
+  <div class="am-view am-view--hidden" id="am-v-sent">
+    <div class="am-sent-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+           stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+        <polyline points="22,6 12,13 2,6"/>
       </svg>
-      Back
-    </button>
-
-    <div class="am-titles">
-      <h2 class="am-headline">Sign in with email</h2>
     </div>
-
-    <form class="am-form" id="am-form-login" novalidate>
-      <div class="am-field">
-        <label class="am-label" for="am-login-email">Email address</label>
-        <input class="am-input" id="am-login-email" type="email"
-               autocomplete="email" placeholder="you@company.com" required>
-      </div>
-      <div class="am-field am-field--pw">
-        <div class="am-label-row">
-          <label class="am-label" for="am-login-pw">Password</label>
-          <button class="am-forgot" id="am-forgot" type="button">Forgot password?</button>
-        </div>
-        <input class="am-input" id="am-login-pw" type="password"
-               autocomplete="current-password" placeholder="Your password" required>
-      </div>
-      <div class="am-error" id="am-err-login" role="alert" aria-live="polite"></div>
-      <button class="am-email-btn" type="submit" id="am-submit-login">Sign in</button>
-    </form>
-
-    <p class="am-switch">
-      Don't have an account?
-      <button class="am-switch-btn" id="am-to-signup" type="button">Create account</button>
+    <div class="am-titles" style="margin-top:16px">
+      <h2 class="am-headline">Check your inbox</h2>
+      <p class="am-sub" id="am-sent-sub">We've sent a secure sign-in link to your email address.</p>
+    </div>
+    <p class="am-sent-note">
+      The link expires in 60 minutes. If you don't see it, check your spam folder.
     </p>
-
-  </div><!-- /am-v-login -->
+    <button class="am-back am-back--center" id="am-back-sent" type="button">
+      Use a different email
+    </button>
+  </div><!-- /am-v-sent -->
 
 </div><!-- /am-modal -->
 `;
 
     document.body.appendChild(overlay);
 
-    // Cache refs
     modal        = document.getElementById('am-modal');
     views.main   = document.getElementById('am-v-main');
-    views.signup = document.getElementById('am-v-signup');
-    views.login  = document.getElementById('am-v-login');
+    views.email  = document.getElementById('am-v-email');
+    views.sent   = document.getElementById('am-v-sent');
 
     wire();
   }
@@ -214,28 +205,19 @@
      WIRE EVENTS
   ───────────────────────────────────────────────────────────── */
   function wire() {
-    // Close
     document.getElementById('am-close').addEventListener('click', close);
     overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && _open) close(); });
 
-    // OAuth
     document.getElementById('am-btn-google').addEventListener('click', doGoogle);
     document.getElementById('am-btn-apple').addEventListener('click',  doApple);
+    document.getElementById('am-btn-email').addEventListener('click',  () => switchView('email'));
 
-    // Email flow
-    document.getElementById('am-btn-email').addEventListener('click',    () => switchView('signup'));
-    document.getElementById('am-back-signup').addEventListener('click',  () => switchView('main'));
-    document.getElementById('am-back-login').addEventListener('click',   () => switchView('main'));
-    document.getElementById('am-to-login').addEventListener('click',     () => switchView('login'));
-    document.getElementById('am-to-signup').addEventListener('click',    () => switchView('signup'));
+    document.getElementById('am-back-email').addEventListener('click', () => switchView('main'));
+    document.getElementById('am-back-sent').addEventListener('click',  () => switchView('email'));
 
-    // Forms
-    document.getElementById('am-form-signup').addEventListener('submit', doEmailSignup);
-    document.getElementById('am-form-login').addEventListener('submit',  doEmailLogin);
-    document.getElementById('am-forgot').addEventListener('click',       doForgot);
+    document.getElementById('am-form-email').addEventListener('submit', doEmailMagicLink);
 
-    // Focus trap
     modal.addEventListener('keydown', trapFocus);
   }
 
@@ -244,6 +226,7 @@
   ───────────────────────────────────────────────────────────── */
   function open() {
     if (_open) return;
+    track('signup_modal_opened');
     _open = true;
     _prevFocus = document.activeElement;
     switchView('main', false);
@@ -267,14 +250,22 @@
   ───────────────────────────────────────────────────────────── */
   function switchView(name, focusFirst = true) {
     _view = name;
-    const keyMap = { main: 'main', signup: 'signup', login: 'login' };
     Object.keys(views).forEach(k => {
-      views[k].classList.toggle('am-view--hidden', k !== keyMap[name]);
+      views[k].classList.toggle('am-view--hidden', k !== name);
     });
-    clearErr('signup');
-    clearErr('login');
+    clearErr('email');
+
+    // Always reset the submit button when returning to email view
+    if (name === 'email') {
+      const btn = document.getElementById('am-submit-email');
+      if (btn) {
+        btn.disabled  = false;
+        btn.innerHTML = 'Send sign-in link';
+      }
+    }
+
     if (focusFirst) {
-      const firstInput = views[keyMap[name]]?.querySelector('input');
+      const firstInput = views[name]?.querySelector('input');
       if (firstInput) setTimeout(() => firstInput.focus(), 60);
     }
   }
@@ -285,11 +276,10 @@
   function trapFocus(e) {
     if (e.key !== 'Tab') return;
     const els = [...modal.querySelectorAll(
-      'button:not([disabled]):not(.am-view--hidden button), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+      'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
     )].filter(el => !el.closest('.am-view--hidden'));
     if (!els.length) return;
-    const first = els[0];
-    const last  = els[els.length - 1];
+    const first = els[0], last = els[els.length - 1];
     if (e.shiftKey && document.activeElement === first) {
       e.preventDefault(); last.focus();
     } else if (!e.shiftKey && document.activeElement === last) {
@@ -301,127 +291,106 @@
      AUTH HANDLERS
   ───────────────────────────────────────────────────────────── */
 
-  /* --- Google --- */
+  /* --- Google OAuth --- */
   async function doGoogle() {
+    const sb  = await getSB();
     const btn = document.getElementById('am-btn-google');
+    if (!sb) {
+      showErr('email', 'Auth not configured. Check server .env settings.');
+      return;
+    }
+    track('signup_google_clicked');
     setBusy(btn, true);
     try {
-      if (!CFG.googleClientId) {
-        // Dev mode: simulate success
-        console.info('[Auth] Google — set CFG.googleClientId to enable real OAuth.');
-        await delay(900);
-        close();
-        return;
-      }
-      /* Production (Google Identity Services):
-         google.accounts.id.initialize({
-           client_id: CFG.googleClientId,
-           callback: onGoogleToken,
-           ux_mode: 'popup',
-         });
-         google.accounts.id.prompt();
-      */
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/auth/callback',
+          queryParams: { access_type: 'offline', prompt: 'consent' },
+        },
+      });
+      if (error) throw error;
+      // Browser navigates away — no need to reset button
     } catch (err) {
-      console.error('[Auth] Google error', err);
-    } finally {
       setBusy(btn, false);
+      // Surface error briefly before resetting
+      console.error('[Auth] Google error:', err.message);
+      alert('We couldn\'t sign you in with Google. Please try again.');
+      track('signup_failed', { provider: 'google' });
     }
   }
 
-  /* --- Apple --- */
+  /* --- Apple OAuth --- */
   async function doApple() {
+    const sb  = await getSB();
     const btn = document.getElementById('am-btn-apple');
+    if (!sb) {
+      showErr('email', 'Auth not configured. Check server .env settings.');
+      return;
+    }
+    track('signup_apple_clicked');
     setBusy(btn, true);
     try {
-      if (!CFG.appleClientId) {
-        console.info('[Auth] Apple — set CFG.appleClientId to enable real OAuth.');
-        await delay(900);
-        close();
-        return;
-      }
-      /* Production (Sign in with Apple JS):
-         AppleID.auth.init({
-           clientId:    CFG.appleClientId,
-           redirectURI: CFG.appleRedirectURI,
-           scope: 'email name',
-           usePopup: true,
-         });
-         const resp = await AppleID.auth.signIn();
-         onAppleToken(resp);
-      */
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'apple',
+        options: { redirectTo: window.location.origin + '/auth/callback' },
+      });
+      if (error) throw error;
     } catch (err) {
-      console.error('[Auth] Apple error', err);
-    } finally {
       setBusy(btn, false);
+      console.error('[Auth] Apple error:', err.message);
+      alert('We couldn\'t sign you in with Apple. Please try again.');
+      track('signup_failed', { provider: 'apple' });
     }
   }
 
-  /* --- Email signup --- */
-  function doEmailSignup(e) {
+  /* --- Email magic link --- */
+  async function doEmailMagicLink(e) {
     e.preventDefault();
-    const email = document.getElementById('am-signup-email').value.trim();
-    const pw    = document.getElementById('am-signup-pw').value;
-    const btn   = document.getElementById('am-submit-signup');
-    clearErr('signup');
+    const sb    = await getSB();
+    const email = document.getElementById('am-email-input').value.trim();
+    const btn   = document.getElementById('am-submit-email');
+    clearErr('email');
 
-    if (!validEmail(email)) return showErr('signup', 'Please enter a valid email address.');
-    if (pw.length < 8)       return showErr('signup', 'Password must be at least 8 characters.');
-
-    setBusy(btn, true, 'Creating account…');
-
-    // ── Wire your auth provider here ────────────────────────────
-    delay(1200).then(() => {
-      setBusy(btn, false, 'Create account');
-      console.info('[Auth] Signup:', email);
-      close();
-      /* After close → trigger onboarding:
-         window.dispatchEvent(new CustomEvent('auth:signup', { detail: { email } }));
-      */
-    }).catch(() => {
-      setBusy(btn, false, 'Create account');
-      showErr('signup', 'Something went wrong. Please try again.');
-    });
-  }
-
-  /* --- Email login --- */
-  function doEmailLogin(e) {
-    e.preventDefault();
-    const email = document.getElementById('am-login-email').value.trim();
-    const pw    = document.getElementById('am-login-pw').value;
-    const btn   = document.getElementById('am-submit-login');
-    clearErr('login');
-
-    if (!validEmail(email)) return showErr('login', 'Please enter a valid email address.');
-    if (!pw)                 return showErr('login', 'Please enter your password.');
-
-    setBusy(btn, true, 'Signing in…');
-
-    delay(1200).then(() => {
-      setBusy(btn, false, 'Sign in');
-      console.info('[Auth] Login:', email);
-      close();
-    }).catch(() => {
-      setBusy(btn, false, 'Sign in');
-      showErr('login', 'Incorrect email or password.');
-    });
-  }
-
-  /* --- Forgot password --- */
-  function doForgot() {
-    const email = document.getElementById('am-login-email').value.trim();
     if (!validEmail(email)) {
-      return showErr('login', 'Enter your email above first, then click "Forgot password?".');
+      return showErr('email', 'Please enter a valid email address.');
     }
-    // Wire to your reset endpoint here
-    console.info('[Auth] Password reset:', email);
-    showErr('login', `✓ Reset link sent to ${email}.`);
-    document.getElementById('am-err-login').style.color = '#16a34a';
+
+    if (!sb) {
+      return showErr('email', 'Auth not configured. Check server .env settings.');
+    }
+
+    track('signup_email_submitted', { email });
+    setBusy(btn, true, 'Sending link…');
+
+    try {
+      const { error } = await sb.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: window.location.origin + '/auth/callback',
+          shouldCreateUser: true,  // creates account if email doesn't exist
+        },
+      });
+
+      if (error) throw error;
+
+      // Show confirmation view
+      const sentSub = document.getElementById('am-sent-sub');
+      if (sentSub) sentSub.textContent = `We've sent a secure sign-in link to ${email}.`;
+      switchView('sent', false);
+      track('signup_email_submitted');
+
+    } catch (err) {
+      setBusy(btn, false, 'Send sign-in link');
+      showErr('email', humanError(err.message));
+      track('signup_failed', { provider: 'email', reason: err.message });
+    }
   }
 
   /* ─────────────────────────────────────────────────────────────
      UI HELPERS
   ───────────────────────────────────────────────────────────── */
-  const SPINNER_SVG = `<svg class="am-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+  const SPINNER = `<svg class="am-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor"
     stroke-width="2.5" stroke-linecap="round" width="15" height="15" aria-hidden="true">
     <path d="M21 12a9 9 0 1 1-6.22-8.56"/>
   </svg>`;
@@ -430,31 +399,35 @@
     if (busy) {
       btn._orig    = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = `${SPINNER_SVG}<span>${label || 'Connecting…'}</span>`;
+      btn.innerHTML = `${SPINNER}<span>${label || 'Connecting…'}</span>`;
     } else {
-      btn.disabled = false;
+      btn.disabled  = false;
       btn.innerHTML = btn._orig || label || btn.innerHTML;
     }
   }
 
   function showErr(form, msg) {
     const el = document.getElementById(`am-err-${form}`);
-    if (el) { el.textContent = msg; el.classList.add('am-error--on'); el.style.color = ''; }
+    if (el) { el.textContent = msg; el.classList.add('am-error--on'); }
   }
 
   function clearErr(form) {
     const el = document.getElementById(`am-err-${form}`);
-    if (el) { el.textContent = ''; el.classList.remove('am-error--on'); el.style.color = ''; }
+    if (el) { el.textContent = ''; el.classList.remove('am-error--on'); }
   }
 
   function validEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
-  function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
-
   /* ─────────────────────────────────────────────────────────────
-     SIDEBAR SIGN-IN BUTTON
+     SIDEBAR — auth state rendering
   ───────────────────────────────────────────────────────────── */
-  function addSidebarBtn() {
+  function renderSidebarSignedOut() {
+    // Remove user block if present
+    document.getElementById('am-sidebar-user')?.remove();
+    // Re-show sign-in button
+    const existing = document.getElementById('am-sidebar-open');
+    if (existing) { existing.style.display = ''; return; }
+
     const footer = document.querySelector('.sidebar-footer');
     if (!footer) return;
     const btn = document.createElement('button');
@@ -475,13 +448,101 @@
     footer.prepend(btn);
   }
 
+  function renderSidebarSignedIn(user) {
+    // Hide sign-in button
+    const btn = document.getElementById('am-sidebar-open');
+    if (btn) btn.style.display = 'none';
+
+    // Remove stale user block
+    document.getElementById('am-sidebar-user')?.remove();
+
+    const footer = document.querySelector('.sidebar-footer');
+    if (!footer) return;
+
+    const email    = user.email || '';
+    const initials = email.slice(0, 2).toUpperCase();
+    const avatar   = user.user_metadata?.avatar_url || '';
+
+    const block = document.createElement('div');
+    block.id = 'am-sidebar-user';
+    block.className = 'am-sidebar-user';
+    block.innerHTML = `
+      <div class="am-sidebar-user-info">
+        <span class="am-sidebar-avatar am-sidebar-avatar--photo" aria-hidden="true">
+          ${avatar
+            ? `<img src="${avatar}" alt="" width="26" height="26" style="border-radius:50%;object-fit:cover">`
+            : `<span class="am-sidebar-initials">${initials}</span>`}
+        </span>
+        <span class="am-sidebar-email" title="${email}">${email}</span>
+      </div>
+      <button class="am-sidebar-logout" id="am-logout" aria-label="Sign out">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+    `;
+    footer.prepend(block);
+    document.getElementById('am-logout').addEventListener('click', doSignOut);
+  }
+
+  async function doSignOut() {
+    track('logout_clicked');
+    const sb = await getSB();
+    if (sb) await sb.auth.signOut();
+    // auth state change listener in app.js handles the UI reset
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     AUTH STATE LISTENER
+     Updates sidebar and dispatches events that app.js can act on.
+  ───────────────────────────────────────────────────────────── */
+  async function listenToAuth() {
+    const sb = await getSB();
+    if (!sb) {
+      renderSidebarSignedOut();
+      return;
+    }
+
+    // Check current session immediately
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.user) {
+      renderSidebarSignedIn(session.user);
+      window.dispatchEvent(new CustomEvent('auth:ready', { detail: { user: session.user } }));
+    } else {
+      renderSidebarSignedOut();
+      window.dispatchEvent(new CustomEvent('auth:ready', { detail: { user: null } }));
+    }
+
+    // Listen for future changes
+    sb.auth.onAuthStateChange((event, session) => {
+      const user = session?.user || null;
+
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        if (user) {
+          renderSidebarSignedIn(user);
+          close(); // close modal on successful sign-in
+          track(event === 'SIGNED_IN' ? 'login_success' : 'token_refreshed');
+          window.dispatchEvent(new CustomEvent('auth:signedIn', { detail: { user } }));
+        }
+      }
+
+      if (event === 'SIGNED_OUT') {
+        renderSidebarSignedOut();
+        window.dispatchEvent(new CustomEvent('auth:signedOut'));
+        track('logout_clicked');
+      }
+    });
+  }
+
   /* ─────────────────────────────────────────────────────────────
      INIT
   ───────────────────────────────────────────────────────────── */
   function init() {
     build();
-    addSidebarBtn();
-    // Public API — lets other scripts trigger the modal
+    listenToAuth();
     window.authModal = { open, close };
   }
 

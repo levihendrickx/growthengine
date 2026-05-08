@@ -8,6 +8,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+
+  <!--
+    Supabase JS v2 — loaded before app scripts so window.supabase is available.
+    Only the anon key (public) is used client-side; the service-role key stays server-only.
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
   <div id="app">
@@ -52,6 +58,7 @@
       </nav>
 
       <div class="sidebar-footer">
+        <!-- Auth state (Sign in btn or user info) injected here by auth.js -->
         <div id="api-status" class="api-status">
           <span class="status-dot"></span>
           <span class="status-text">Verbinding controleren…</span>
@@ -66,6 +73,13 @@
 
   </div>
 
+  <!--
+    Load order matters:
+    1. supabase.js  — creates window.sbReady promise + window._sb client
+    2. app.js       — SPA routing, subscribes to auth events
+    3. auth.js      — modal UI + Supabase auth calls
+  -->
+  <script src="supabase.js"></script>
   <script src="app.js"></script>
   <script src="auth.js"></script>
 </body>
