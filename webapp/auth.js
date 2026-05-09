@@ -472,6 +472,37 @@
   }
 
   /* ─────────────────────────────────────────────────────────────
+     SIDEBAR USER STATE
+  ───────────────────────────────────────────────────────────── */
+  function updateSidebarForUser(user) {
+    const btn = document.getElementById('am-sidebar-open');
+    if (!btn) return;
+    if (user) {
+      const name  = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
+      const email = user.email || '';
+      btn.innerHTML = `
+        <span class="am-sidebar-avatar" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20a8 8 0 0 1 16 0"/>
+          </svg>
+        </span>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px">${name}</span>
+      `;
+      btn.title = email;
+      btn.removeEventListener('click', open);
+      btn.addEventListener('click', async () => {
+        if (confirm('Uitloggen?')) {
+          const sb = await window.sbReady;
+          if (sb) await sb.auth.signOut();
+          window.location.reload();
+        }
+      });
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────
      INIT
   ───────────────────────────────────────────────────────────── */
   function init() {
@@ -479,6 +510,20 @@
     addSidebarBtn();
     // Public API — lets other scripts trigger the modal
     window.authModal = { open, close };
+
+    // Check existing session on page load
+    if (window.sbReady) {
+      window.sbReady.then(sb => {
+        if (!sb) return;
+        sb.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user) updateSidebarForUser(session.user);
+        });
+        // Listen for future sign-in/out events
+        sb.auth.onAuthStateChange((_event, session) => {
+          updateSidebarForUser(session?.user || null);
+        });
+      });
+    }
   }
 
   if (document.readyState === 'loading') {
