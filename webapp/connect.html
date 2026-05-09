@@ -681,7 +681,7 @@
     </div>
 
     <!-- User -->
-    <div class="nav-pill">
+    <div class="nav-pill" id="user-pill">
       <div class="nav-avatar" id="nav-avatar">
         <span id="nav-initials">?</span>
         <div class="nav-dot"></div>
@@ -1141,7 +1141,7 @@
     document.getElementById('nav-email').textContent    = email;
 
     /* Dropdown toggle */
-    const pill     = document.querySelector('.nav-pill');
+    const pill     = document.getElementById('user-pill');
     const dropdown = document.getElementById('user-dropdown');
     pill.addEventListener('click', (e) => {
       e.stopPropagation();
