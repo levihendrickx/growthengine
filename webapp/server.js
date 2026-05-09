@@ -27,6 +27,11 @@ app.get('/auth/callback', (_req, res) => {
   res.sendFile(__dirname + '/auth-callback.html');
 });
 
+// ── Connect page — eerste scherm na inloggen ──────────────────
+app.get('/connect', (_req, res) => {
+  res.sendFile(__dirname + '/connect.html');
+});
+
 // ── Health check ─────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
   const hasKey = !!process.env.ANTHROPIC_API_KEY;
