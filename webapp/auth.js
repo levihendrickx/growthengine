@@ -306,8 +306,9 @@
     const btn = document.getElementById('am-btn-google');
     setBusy(btn, true);
     try {
-      const sb = window._sb;
-      if (!sb) throw new Error('Supabase not initialized');
+      // Wait for Supabase client to be ready (it loads async via /api/config)
+      const sb = await window.sbReady;
+      if (!sb) throw new Error('Supabase niet beschikbaar — controleer SUPABASE_URL en SUPABASE_ANON_KEY');
       const { error } = await sb.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -317,6 +318,7 @@
       if (error) throw error;
     } catch (err) {
       console.error('[Auth] Google error', err);
+      alert('Inloggen mislukt: ' + err.message);
     } finally {
       setBusy(btn, false);
     }
