@@ -28,6 +28,14 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true, apiKey: hasKey });
 });
 
+// ── Supabase config (public keys only — safe to expose) ───────
+app.get('/api/config', (_req, res) => {
+  res.json({
+    supabaseUrl:     process.env.SUPABASE_URL     || '',
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
+  });
+});
+
 // ── Ad generatie ─────────────────────────────────────────────
 app.post('/api/generate', async (req, res) => {
   const { product, count, instructions, patterns, brandAtom } = req.body;
