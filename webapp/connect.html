@@ -78,6 +78,45 @@
       user-select: none;
     }
     .nav-pill:hover { background: #f8f8fb; }
+    .nav-pill { position: relative; }
+
+    .nav-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: #fff;
+      border: 1px solid #e6e6ea;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      min-width: 180px;
+      z-index: 999;
+      overflow: hidden;
+    }
+    .nav-dropdown.open { display: block; }
+    .nav-dropdown-email {
+      padding: 12px 16px 8px;
+      font-size: 12px;
+      color: #8a8a93;
+      border-bottom: 1px solid #f0f0f4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .nav-dropdown-item {
+      padding: 10px 16px;
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #1a1a1a;
+      transition: background 0.1s;
+    }
+    .nav-dropdown-item:hover { background: #f8f8fb; }
+    .nav-dropdown-item.danger { color: #c0392b; }
+    .nav-dropdown-item.danger:hover { background: #fff5f5; }
 
     .nav-ws-icon {
       width: 22px; height: 22px;
@@ -651,6 +690,18 @@
       <svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="13" height="13">
         <polyline points="6 9 12 15 18 9"/>
       </svg>
+      <!-- Dropdown -->
+      <div class="nav-dropdown" id="user-dropdown">
+        <div class="nav-dropdown-email" id="nav-email">—</div>
+        <div class="nav-dropdown-item danger" id="btn-signout">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Uitloggen
+        </div>
+        <div class="nav-dropdown-item" id="btn-switch-account">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Ander account
+        </div>
+      </div>
     </div>
   </div>
 </nav>
@@ -1085,8 +1136,39 @@
     const avatar = meta.avatar_url || meta.picture || '';
     const initials = name.slice(0, 2).toUpperCase();
 
-    /* Nav username */
+    /* Nav username + email */
     document.getElementById('nav-username').textContent = name;
+    document.getElementById('nav-email').textContent    = email;
+
+    /* Dropdown toggle */
+    const pill     = document.querySelector('.nav-pill');
+    const dropdown = document.getElementById('user-dropdown');
+    pill.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle('open');
+    });
+    document.addEventListener('click', () => dropdown.classList.remove('open'));
+
+    /* Sign out */
+    document.getElementById('btn-signout').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await sb.auth.signOut();
+      window.location.href = '/';
+    });
+
+    /* Switch account — sign out then force Google picker */
+    document.getElementById('btn-switch-account').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await sb.auth.signOut();
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/auth/callback',
+          queryParams: { prompt: 'select_account' },
+        }
+      });
+      if (error) alert('Fout: ' + error.message);
+    });
 
     /* Nav avatar */
     const avatarEl = document.getElementById('nav-avatar');
