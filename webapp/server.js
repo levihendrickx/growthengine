@@ -21,6 +21,8 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
+app.use('/assets', express.static(__dirname + '/assets'));
+app.use('/images', express.static(__dirname + '/images'));
 
 // ── Auth callback — redirect na Google/Apple login ───────────
 app.get('/auth/callback', (_req, res) => {
