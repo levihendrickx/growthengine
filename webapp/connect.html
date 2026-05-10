@@ -363,6 +363,227 @@
     }
 
     /* ═══════════════════════════════════════
+       RECOMMENDED CARD
+    ═══════════════════════════════════════ */
+    .rec-card {
+      background: #fff;
+      border: 1.5px solid #e5e5ea;
+      border-radius: 18px;
+      padding: 22px 22px 20px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .rec-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #4a3aff;
+      color: #fff;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 5px 13px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+
+    .rec-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #0d0d0d;
+      margin-bottom: 6px;
+    }
+
+    .brand-meta    { color: #1877F2; }
+    .brand-shopify { color: #96BF48; }
+
+    .rec-sub {
+      font-size: 12.5px;
+      color: #6b7280;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .rec-logos {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+
+    .rec-logo-box {
+      width: 68px; height: 68px;
+      background: #fff;
+      border: 1px solid #e5e5ea;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .rec-connector {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      max-width: 100px;
+      min-width: 40px;
+    }
+
+    .rec-dots {
+      flex: 1;
+      border-top: 2px dashed #d1d5db;
+      height: 0;
+    }
+
+    .rec-plus {
+      width: 26px; height: 26px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600;
+      color: #6b7280;
+      background: #fff;
+      flex-shrink: 0;
+      margin: 0 6px;
+    }
+
+    .rec-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn-meta {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: #1877F2; color: #fff;
+      border: none; border-radius: 10px;
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .btn-meta:hover { background: #1461cc; }
+
+    .btn-shopify {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: #5E8E3E; color: #fff;
+      border: none; border-radius: 10px;
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .btn-shopify:hover { background: #4d7534; }
+
+    /* ═══════════════════════════════════════
+       OTHER WAYS TO START
+    ═══════════════════════════════════════ */
+    .other-section { margin-bottom: 18px; }
+
+    .other-heading {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #6b7280;
+      margin-bottom: 10px;
+    }
+
+    .other-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .other-card {
+      background: #fff;
+      border: 1px solid #e5e5ea;
+      border-radius: 14px;
+      padding: 16px 16px 14px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .other-icon-wrap { margin-bottom: 10px; }
+
+    .other-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 5px;
+    }
+
+    .other-card-desc {
+      font-size: 12px;
+      color: #6b7280;
+      line-height: 1.5;
+      flex: 1;
+      margin-bottom: 12px;
+    }
+
+    .btn-other-link {
+      display: block;
+      background: transparent;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-family: inherit;
+      font-size: 12.5px; font-weight: 600;
+      color: #4a3aff;
+      cursor: pointer;
+      text-align: center;
+      width: 100%;
+      transition: border-color 0.14s, background 0.14s;
+    }
+    .btn-other-link:hover { border-color: #4a3aff; background: #f5f3ff; }
+
+    /* ═══════════════════════════════════════
+       FLAT KPI LAYOUT (right panel)
+    ═══════════════════════════════════════ */
+    .panel-sub2 {
+      font-size: 12.5px;
+      color: #9ca3af;
+      margin-top: -14px;
+      margin-bottom: 22px;
+      line-height: 1.5;
+    }
+
+    .kpis-flat {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #f0f0f4;
+    }
+
+    .kpi-flat {
+      padding: 0 20px;
+      border-right: 1px solid #f0f0f4;
+    }
+    .kpi-flat:first-child { padding-left: 0; }
+    .kpi-flat:last-child  { border-right: none; }
+
+    .kpi-flat-icon { margin-bottom: 10px; }
+
+    .kpi-flat-val {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .kpi-flat-lbl {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .kpi-flat-sub {
+      font-size: 11.5px;
+      color: #9ca3af;
+      margin-top: 1px;
+    }
+
+    /* ═══════════════════════════════════════
        RIGHT PANEL
     ═══════════════════════════════════════ */
     .right {
@@ -470,9 +691,9 @@
 
     .insight-card-left {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       flex-shrink: 0;
       padding-right: 16px;
     }
@@ -663,79 +884,92 @@
     <h1 class="heading">Connect your data</h1>
     <p class="desc">Choose how you want to get your first insights. Connect your<br>ad and store data, upload a CSV, or explore the platform with demo data.</p>
 
-    <!-- Cards -->
-    <div class="cards">
+    <!-- Recommended setup card -->
+    <div class="rec-card">
+      <div>
+        <span class="rec-badge">
+          <svg viewBox="0 0 24 24" width="12" height="12" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L13.6 8.8L20.5 10L13.6 11.2L12 18L10.4 11.2L3.5 10L10.4 8.8Z" fill="currentColor"/>
+          </svg>
+          Recommended setup
+        </span>
+      </div>
+      <h3 class="rec-title">Connect <span class="brand-meta">Meta Ads</span> + <span class="brand-shopify">Shopify</span></h3>
+      <p class="rec-sub">Best for complete insights across ads, creatives and purchases.</p>
 
-      <!-- Meta Ads -->
-      <div class="card">
-        <div class="card-top">
-          <div class="card-icon card-icon--meta">
-            <img src="/images/connect/logo-meta.png" width="28" height="28" style="object-fit:contain"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-            <svg style="display:none" viewBox="0 0 38 22" width="30" height="18" xmlns="http://www.w3.org/2000/svg" fill="none">
-              <path d="M2 11C2 7.5 4 5 6.5 5C8.8 5 10.3 6.5 12.2 9.8L15 14.5C16.8 17.8 18.5 20 21 20C23.5 20 25.2 18 26.5 15L29 10C30.2 7.2 31.8 5 34 5C36 5 37.5 7.5 37.5 11C37.5 14.5 36 16.5 34 16.5" stroke="#1877F2" stroke-width="3" stroke-linecap="round"/>
-              <path d="M2 11C2 7.5 4 5 7 5C9.5 5 11.2 7 13.2 10.5L15.8 15C17.8 18.5 19.5 20 22 20C24.5 20 26.2 17.5 27.5 14.5" stroke="#1877F2" stroke-width="3" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <span class="card-title">Meta Ads</span>
+      <div class="rec-logos">
+        <!-- Meta logo box -->
+        <div class="rec-logo-box">
+          <svg viewBox="0 0 38 22" width="36" height="22" xmlns="http://www.w3.org/2000/svg" fill="none">
+            <path d="M2 11C2 7.5 4 5 6.5 5C8.8 5 10.3 6.5 12.2 9.8L15 14.5C16.8 17.8 18.5 20 21 20C23.5 20 25.2 18 26.5 15L29 10C30.2 7.2 31.8 5 34 5C36 5 37.5 7.5 37.5 11C37.5 14.5 36 16.5 34 16.5" stroke="#1877F2" stroke-width="3" stroke-linecap="round"/>
+            <path d="M2 11C2 7.5 4 5 7 5C9.5 5 11.2 7 13.2 10.5L15.8 15C17.8 18.5 19.5 20 22 20C24.5 20 26.2 17.5 27.5 14.5" stroke="#1877F2" stroke-width="3" stroke-linecap="round"/>
+          </svg>
         </div>
-        <p class="card-desc">Analyze your ad creatives, spend, CTR, conversion rate and ROAS.</p>
-        <button class="btn" onclick="handleConnect('meta')">Connect Meta Ads</button>
+        <!-- Connector -->
+        <div class="rec-connector">
+          <div class="rec-dots"></div>
+          <div class="rec-plus">+</div>
+          <div class="rec-dots"></div>
+        </div>
+        <!-- Shopify logo box -->
+        <div class="rec-logo-box">
+          <svg viewBox="0 0 32 36" width="26" height="30" xmlns="http://www.w3.org/2000/svg">
+            <path d="M27.2 6.9c0-.2-.2-.3-.4-.3l-2.2.2c-.3-.8-.8-1.5-1.5-2-.6-.5-1.4-.8-2.2-.8-.3 0-.6 0-.9.1-.3-.4-.7-.7-1.2-.7-2.1.2-4.1 1.9-5.4 4.9l-4 1.2c-.5.1-.9.6-.9 1.1L7 30.9c0 .5.4.9.8 1l18.8 3.5c.4.1.8-.2.9-.6L27.2 7V6.9z" fill="#96BF48"/>
+            <path d="M22.8 6.8l-2.2.2c-.3-.8-.8-1.5-1.5-2-.6-.5-1.4-.8-2.2-.8V35l18.8 3.5L22.8 6.8z" fill="#5E8E3E"/>
+            <path d="M18.5 13.2l-.9 4.2c-.5-.2-1-.3-1.5-.3-2 0-3 1-3 2 0 2.3 3.8 2.9 3.8 6.4 0 3-1.8 4.8-4.3 4.8-3 0-4.5-1.9-4.5-1.9l.8-2.9s1.5 1.3 2.8 1.3c.8 0 1.2-.5 1.2-1.2 0-2.3-3.1-2.7-3.1-5.9 0-3 2.1-5.8 6-5.8 1.4-.1 2.7.3 2.7.3z" fill="white"/>
+          </svg>
+        </div>
       </div>
 
-      <!-- Shopify -->
-      <div class="card">
-        <div class="card-top">
-          <div class="card-icon card-icon--shopify">
-            <img src="/images/connect/logo-shopify.png" width="28" height="28" style="object-fit:contain"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-            <svg style="display:none" viewBox="0 0 32 36" width="22" height="26" xmlns="http://www.w3.org/2000/svg">
-              <path d="M27.2 6.9c0-.2-.2-.3-.4-.3l-2.2.2c-.3-.8-.8-1.5-1.5-2-.6-.5-1.4-.8-2.2-.8-.3 0-.6 0-.9.1-.3-.4-.7-.7-1.2-.7-2.1.2-4.1 1.9-5.4 4.9l-4 1.2c-.5.1-.9.6-.9 1.1L7 30.9c0 .5.4.9.8 1l18.8 3.5c.4.1.8-.2.9-.6L27.2 7V6.9z" fill="#96BF48"/>
-              <path d="M22.8 6.8l-2.2.2c-.3-.8-.8-1.5-1.5-2-.6-.5-1.4-.8-2.2-.8V35l18.8 3.5L22.8 6.8z" fill="#5E8E3E"/>
-              <path d="M18.5 13.2l-.9 4.2c-.5-.2-1-.3-1.5-.3-2 0-3 1-3 2 0 2.3 3.8 2.9 3.8 6.4 0 3-1.8 4.8-4.3 4.8-3 0-4.5-1.9-4.5-1.9l.8-2.9s1.5 1.3 2.8 1.3c.8 0 1.2-.5 1.2-1.2 0-2.3-3.1-2.7-3.1-5.9 0-3 2.1-5.8 6-5.8 1.4-.1 2.7.3 2.7.3z" fill="white"/>
-            </svg>
-          </div>
-          <span class="card-title">Shopify</span>
-        </div>
-        <p class="card-desc">Connect your store to analyze revenue, AOV, products and customer data.</p>
-        <button class="btn" onclick="handleConnect('shopify')">Connect Shopify</button>
+      <div class="rec-btns">
+        <button class="btn-meta" onclick="handleConnect('meta')">
+          <svg viewBox="0 0 38 22" width="20" height="12" xmlns="http://www.w3.org/2000/svg" fill="none">
+            <path d="M2 11C2 7.5 4 5 6.5 5C8.8 5 10.3 6.5 12.2 9.8L15 14.5C16.8 17.8 18.5 20 21 20C23.5 20 25.2 18 26.5 15" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            <path d="M2 11C2 7.5 4 5 7 5C9.5 5 11.2 7 13.2 10.5L15.8 15C17.8 18.5 19.5 20 22 20" stroke="white" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          Connect Meta Ads
+        </button>
+        <button class="btn-shopify" onclick="handleConnect('shopify')">
+          <svg viewBox="0 0 32 36" width="14" height="16" xmlns="http://www.w3.org/2000/svg">
+            <path d="M27.2 6.9c0-.2-.2-.3-.4-.3l-2.2.2c-.3-.8-.8-1.5-1.5-2-.6-.5-1.4-.8-2.2-.8-.3 0-.6 0-.9.1-.3-.4-.7-.7-1.2-.7-2.1.2-4.1 1.9-5.4 4.9l-4 1.2c-.5.1-.9.6-.9 1.1L7 30.9c0 .5.4.9.8 1l18.8 3.5c.4.1.8-.2.9-.6L27.2 7V6.9z" fill="rgba(255,255,255,0.9)"/>
+          </svg>
+          Connect Shopify
+        </button>
       </div>
+    </div>
 
-      <!-- Upload CSV -->
-      <div class="card">
-        <div class="card-top">
-          <div class="card-icon card-icon--csv">
-            <img src="/images/connect/logo-csv.png" width="28" height="28" style="object-fit:contain"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-            <svg style="display:none" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+    <!-- Other ways to start -->
+    <div class="other-section">
+      <div class="other-heading">Other ways to start</div>
+      <div class="other-grid">
+
+        <div class="other-card">
+          <div class="other-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
               <polyline points="14 2 14 8 20 8"/>
               <line x1="12" y1="18" x2="12" y2="12"/>
               <line x1="9" y1="15" x2="15" y2="15"/>
             </svg>
           </div>
-          <span class="card-title">Upload CSV</span>
+          <div class="other-card-title">Upload CSV</div>
+          <p class="other-card-desc">Upload your performance data manually from any ad platform.</p>
+          <button class="btn-other-link" onclick="handleConnect('csv')">Upload CSV</button>
         </div>
-        <p class="card-desc">Upload your ad performance data manually. Supports CSV from any ad platform.</p>
-        <button class="btn" onclick="handleConnect('csv')">Upload CSV</button>
-      </div>
 
-      <!-- Try demo data -->
-      <div class="card card--demo">
-        <span class="card-badge">Easiest start</span>
-        <div class="card-top">
-          <div class="card-icon card-icon--demo">
-            <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L13.8 9.2L21 12L13.8 14.8L12 22L10.2 14.8L3 12L10.2 9.2Z" fill="#4a3aff"/>
-              <path d="M20 2L20.9 5.1L24 6L20.9 6.9L20 10L19.1 6.9L16 6L19.1 5.1Z" fill="#818cf8"/>
+        <div class="other-card">
+          <div class="other-icon-wrap">
+            <svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L13.6 8.8L20.5 10L13.6 11.2L12 18L10.4 11.2L3.5 10L10.4 8.8Z" fill="#4a3aff"/>
+              <path d="M20 2L20.7 4.6L23.5 5.5L20.7 6.4L20 9L19.3 6.4L16.5 5.5L19.3 4.6Z" fill="#818cf8"/>
             </svg>
           </div>
-          <span class="card-title">Try demo data</span>
+          <div class="other-card-title">Try demo data</div>
+          <p class="other-card-desc">Explore the platform with realistic sample data and see insights in seconds.</p>
+          <button class="btn-other-link" onclick="handleConnect('demo')">Try demo data</button>
         </div>
-        <p class="card-desc">Explore the platform with realistic sample data and see insights in seconds.</p>
-        <button class="btn btn--demo" onclick="handleConnect('demo')">Try demo data</button>
-      </div>
 
+      </div>
     </div>
 
     <!-- Security note -->
@@ -754,54 +988,49 @@
 
       <h2 class="panel-title">What you'll unlock</h2>
       <p class="panel-sub">The engine combines creative details, audience behavior, seasonality, weather, pricing and purchase data to reveal patterns normal dashboards miss.</p>
+      <p class="panel-sub2">Connect your data to uncover patterns like these in your own ads and purchases.</p>
 
-      <!-- 3 KPI cards -->
-      <div class="kpis-new">
+      <!-- 3 KPI flat -->
+      <div class="kpis-flat">
 
-        <div class="kpi-card">
-          <div class="kpi-card-icon kpi-card-icon--purple">
-            <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+        <div class="kpi-flat">
+          <div class="kpi-flat-icon">
+            <svg viewBox="0 0 24 24" width="26" height="26" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2L13.6 8.8L20.5 10L13.6 11.2L12 18L10.4 11.2L3.5 10L10.4 8.8Z" fill="#4a3aff"/>
               <path d="M20 2L20.7 4.6L23.5 5.5L20.7 6.4L20 9L19.3 6.4L16.5 5.5L19.3 4.6Z" fill="#818cf8"/>
             </svg>
           </div>
-          <div class="kpi-card-info">
-            <div class="kpi-card-val kpi-val--purple">7</div>
-            <div class="kpi-card-lbl">hidden patterns</div>
-            <div class="kpi-card-sub">discovered</div>
-          </div>
+          <div class="kpi-flat-val kpi-val--purple">7</div>
+          <div class="kpi-flat-lbl">hidden patterns</div>
+          <div class="kpi-flat-sub">discovered</div>
         </div>
 
-        <div class="kpi-card">
-          <div class="kpi-card-icon kpi-card-icon--green">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+        <div class="kpi-flat">
+          <div class="kpi-flat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">
               <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
               <polyline points="17 6 23 6 23 12"/>
             </svg>
           </div>
-          <div class="kpi-card-info">
-            <div class="kpi-card-val kpi-val--green">+31%</div>
-            <div class="kpi-card-lbl">CVR uplift</div>
-            <div class="kpi-card-sub">vs. baseline</div>
-          </div>
+          <div class="kpi-flat-val kpi-val--green">+31%</div>
+          <div class="kpi-flat-lbl">CVR uplift</div>
+          <div class="kpi-flat-sub">vs. baseline</div>
         </div>
 
-        <div class="kpi-card">
-          <div class="kpi-card-icon kpi-card-icon--blue">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round" width="20" height="20">
+        <div class="kpi-flat">
+          <div class="kpi-flat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round" width="26" height="26">
               <line x1="18" y1="20" x2="18" y2="10"/>
               <line x1="12" y1="20" x2="12" y2="4"/>
               <line x1="6"  y1="20" x2="6"  y2="14"/>
             </svg>
           </div>
-          <div class="kpi-card-info">
-            <div class="kpi-card-val kpi-val--blue">1.8x</div>
-            <div class="kpi-card-lbl">ROAS uplift</div>
-            <div class="kpi-card-sub">vs. baseline</div>
-          </div>
+          <div class="kpi-flat-val kpi-val--blue">1.8x</div>
+          <div class="kpi-flat-lbl">ROAS uplift</div>
+          <div class="kpi-flat-sub">vs. baseline</div>
         </div>
 
-      </div><!-- /kpis-new -->
+      </div><!-- /kpis-flat -->
 
       <!-- 3 insight cards -->
       <div class="insights-new">
@@ -819,7 +1048,6 @@
               </svg>
             </div>
           </div>
-          <div class="insight-divider"></div>
           <div class="insight-body">
             <div class="insight-title">Warm weather changed what converted</div>
             <div class="insight-text">Light product close-ups lifted CVR, while lifestyle visuals attracted lower-quality clicks.</div>
@@ -837,7 +1065,6 @@
               </svg>
             </div>
           </div>
-          <div class="insight-divider"></div>
           <div class="insight-body">
             <div class="insight-title">Easter timing was earlier than expected</div>
             <div class="insight-text">Subtle seasonal cues worked 18 days before Easter; obvious Easter visuals dropped after-click conversion.</div>
@@ -856,7 +1083,6 @@
               </svg>
             </div>
           </div>
-          <div class="insight-divider"></div>
           <div class="insight-body">
             <div class="insight-title">Audience temperature changed the winning hook</div>
             <div class="insight-text">Warm audiences trusted social proof, while cold audiences needed visual contrast before discounts worked.</div>
@@ -867,7 +1093,7 @@
 
       <!-- Footer -->
       <div class="panel-footer">
-        <span class="panel-footer-text">Patterns surfaced across creative, seasonality and audience behavior.</span>
+        <span class="panel-footer-text">Patterns surfaced across:</span>
         <div class="panel-footer-tags">
           <div class="footer-tag">
             <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" width="13" height="13">
