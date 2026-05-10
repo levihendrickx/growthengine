@@ -24,6 +24,16 @@ app.use(express.static(__dirname));
 app.use('/assets', express.static(__dirname + '/assets'));
 app.use('/images', express.static(__dirname + '/images'));
 
+// ── Debug: check welke bestanden op server staan ─────────────
+app.get('/api/debug-files', (_req, res) => {
+  import('fs').then(fs => {
+    const assets = fs.existsSync(__dirname + '/assets')
+      ? fs.readdirSync(__dirname + '/assets')
+      : 'MAP BESTAAT NIET';
+    res.json({ __dirname, assets });
+  });
+});
+
 // ── Auth callback — redirect na Google/Apple login ───────────
 app.get('/auth/callback', (_req, res) => {
   res.sendFile(__dirname + '/auth-callback.html');
