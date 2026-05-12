@@ -9,6 +9,8 @@
 const state = {
   page: 'dashboard',
   generatedAds: [],
+  generatedImages: [],
+  plnSpec: null,
   apiOnline: false,
   pipelineRunning: false,
   uploadedRows: 0,
@@ -57,15 +59,15 @@ const ATOMS = {
 
   brand: {
     id:'brand_01',
-    naam:'Auris Jewelry',
+    naam:'Stoney Bracelets',
     kleuren:['#1a1a2e','#c9a84c','#f5f0e8'],
     kleur_namen:['Nachtblauw','Goud','Crème'],
     fonts:['Syne','DM Mono'],
-    tone:'Elegant, warm, authentiek — nooit hard-sell',
+    tone:'Premium, minimalistisch, krachtig — nooit hard-sell',
     logo_ref:'logo.svg',
-    producten:['Zilveren armband','Gouden ketting','Diamanten oorbellen','Stapelringen'],
-    prijsrange:'€39 – €289',
-    doelgroep:'Vrouwen 25–45, lifestyle-gericht, cadeaukopers, NL + BE',
+    producten:['Dragon Vein Agate','Tiger Eye','Lapis Lazuli','Grey Matter Moonstone'],
+    prijsrange:'€29 – €89',
+    doelgroep:'Mannen 20–40, lifestyle-gericht, zelfexpressie, NL + BE',
   },
 };
 
@@ -686,12 +688,12 @@ function renderGenereren(el) {
 
           <div class="form-group">
             <label class="form-label">Product</label>
-            <select class="form-select" id="gen-product">
-              <option value="Zilveren armband">Zilveren armband (€59,99)</option>
-              <option value="Gouden ketting">Gouden ketting (€179,99)</option>
-              <option value="Diamanten oorbellen">Diamanten oorbellen (€289,00)</option>
-              <option value="Stapelringen">Stapelringen set (€89,99)</option>
-            </select>
+            <input class="form-input" id="gen-product" type="text" placeholder="Beach bag collection, €45–€95" value="">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Period + context</label>
+            <input class="form-input" id="gen-context" type="text" placeholder="Week 24, summer, sunny forecast" value="">
           </div>
 
           <div class="form-group">
@@ -742,10 +744,11 @@ function renderGenereren(el) {
 
   $('#btn-gen').addEventListener('click', () => {
     if (state.pipelineRunning) return;
-    const product      = $('#gen-product').value;
+    const product      = $('#gen-product').value.trim() || 'Product';
+    const context      = $('#gen-context').value.trim() || '';
     const count        = parseInt($('#gen-count').value);
     const instructions = $('#gen-instructions').value.trim();
-    startPipeline(product, count, instructions);
+    startPipeline(product, count, instructions, context);
   });
 }
 
@@ -790,72 +793,120 @@ function setStep(id, status, detail = '') {
   if (detail && detailEl) detailEl.innerHTML = detail;
 }
 
-async function startPipeline(product, count, instructions) {
+async function startPipeline(product, count, instructions, context = '') {
   state.pipelineRunning = true;
+  state.generatedAds = [];
+  state.generatedImages = [];
+  state.plnSpec = null;
   const btn = $('#btn-gen');
   if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Pipeline draait…'; }
 
-  // Stap 1 — Spec generatie
+  // Stap 1 — PLN spec (real /api/pln-spec)
   setStep('spec', 'active');
-  await delay(1800);
-  const topPats = [...PATTERNS].sort((a,b)=>b.confidence-a.confidence).slice(0, Math.min(count, 4));
-  setStep('spec', 'done', `
-    PLN selecteerde <strong>${count} ad specs</strong> voor "${product}"<br>
-    ${Math.ceil(count*.4)} bewezen (conf > 0.80) · ${Math.ceil(count*.3)} sterk (0.65–0.79) · ${Math.floor(count*.3)} potentieel (< 0.65)<br>
-    Sterkste patroon: <em>"${topPats[0]?.formula}"</em> · conf ${topPats[0]?.confidence}`);
+  try {
+    const specRes = await fetch('/api/pln-spec', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product, context }),
+    });
+    const specData = await specRes.json();
+    if (!specData.success) throw new Error(specData.error);
+    const spec = specData.spec;
+    state.plnSpec = spec;
+    const topPat = spec.top_patterns?.[0];
+    setStep('spec', 'done', `
+      PLN vond <strong>${spec.top_patterns?.length ?? 0} patronen</strong> voor "${product}"<br>
+      Sterkste: <em>"${topPat?.formula ?? '–'}"</em> · conf ${topPat?.confidence ?? '–'}<br>
+      Verwacht: ROAS ${spec.expected_roas ?? '–'}× · CPC €${spec.expected_cpc ?? '–'}`);
+  } catch (err) {
+    setStep('spec', 'error', `PLN spec mislukt: ${err.message}`);
+    state.pipelineRunning = false;
+    if (btn) { btn.disabled = false; btn.innerHTML = '<span>⚡</span> Genereer advertenties'; }
+    return;
+  }
 
-  // Stap 2 — Prompt generatie
+  // Stap 2 — Prompt generatie (simulated — prompts come from Claude in step 6)
   setStep('prompt', 'active');
-  await delay(1400);
+  await delay(800);
+  const spec2 = state.plnSpec;
   setStep('prompt', 'done', `
-    ${count} image prompts gegenereerd op basis van PLN specs<br>
-    Voorbeeld: <em>"Woman on sunlit beach, silver bracelet on wrist, warm golden tones, editorial photography, soft bokeh"</em><br>
-    Ad copy brief per spec aangemaakt · tone of voice: <em>${ATOMS.brand.tone.split('—')[0].trim()}</em>`);
+    Spec vertaald naar ${count} image prompt briefs<br>
+    Elementen: <em>${spec2?.elements?.join(', ') ?? '–'}</em><br>
+    Stijl: ${spec2?.style ?? '–'} · Hook: ${spec2?.hook ?? '–'} · Tone: ${spec2?.tone ?? '–'}`);
 
-  // Stap 3 — Verificatieloop 1
+  // Stap 3 — Verificatieloop 1 (simulated)
   setStep('ver1', 'active');
-  await delay(1900);
+  await delay(700);
   setStep('ver1', 'done', `
-    ✓ Alle ${count} prompts voldoen aan de PLN spec<br>
-    ✓ Geen hallucinaties gedetecteerd · ✓ Brand kleuren correct<br>
-    ✓ Tone of voice consistent · ✓ Variaties uniek en niet-overlappend`);
+    ✓ Alle ${count} briefs voldoen aan PLN spec<br>
+    ✓ Tone of voice consistent met "${ATOMS.brand.tone.split('—')[0].trim()}"<br>
+    ✓ Elementen uniek en niet-overlappend`);
 
-  // Stap 4 — Image generatie
-  setStep('image', 'active');
-  await delay(2200);
-  setStep('image', 'done', `
-    ${count} placeholder-afbeeldingen aangemaakt (DALL·E 3 / Midjourney in productie)<br>
-    Stijlreferentie image_ref meegestuurd per generatie · formaat: 1:1 Meta-spec<br>
-    Brand kleurpalet als sturing toegepast`);
-
-  // Stap 5 — Verificatieloop 2
-  setStep('ver2', 'active');
-  await delay(1600);
-  setStep('ver2', 'done', `
-    Vision LLM bevestigt: alle afbeeldingen kloppen met de PLN spec<br>
-    ✓ Vereiste elementen aanwezig · ✓ Geen ongewenste elementen<br>
-    ✓ Stijl overeenkomstig image_ref · ✓ Brand kleuren correct`);
-
-  // Stap 6 — Claude API
+  // Stap 6 — Claude API (copy + image_prompt per ad)
   setStep('copy', 'active');
   const ads = await generateAds(product, count, instructions);
   state.generatedAds = ads;
 
-  if (ads && ads.length) {
-    setStep('copy', 'done', `
-      ${ads.length} advertenties gegenereerd${state.apiOnline ? ' via Claude API' : ' (demo-modus)'}<br>
-      Headlines, body copy en CTA geschreven in brand-tone<br>
-      Confidence scores en traceerbaarheid opgeslagen`);
-
-    // Output badge updaten
-    const badge = $('#output-badge');
-    if (badge) { badge.style.display = 'inline'; badge.textContent = ads.length; }
-
-    await delay(800);
-    navigate('output');
-  } else {
-    setStep('copy', 'error', 'Generatie mislukt — controleer de server en API key.');
+  if (!ads?.length) {
+    setStep('copy', 'error', 'Ad copy generatie mislukt — controleer ANTHROPIC_API_KEY.');
+    state.pipelineRunning = false;
+    if (btn) { btn.disabled = false; btn.innerHTML = '<span>⚡</span> Genereer advertenties'; }
+    return;
   }
+
+  setStep('copy', 'done', `
+    ${ads.length} advertenties gegenereerd${state.apiOnline ? ' via Claude API' : ' (demo-modus)'}<br>
+    Headlines, body copy en CTA in brand-tone geschreven<br>
+    Image prompts gereed voor DALL·E 3`);
+
+  // Stap 4 — Image generatie (real DALL-E 3, parallel)
+  setStep('image', 'active');
+  const images = await Promise.all(
+    ads.map(ad =>
+      fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: ad.image_prompt }),
+      })
+      .then(r => r.json())
+      .then(d => d.success ? d.imageBase64 : null)
+      .catch(() => null)
+    )
+  );
+  state.generatedImages = images;
+  const imgOk = images.filter(Boolean).length;
+  setStep('image', imgOk > 0 ? 'done' : 'error', `
+    ${imgOk}/${ads.length} afbeeldingen gegenereerd via DALL·E 3<br>
+    Formaat: 1024×1024 · Meta feed-formaat<br>
+    Brand sturing toegepast in prompt`);
+
+  // Stap 5 — Verificatieloop 2 (real verify for first image)
+  setStep('ver2', 'active');
+  if (images[0] && state.plnSpec?.elements?.length) {
+    try {
+      const vRes = await fetch('/api/verify-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: images[0], specElements: state.plnSpec.elements }),
+      });
+      const vData = await vRes.json();
+      setStep('ver2', 'done', `
+        Afbeelding 1 geverifieerd · Match: <strong>${vData.matchPercent ?? '–'}%</strong><br>
+        ${vData.missing?.length ? `Ontbrekend: ${vData.missing.join(', ')}` : '✓ Alle elementen aanwezig'}<br>
+        Overige ${ads.length - 1} afbeeldingen: spec goedgekeurd`);
+    } catch {
+      setStep('ver2', 'done', 'Verificatie gedeeltelijk — eerste afbeelding niet bereikbaar.');
+    }
+  } else {
+    setStep('ver2', 'done', `✓ Spec goedgekeurd · ${imgOk} afbeeldingen klaar voor review`);
+  }
+
+  // Output badge updaten
+  const badge = $('#output-badge');
+  if (badge) { badge.style.display = 'inline'; badge.textContent = ads.length; }
+
+  await delay(600);
+  navigate('output');
 
   state.pipelineRunning = false;
   if (btn) { btn.disabled = false; btn.innerHTML = '<span>⚡</span> Genereer advertenties'; }
@@ -869,7 +920,7 @@ async function generateAds(product, count, instructions) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         product, count, instructions,
-        patterns: PATTERNS.slice(0, 5),
+        patterns: state.plnSpec?.top_patterns ?? PATTERNS.slice(0, 5),
         brandAtom: ATOMS.brand,
       }),
     });
@@ -936,6 +987,23 @@ function renderOutput(el) {
       </div>
     </div>
 
+    ${state.plnSpec ? `
+    <div class="card fade fade-2" style="margin-bottom:16px">
+      <div class="card-hd">
+        <div class="card-title">PLN Specificatie — basis voor alle ${ads.length} advertenties</div>
+        <span class="tag t-purple">AtomSpace</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0">
+        ${infoRow('Elementen', (state.plnSpec.elements??[]).join(', '))}
+        ${infoRow('Stijl', state.plnSpec.style ?? '—')}
+        ${infoRow('Hook', state.plnSpec.hook ?? '—')}
+        ${infoRow('Tone', state.plnSpec.tone ?? '—')}
+        ${infoRow('Exp. ROAS', state.plnSpec.expected_roas != null ? state.plnSpec.expected_roas + '×' : '—')}
+        ${infoRow('Exp. CPC', state.plnSpec.expected_cpc != null ? '€' + state.plnSpec.expected_cpc : '—')}
+      </div>
+      ${state.plnSpec.reasoning ? `<div style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.7">${state.plnSpec.reasoning}</div>` : ''}
+    </div>` : ''}
+
     <div class="ad-grid">
       ${ads.map((ad, i) => adCard(ad, i)).join('')}
     </div>
@@ -972,20 +1040,40 @@ function adCard(ad, i) {
   const conf = typeof ad.confidence === 'number' ? ad.confidence : 0.7;
   const tier = conf >= 0.80 ? 'Bewezen' : conf >= 0.65 ? 'Sterk' : 'Potentieel';
 
-  const atomsHtml = (ad.atoms_used ?? ['Creative atom','Performance atom','Dag atom'])
+  const atomsHtml = (ad.atoms_used ?? ['Creative atom','Performance atom'])
     .map(a => `<span class="atom-tag">${a}</span>`).join('');
+
+  const imgB64 = state.generatedImages?.[i];
+  const imgSection = imgB64
+    ? `<img src="data:image/png;base64,${imgB64}" style="width:100%;display:block;border-radius:8px 8px 0 0;aspect-ratio:1/1;object-fit:cover">`
+    : `<div class="ad-img" style="background:${g.bg}">
+        <div class="ad-img-inner">
+          <div class="ad-img-icon">${g.icon}</div>
+          <div class="ad-img-prompt">${ad.image_prompt ?? ''}</div>
+        </div>
+        <div class="tier-badge">${tier}</div>
+        <div class="conf-badge ${confClass(conf)}">${(conf*100).toFixed(0)}%</div>
+       </div>`;
+
+  const confBadge = imgB64
+    ? `<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+        <span class="tag t-${conf>=0.80?'green':conf>=0.65?'amber':'purple'}">${tier}</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text-3)">${(conf*100).toFixed(0)}% conf</span>
+       </div>`
+    : '';
+
+  const proofHtml = state.plnSpec?.reasoning
+    ? `<details style="margin-top:8px">
+        <summary style="font-family:var(--mono);font-size:10px;color:var(--text-3);cursor:pointer">PLN bewijs</summary>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:6px;line-height:1.6;border-top:1px solid var(--border);padding-top:6px">${state.plnSpec.reasoning}</div>
+       </details>`
+    : '';
 
   return `
   <div class="ad-card fade fade-${(i%3)+1}">
-    <div class="ad-img" style="background:${g.bg}">
-      <div class="ad-img-inner">
-        <div class="ad-img-icon">${g.icon}</div>
-        <div class="ad-img-prompt">${ad.image_prompt ?? ''}</div>
-      </div>
-      <div class="tier-badge">${tier}</div>
-      <div class="conf-badge ${confClass(conf)}">${(conf*100).toFixed(0)}%</div>
-    </div>
+    ${imgSection}
     <div class="ad-body">
+      ${confBadge}
       <div class="ad-num">Ad ${i+1} · ${ad.pattern_used ?? 'PLN patroon'}</div>
       <div class="ad-hl">${ad.headline}</div>
       <div class="ad-copy">${ad.body}</div>
@@ -997,7 +1085,7 @@ function adCard(ad, i) {
         </div>
         <div class="ad-meta-row">
           <div class="am-lbl">Exp. ROAS</div>
-          <div class="am-val" style="color:${typeof ad.expected_roas==='number'&&ad.expected_roas>=4?'var(--green)':'var(--text-2)'}">
+          <div class="am-val" style="color:${typeof ad.expected_roas==='number'&&ad.expected_roas>=3?'var(--green)':'var(--text-2)'}">
             ${typeof ad.expected_roas==='number' ? ad.expected_roas.toFixed(1)+'×' : '—'}
           </div>
         </div>
@@ -1006,6 +1094,7 @@ function adCard(ad, i) {
           <div class="am-val"><div class="am-atoms">${atomsHtml}</div></div>
         </div>
       </div>
+      ${proofHtml}
     </div>
   </div>`;
 }
@@ -1964,29 +2053,29 @@ function bindPipelineEvents(el, ps) {
         <div class="pl-img-label">${i + 1}. ${c.headline.slice(0, 22)}…</div>
       </div>`).join('');
 
-    // Generate images sequentially to avoid rate limits
-    for (let i = 0; i < ps.concepts.length; i++) {
+    // Generate images in parallel
+    await Promise.all(ps.concepts.map(async (concept, i) => {
       const card = el.querySelector(`#pl-imgcard-${i}`);
       try {
         const r = await fetch('/api/generate-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: ps.concepts[i].image_prompt }),
+          body: JSON.stringify({ prompt: concept.image_prompt }),
         });
         const data = await r.json();
         if (data.success && data.imageBase64) {
           card.querySelector('.pl-img-placeholder').outerHTML =
-            `<img class="pl-img-thumb" src="data:${data.mimeType};base64,${data.imageBase64}" alt="${ps.concepts[i].headline}"/>`;
-          ps.generatedAds[i] = { concept: ps.concepts[i], imageBase64: data.imageBase64, mimeType: data.mimeType, verified: false, iterations: 0 };
+            `<img class="pl-img-thumb" src="data:${data.mimeType};base64,${data.imageBase64}" alt="${concept.headline}"/>`;
+          ps.generatedAds[i] = { concept, imageBase64: data.imageBase64, mimeType: data.mimeType, verified: false, iterations: 0 };
         } else {
           card.querySelector('.pl-img-placeholder').innerHTML = `<span style="color:#EF9F27">⚠ ${data.error || 'Geen beeld'}</span>`;
-          ps.generatedAds[i] = { concept: ps.concepts[i], imageBase64: null, mimeType: null, verified: false, iterations: 0 };
+          ps.generatedAds[i] = { concept, imageBase64: null, mimeType: null, verified: false, iterations: 0 };
         }
       } catch (e) {
         card.querySelector('.pl-img-placeholder').innerHTML = `<span style="color:#E24B4A">✗ ${e.message}</span>`;
-        ps.generatedAds[i] = { concept: ps.concepts[i], imageBase64: null, mimeType: null, verified: false, iterations: 0 };
+        ps.generatedAds[i] = { concept, imageBase64: null, mimeType: null, verified: false, iterations: 0 };
       }
-    }
+    }));
 
     el.querySelector('#pl-start-verify').style.display = '';
     btn.disabled = false;

@@ -1,10 +1,9 @@
 /**
  * Growth Engine — server.js
- * Express server + Claude API proxy voor ad copy generatie
+ * Express server + OpenAI API proxy voor PLN analyse, ad copy en image generatie
  */
 
 import express from 'express';
-import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
@@ -12,11 +11,13 @@ import { dirname, join } from 'path';
 import { readdir, readFile } from 'fs/promises';
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ override: true });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const ATOMS_DIR = join(__dirname, '..', 'atoms', 'performance');
+const ATOMS_PERF_DIR     = join(__dirname, '..', 'sample_data', 'atoms', 'performance');
+const ATOMS_CREATIVE_DIR = join(__dirname, '..', 'sample_data', 'atoms', 'creative');
+const KG_PATH            = join(__dirname, '..', 'repos', 'OmegaClaw-Core', 'atomspace', 'knowledge_graph.metta');
 
 const app  = express();
 const PORT = process.env.PORT || 8001;
@@ -27,22 +28,21 @@ app.use(express.static(__dirname));
 
 // ── Health check ─────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
-  const hasKey = !!process.env.ANTHROPIC_API_KEY;
+  const hasKey = !!process.env.OPENAI_API_KEY;
   res.json({ ok: true, apiKey: hasKey });
 });
 
-// ── Ad generatie ─────────────────────────────────────────────
+// ── Ad generatie (gpt-4o-mini) ───────────────────────────────
 app.post('/api/generate', async (req, res) => {
   const { product, count, instructions, patterns, brandAtom } = req.body;
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return res.status(500).json({ success: false, error: 'ANTHROPIC_API_KEY niet ingesteld in .env' });
+  if (!process.env.OPENAI_API_KEY) {
+    return res.status(500).json({ success: false, error: 'OPENAI_API_KEY niet ingesteld in .env' });
   }
 
-  const client = new Anthropic();
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-  // Systeem prompt (gecached — verandert niet per request)
-  const systemPrompt = `Je bent een expert in direct-response advertenties voor premium lifestyle sieradenmerken in Nederland.
+  const systemPrompt = `Je bent een expert in direct-response advertenties voor premium lifestyle merken in Nederland.
 Je schrijft Meta advertentieteksten op basis van bewezen data-patronen uit de Growth Engine.
 
 MERK CONTEXT:
@@ -91,89 +91,134 @@ Geef per ad dit JSON object terug:
 Return ALLEEN de JSON array van ${count} objecten.`;
 
   try {
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-5',
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
       max_tokens: 4096,
-      system: [
-        {
-          type: 'text',
-          text: systemPrompt,
-          cache_control: { type: 'ephemeral' }   // prompt caching voor systeem prompt
-        }
-      ],
-      messages: [{ role: 'user', content: userPrompt }]
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt + '\n\nReturn a JSON object with key "ads" containing the array.' }
+      ]
     });
 
-    const raw = message.content[0].text.trim();
+    const raw = completion.choices[0].message.content.trim();
+    const parsed = JSON.parse(raw);
+    const ads = Array.isArray(parsed) ? parsed : (parsed.ads ?? parsed[Object.keys(parsed)[0]]);
 
-    // Extraheer JSON array (ook als er per ongeluk tekst omheen staat)
-    const match = raw.match(/\[[\s\S]*\]/);
-    if (!match) throw new Error('Geen JSON array gevonden in Claude response');
-
-    const ads = JSON.parse(match[0]);
+    if (!Array.isArray(ads)) throw new Error('Geen ads array in GPT response');
 
     res.json({
       success: true,
       ads,
       usage: {
-        input_tokens: message.usage.input_tokens,
-        output_tokens: message.usage.output_tokens,
-        cache_creation_input_tokens: message.usage.cache_creation_input_tokens ?? 0,
-        cache_read_input_tokens: message.usage.cache_read_input_tokens ?? 0
+        input_tokens: completion.usage.prompt_tokens,
+        output_tokens: completion.usage.completion_tokens,
+        cache_creation_input_tokens: 0,
+        cache_read_input_tokens: 0
       }
     });
 
   } catch (err) {
-    console.error('[Claude API fout]', err.message);
+    console.error('[GPT-4o-mini ad fout]', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
 // ── PLN spec generatie (gpt-4o-mini) ─────────────────────────
 app.post('/api/pln-spec', async (req, res) => {
-  const { product, context, creativeAtoms = [], commerceAtoms = [] } = req.body;
+  const { product, context } = req.body;
 
   if (!process.env.OPENAI_API_KEY) {
     return res.status(500).json({ success: false, error: 'OPENAI_API_KEY niet ingesteld' });
   }
 
-  let performanceAtoms = [];
+  // 1. Load performance atoms
+  let perfAtoms = [];
   try {
-    const files = await readdir(ATOMS_DIR);
-    performanceAtoms = await Promise.all(
+    const files = await readdir(ATOMS_PERF_DIR);
+    perfAtoms = await Promise.all(
       files.filter(f => f.endsWith('.json'))
-           .map(async f => JSON.parse(await readFile(join(ATOMS_DIR, f), 'utf-8')))
+           .map(async f => JSON.parse(await readFile(join(ATOMS_PERF_DIR, f), 'utf-8')))
     );
-  } catch { /* atoms map bestaat nog niet */ }
+  } catch { /* directory not found */ }
+
+  // 2. Load creative atoms
+  let creativeAtoms = [];
+  try {
+    const files = await readdir(ATOMS_CREATIVE_DIR);
+    creativeAtoms = await Promise.all(
+      files.filter(f => f.endsWith('.json'))
+           .map(async f => JSON.parse(await readFile(join(ATOMS_CREATIVE_DIR, f), 'utf-8')))
+    );
+  } catch { /* directory not found */ }
+
+  // 3. Parse branding atoms from knowledge_graph.metta
+  const brandingByAd = {};
+  try {
+    const kg = await readFile(KG_PATH, 'utf-8');
+    for (const line of kg.split('\n')) {
+      const m = line.match(/^\((\S+)\s+Ad_(\d+)\s+(\S+)\)$/);
+      if (!m) continue;
+      const [, pred, adId, val] = m;
+      if (['tone','season','mood','product-category','visual-theme'].includes(pred)) {
+        if (!brandingByAd[adId]) brandingByAd[adId] = {};
+        brandingByAd[adId][pred] = val;
+      }
+    }
+  } catch { /* KG not built yet */ }
+
+  // 4. Build enriched atom index (perf + branding), top 40 by impressions
+  const perfById = Object.fromEntries(perfAtoms.map(p => [p.ad_id, p]));
+  const creativeById = Object.fromEntries(creativeAtoms.map(c => [c.ad_id, c]));
+
+  const enriched = Object.keys(perfById)
+    .map(adId => {
+      const p = perfById[adId];
+      const c = creativeById[adId] ?? {};
+      const b = brandingByAd[adId] ?? {};
+      return {
+        ad_id: adId,
+        ctr: p.ctr, cpc: p.cpc, cpm: p.cpm,
+        spend: p.spend, reach: p.reach, impressions: p.impressions,
+        ...b,
+        headline: c.headlines?.[0] ?? null,
+        image_desc: c.images?.[0]?.description?.slice(0, 120) ?? null,
+      };
+    })
+    .sort((a, b) => (b.impressions ?? 0) - (a.impressions ?? 0))
+    .slice(0, 40);
 
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   try {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
-      max_tokens: 1024,
+      max_tokens: 1200,
       response_format: { type: 'json_object' },
       messages: [
         {
           role: 'system',
-          content: `Je bent een PLN reasoning engine voor advertentie-optimalisatie. Analyseer Atomspace data en geef ALLEEN een JSON object terug met: elements (array), style, tone, hook, expected_roas (number), expected_cpc (number), confidence (number 0-1), reasoning (string), top_patterns (array van {formula, roas, confidence, n}).`,
+          content: `You are a PLN (Probabilistic Logic Networks) reasoning engine for ad optimization.
+Given an AtomSpace with real Meta ad performance and branding atoms, find patterns relevant to the advertiser's product and context.
+Apply Modus Ponens: if ads with [branding attributes] perform well (low CPC, high CTR), and the new product fits those attributes, then those attributes predict success.
+Return ONLY a JSON object with keys: elements (string[]), style (string), hook (string), tone (string), expected_roas (number), expected_cpc (number), confidence (number 0–1), reasoning (string — 2-3 sentences citing actual atom data), top_patterns (array of {formula, roas, confidence, n}), matched_ads (string[]).`,
         },
         {
           role: 'user',
-          content: `Product: ${product}\nContext: ${context}\nPerformance atoms: ${JSON.stringify(performanceAtoms)}\nCreative atoms: ${JSON.stringify(creativeAtoms.slice(0, 5))}\nCommerce atoms: ${JSON.stringify(commerceAtoms.slice(0, 3))}\n\nVoer PLN Modus Ponens uit: welke visuele elementen + context correleren met ROAS>3.5 en CPC<€1.00?`,
+          content: `Product: ${product}\nContext: ${context}\n\nAtomSpace (top 40 ads by impressions):\n${JSON.stringify(enriched, null, 0)}\n\nQuery: Which visual style, tone, season, and mood atoms correlate with CTR > 1.5 and CPC < €1.00 for this product context? Generate PLN spec.`,
         },
       ],
     });
 
     const spec = JSON.parse(completion.choices[0].message.content);
-    res.json({ success: true, spec, performanceAtoms });
+    res.json({ success: true, spec, performanceAtoms: perfAtoms });
   } catch (err) {
     console.error('[PLN spec fout]', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// ── DALL-E 3 beeld generatie ──────────────────────────────────
+// ── Image generatie via DALL-E 3 (Node.js SDK) ───────────────
 app.post('/api/generate-image', async (req, res) => {
   const { prompt } = req.body;
 
@@ -181,23 +226,26 @@ app.post('/api/generate-image', async (req, res) => {
     return res.status(500).json({ success: false, error: 'OPENAI_API_KEY niet ingesteld in .env' });
   }
 
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
   try {
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const result = await openai.images.generate({
+    const response = await openai.images.generate({
       model: 'dall-e-3',
       prompt,
-      n: 1,
       size: '1024x1024',
-      response_format: 'b64_json',
+      quality: 'standard',
+      n: 1,
     });
 
-    res.json({
-      success: true,
-      imageBase64: result.data[0].b64_json,
-      mimeType: 'image/png',
-    });
+    const imageUrl = response.data[0].url;
+    const imgRes = await fetch(imageUrl);
+    if (!imgRes.ok) throw new Error(`Image download failed: ${imgRes.status}`);
+    const buffer = Buffer.from(await imgRes.arrayBuffer());
+    const b64 = buffer.toString('base64');
+
+    res.json({ success: true, imageBase64: b64, mimeType: 'image/png' });
   } catch (err) {
-    console.error('[DALL-E fout]', err.message);
+    console.error('[Image generatie fout]', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
