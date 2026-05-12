@@ -34,11 +34,7 @@ CREATIVE_DIR = REPO_ROOT / "sample_data" / "atoms" / "creative"
 OUTPUT_DIR = REPO_ROOT / "repos" / "OmegaClaw-Core" / "atomspace"
 OUTPUT_FILE = OUTPUT_DIR / "knowledge_graph.metta"
 
-# POC: key hardcoded for convenience; replace with OPENAI_API_KEY env var in production
-OPENAI_API_KEY = os.environ.get(
-    "OPENAI_API_KEY",
-    "",
-)
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 
 BRANDING_SYSTEM = (
     "You classify Meta ads for a knowledge graph. "

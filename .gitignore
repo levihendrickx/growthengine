@@ -24,3 +24,5 @@ images/
 # the actual creatives without needing Meta credentials.
 !sample_data/images/
 !sample_data/images/**
+
+test_exec.mjs
