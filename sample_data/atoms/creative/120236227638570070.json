@@ -1,0 +1,51 @@
+{
+  "ad_id": "120236227638570070",
+  "ad_name": "08-11 | TA9 | Creative 2",
+  "created_time": "2025-11-07T21:58:35+0100",
+  "date": "2025-11-07",
+  "creative_id": "1157058722538212",
+  "creative_name": "{{product.name}} 2025-10-28-a97c3e7dd64966e4ecb8cdd46f07fd76",
+  "object_type": "SHARE",
+  "instagram_permalink_url": "https://www.instagram.com/p/DQxQL9mDCZs/",
+  "headlines": [
+    "Een cadeau dat indruk maakt",
+    "Best Sellers — Nu met voordeel",
+    "Maak je set compleet",
+    "Slim bundelen = meer besparen",
+    "Shop nu bij Stoney Bracelets"
+  ],
+  "bodies": [
+    "Stijl begint bij de details. Ontdek de kracht van echte natuursteen en geef je outfit karakter.\nKies jouw favorieten en bundel voor extra voordeel.",
+    "Meer armbanden. Minder betalen.\nKies je bundel en profiteer van tot 15% korting.",
+    "Jij kent Stoney al. Nu is het moment om je collectie uit te breiden.\nBundel je favorieten en profiteer van extra voordeel.",
+    "Het perfecte cadeau hoeft niet moeilijk te zijn.\nKies een bundel, laat hem luxe verpakken en verras met betekenis.",
+    "Deze bundels vliegen over de toonbank.\nPopulaire designs, tijdelijk met bundelkorting en gratis verzending."
+  ],
+  "descriptions": [
+    "Gratis verzending inbegrepen."
+  ],
+  "ctas": [
+    "SHOP_NOW"
+  ],
+  "link_urls": [
+    "https://stoneybracelets.nl/collections/armbanden-sets"
+  ],
+  "images": [
+    {
+      "ref": "images/120236227638570070_1.jpg",
+      "url": "https://scontent-ams2-1.xx.fbcdn.net/v/t45.1600-4/567803401_24865241459803631_2622946475460483002_n.png?stp=dst-jpg_tt6&_nc_cat=101&ccb=1-7&_nc_sid=d5bd00&_nc_ohc=Rl_0qzMzwGQQ7kNvwGGNaVs&_nc_oc=AdpzE6jDdKLOcQKdku8eyuRZdLjQ3sE4XLbxQf7SN896Ph53JtIMCpd-3-4lkRPcWC1WrP-DuO7Kpl9Nl-VG5fOA&_nc_zt=1&_nc_ht=scontent-ams2-1.xx&edm=AJcBmwoEAAAA&_nc_gid=2Am20w06UrZouqG7z-0Aeg&_nc_tpa=Q5bMBQHuY83Te_ABjzCOQuSqvLLWIxtJkOdfSA-J41L6AzIxwwNvqrne0uIxOtU3Xq6f2C1EM1Btx5OIEQ&oh=00_Af7eK2sXiehCBdQskVThgZIhiPh_zbtMGAy9sTnyOnXpzw&oe=6A1A015A",
+      "hash": "57e38e1dc45f9be0fa39f547f87155a9",
+      "width": 1350,
+      "height": 1688,
+      "description": "A 3×3 grid of nine white-background product photographs displays beaded bracelets featuring blue and grey/dark metallic round beads with a small square charm engraved with the letters \"SB\"; the top row shows single bracelets, the middle row shows two-bracelet stacks, and the bottom row shows three-bracelet stacks. The grid is set against a dark grey background, transitioning to a light blue-grey lower section. Visible text below the grid reads \"STONEY bracelets,\" \"More Bracelet, Less Cost,\" \"Bundle our best selling pieces,\" and within a tan/olive pill-shaped button: \"SAVE UP TO 15% - FREE SHIPPING WHEN BUYING AS A BUNDLE.\""
+    },
+    {
+      "ref": "images/120236227638570070_2.jpg",
+      "url": "https://scontent-ams2-1.xx.fbcdn.net/v/t45.1600-4/567434573_24865241553136955_1520152387500402299_n.png?stp=dst-jpg_tt6&_nc_cat=110&ccb=1-7&_nc_sid=d5bd00&_nc_ohc=p3NtRcT9JU8Q7kNvwGpRuYd&_nc_oc=Adp23STMUKnmpDRf5d7ipWqQkxgeU7cPYikrT6pywKSNgdGqJfs0zOz4iyuz0q_XMRhxb9VkFgUTiqJexdYQIZcY&_nc_zt=1&_nc_ht=scontent-ams2-1.xx&edm=AJcBmwoEAAAA&_nc_gid=2Am20w06UrZouqG7z-0Aeg&_nc_tpa=Q5bMBQHGPCPxnLuNLrgp649R_NbuZCk41HQ0Dn0dWh2GGBJGb1t_FjnLz2WZ-r20JIiUZgaGDWhk8P833A&oh=00_Af4j0FPH2TXM3pSM19UGgfudDjOSOXluPCLTFMabmkUSRQ&oe=6A19F47C",
+      "hash": "554f6a87166828ecb6eee5cf68c5e393",
+      "width": 1152,
+      "height": 2048,
+      "description": "A grid of nine white-bordered product images arranged in three rows of three displays bead bracelets against a dark blue-to-light grey gradient background. The top row shows single bracelets with blue and grey beads featuring a small square metal charm engraved with \"SB\"; the middle row shows two-bracelet stacks combining blue beads with darker metallic grey beads; the bottom row shows three-bracelet stacks with light blue speckled and solid dark blue beads. Below the grid, visible text reads \"STONEY bracelets,\" followed by \"More Bracelet, Less Cost\" in large black type, \"Bundle our best selling pieces.\" in smaller text, and a tan oval button reading \"SAVE UP TO 15% - FREE SHIPPING WHEN BUYING AS A BUNDLE.\""
+    }
+  ]
+}

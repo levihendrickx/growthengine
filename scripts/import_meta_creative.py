@@ -45,9 +45,17 @@ Output schema (atoms/creative/<ad_id>.json):
     }
 
 Usage:
+    # Default: fetch the newest --limit ads from the account.
     python scripts/import_meta_creative.py
     python scripts/import_meta_creative.py --limit 10 --dry-run
     python scripts/import_meta_creative.py --no-images   # skip downloads
+
+    # Recommended for a joinable dataset: fetch only the ads that already
+    # exist as performance atoms. Guarantees creative atoms join with
+    # performance atoms on ad_id (no silent set-mismatch — see
+    # docs/notes/2026-05-25-fix-ad-id-join.md).
+    python scripts/import_meta_api.py --days 90 --limit 200
+    python scripts/import_meta_creative.py --ad-ids-from atoms/performance/
 """
 
 import argparse
@@ -92,7 +100,13 @@ def http_get(url: str, params: dict | None, what: str) -> dict:
 
 
 def fetch_ads(token: str, api_version: str, ad_account_id: str, limit: int) -> list[dict]:
-    """Paginate through /act_<id>/ads until we have `limit` ads or run out."""
+    """Paginate through /act_<id>/ads until we have `limit` ads or run out.
+
+    Returns ads in Meta's default order (newest first). This is NOT joinable
+    with a separately-pulled /insights set: the two endpoints can return
+    disjoint ad sets when the account has more ads than `limit`. For a
+    joinable result, prefer `fetch_ads_by_ids` driven by `--ad-ids-from`.
+    """
     url = f"https://graph.facebook.com/{api_version}/{ad_account_id}/ads"
     params = {
         "fields": AD_FIELDS,
@@ -106,6 +120,58 @@ def fetch_ads(token: str, api_version: str, ad_account_id: str, limit: int) -> l
         url = payload.get("paging", {}).get("next")
         params = None  # next URL has auth + cursor baked in
     return collected[:limit]
+
+
+def read_ad_ids_from_dir(directory: Path) -> list[str]:
+    """Read ad_ids from JSON filenames in a directory.
+
+    Each `<ad_id>.json` in `directory` contributes its stem as an ad_id.
+    Used by `--ad-ids-from` to align the creative pull with an existing
+    set of atoms (typically `atoms/performance/`).
+    """
+    if not directory.exists() or not directory.is_dir():
+        return []
+    seen: set[str] = set()
+    out: list[str] = []
+    for p in sorted(directory.glob("*.json")):
+        ad_id = p.stem
+        if ad_id and ad_id not in seen:
+            seen.add(ad_id)
+            out.append(ad_id)
+    return out
+
+
+def fetch_ads_by_ids(token: str, api_version: str, ad_ids: list[str], batch_size: int = 50) -> list[dict]:
+    """Batch-fetch ads by explicit ad_id list using the `?ids=` endpoint.
+
+    Returns ads in the SAME shape as `fetch_ads`. Order follows `ad_ids`.
+    Missing ads (Meta returns no entry for an unknown id) are silently
+    skipped — caller can compare lengths to detect drift.
+
+    Why batch endpoint: per-ad GET would be N requests; `?ids=a,b,c` returns
+    up to ~50 ads per request, which respects the rate-limit budget in ADR 0003.
+    """
+    collected: list[dict] = []
+    if not ad_ids:
+        return collected
+
+    for i in range(0, len(ad_ids), batch_size):
+        batch = ad_ids[i:i + batch_size]
+        url = f"https://graph.facebook.com/{api_version}/"
+        params = {
+            "ids": ",".join(batch),
+            "fields": AD_FIELDS,
+            "access_token": token,
+        }
+        payload = http_get(url, params, f"fetch_ads_by_ids[{i}:{i + len(batch)}]")
+        # payload shape: {"<ad_id>": {ad object}, ...}; preserve request order
+        for ad_id in batch:
+            ad_data = payload.get(ad_id)
+            if isinstance(ad_data, dict):
+                # Meta sometimes returns the id at the top level; sometimes not.
+                ad_data.setdefault("id", ad_id)
+                collected.append(ad_data)
+    return collected
 
 
 def collect_texts(items: list[dict] | None, key: str = "text") -> list[str]:
@@ -302,6 +368,16 @@ def main() -> None:
     parser.add_argument("--limit", type=int, default=100, help="Max number of ads (safety, default 100)")
     parser.add_argument("--dry-run", action="store_true", help="Show what would happen, write nothing")
     parser.add_argument("--no-images", action="store_true", help="Skip image downloads")
+    parser.add_argument(
+        "--ad-ids-from",
+        type=str,
+        metavar="DIR",
+        default=None,
+        help=("Fetch only the ad_ids that appear as <ad_id>.json filenames in DIR "
+              "(e.g. atoms/performance/). Guarantees the creative atoms join with "
+              "the existing performance atoms. Without this flag, fetches the newest "
+              "--limit ads via /act_<id>/ads, which may not overlap with /insights."),
+    )
     args = parser.parse_args()
 
     load_dotenv(REPO_ROOT / ".env")
@@ -318,9 +394,30 @@ def main() -> None:
     print(f"Limit:    {args.limit} ads")
     print(f"Images:   {'SKIP' if args.no_images else 'resolve hashes + download to images/'}")
     print(f"Mode:     {'DRY-RUN (writing nothing)' if args.dry_run else 'LIVE (writing to atoms/creative/)'}")
-    print()
 
-    ads = fetch_ads(token, api_version, ad_account_id, args.limit)
+    if args.ad_ids_from:
+        src = Path(args.ad_ids_from)
+        if not src.is_absolute():
+            src = REPO_ROOT / src
+        ad_ids = read_ad_ids_from_dir(src)
+        if not ad_ids:
+            print(f"\n[ERROR] No <ad_id>.json files found in {src}")
+            sys.exit(1)
+        ad_ids = ad_ids[:args.limit]
+        print(f"Source:   --ad-ids-from {src}")
+        print(f"IDs:      {len(ad_ids)} ad_ids (capped by --limit)")
+        print()
+        ads = fetch_ads_by_ids(token, api_version, ad_ids)
+        # Drift check: warn if Meta didn't return some of the requested ads
+        returned_ids = {a.get("id") for a in ads if a.get("id")}
+        missing = [aid for aid in ad_ids if aid not in returned_ids]
+        if missing:
+            print(f"[WARN] {len(missing)} ad_ids did not return data from Meta "
+                  f"(deleted, archived, or different account). First few: {missing[:5]}")
+    else:
+        print()
+        ads = fetch_ads(token, api_version, ad_account_id, args.limit)
+
     if not ads:
         print("No ads returned.")
         return

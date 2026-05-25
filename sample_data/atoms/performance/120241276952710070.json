@@ -5,14 +5,13 @@
   "campaign_name": "NL-BE | Andromeda Testing",
   "adset_id": "120241276441570070",
   "adset_name": "NL_Testing_Batch_7",
-  "impressions": 267.0,
-  "clicks": 2.0,
-  "ctr": 0.749064,
-  "cpc": 1.625,
-  "cpm": 12.172285,
-  "spend": 3.25,
-  "reach": 222.0,
-  "frequency": 1.202703,
-  "date_start": "2026-01-28",
-  "date_stop": "2026-04-28"
+  "impressions": 32.0,
+  "clicks": 0.0,
+  "ctr": 0.0,
+  "cpm": 23.125,
+  "spend": 0.74,
+  "reach": 27.0,
+  "frequency": 1.185185,
+  "date_start": "2026-02-24",
+  "date_stop": "2026-05-25"
 }
