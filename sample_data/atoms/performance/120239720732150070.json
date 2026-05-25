@@ -5,13 +5,13 @@
   "campaign_name": "ALL | Brand Awareness",
   "adset_id": "120239720732140070",
   "adset_name": "DE-AT | Brand Awareness",
-  "impressions": 899.0,
+  "impressions": 581.0,
   "clicks": 0.0,
   "ctr": 0.0,
-  "cpm": 1.179088,
-  "spend": 1.06,
-  "reach": 861.0,
-  "frequency": 1.044135,
-  "date_start": "2026-01-28",
-  "date_stop": "2026-04-28"
+  "cpm": 1.187608,
+  "spend": 0.69,
+  "reach": 560.0,
+  "frequency": 1.0375,
+  "date_start": "2026-02-24",
+  "date_stop": "2026-05-25"
 }

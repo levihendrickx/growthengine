@@ -3,6 +3,10 @@ node_modules/
 .env.local
 .claude/settings.local.json
 
+# Local Python virtualenv — per-dev, never committed.
+.venv/
+venv/
+
 # Obsidian — vault config & cache (notes themselves are tracked, settings are personal)
 docs/.obsidian/
 

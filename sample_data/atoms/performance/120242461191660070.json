@@ -4,7 +4,7 @@
   "campaign_id": "120242459911870070",
   "campaign_name": "NL-BE | Zombie",
   "adset_id": "120242461191120070",
-  "adset_name": "NL-BE | Zombie (costcap 35)",
+  "adset_name": "NL-BE | Zombie (costcap 30)",
   "impressions": 152.0,
   "clicks": 3.0,
   "ctr": 1.973684,
@@ -13,6 +13,6 @@
   "spend": 1.66,
   "reach": 127.0,
   "frequency": 1.19685,
-  "date_start": "2026-01-28",
-  "date_stop": "2026-04-28"
+  "date_start": "2026-02-24",
+  "date_stop": "2026-05-25"
 }
