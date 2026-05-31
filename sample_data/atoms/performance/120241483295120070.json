@@ -1,0 +1,49 @@
+{
+  "ad_id": "120241483295120070",
+  "ad_name": "26-02 | TB8 | Creative 1 - Kopie",
+  "campaign_id": "120235501082170070",
+  "campaign_name": "NL-BE | Andromeda Testing",
+  "adset_id": "120241483253430070",
+  "adset_name": "NL_Testing_Batch_8",
+  "impressions": 8530.0,
+  "clicks": 144.0,
+  "ctr": 1.688159,
+  "cpc": 0.570833,
+  "cpm": 9.636577,
+  "spend": 82.2,
+  "reach": 4366.0,
+  "frequency": 1.953733,
+  "date_start": "2026-01-28",
+  "date_stop": "2026-04-28",
+  "actions": [
+    {
+      "action_type": "link_click",
+      "value": 144.0
+    },
+    {
+      "action_type": "add_to_cart",
+      "value": 19.0
+    },
+    {
+      "action_type": "initiate_checkout",
+      "value": 14.0
+    },
+    {
+      "action_type": "purchase",
+      "value": 3.0
+    }
+  ],
+  "action_values": [
+    {
+      "action_type": "purchase",
+      "value": 121.56
+    }
+  ],
+  "purchase_roas": [
+    {
+      "action_type": "omni_purchase",
+      "value": 1.4788
+    }
+  ],
+  "synthetic": true
+}

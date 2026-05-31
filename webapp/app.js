@@ -14,6 +14,8 @@ const state = {
   apiOnline: false,
   pipelineRunning: false,
   uploadedRows: 0,
+  selectedWinnerAdId: null,
+  uploadedWinnerBase64: null,
 };
 
 // ── SIMULATED DATA ────────────────────────────────────────────
@@ -203,7 +205,7 @@ function navigate(page) {
 function renderPage(page) {
   const el = $('#page-container');
   el.innerHTML = '';
-  const map = { home:renderHome, dashboard:renderDashboard, bronnen:renderBronnen, atomspace:renderAtomspace, pln:renderPLN, pipeline:renderPipeline, genereren:renderGenereren, output:renderOutput };
+  const map = { home:renderHome, dashboard:renderDashboard, bronnen:renderBronnen, atomspace:renderAtomspace, dataset:renderDataset, pln:renderPLN, pipeline:renderPipeline, genereren:renderGenereren, output:renderOutput };
   if (map[page]) map[page](el);
 }
 
@@ -275,20 +277,26 @@ function renderDashboard(el) {
       <table class="mini-table">
         <thead><tr>
           <th>Ad ID</th><th>Campagne</th><th>Datum</th>
-          <th>CTR</th><th>CPC</th><th>ROAS</th><th>Spend</th><th>Impressies</th>
+          <th><span class="th-tip" data-tip="Click-Through Rate — % gebruikers dat klikt">CTR</span></th>
+          <th><span class="th-tip" data-tip="Cost Per Click — kosten per klik in €">CPC</span></th>
+          <th><span class="th-tip" data-tip="Return On Ad Spend — opbrengst per € spend">ROAS</span></th>
+          <th>Spend</th><th>Impressies</th>
         </tr></thead>
         <tbody>
-          ${[...ATOMS.performance].sort((a,b)=>b.ROAS-a.ROAS).map(p=>`
-          <tr>
+          ${[...ATOMS.performance].sort((a,b)=>(b.impressions??0)-(a.impressions??0)).map(p=>{
+            const ctr = p.ctr ?? p.CTR ?? 0;
+            const rowCls = p.ROAS >= 5 ? 'tr-high-roas' : ctr > 3 ? 'tr-high-ctr' : '';
+            return `
+          <tr class="${rowCls}">
             <td class="td-hi">${p.ad_id}</td>
-            <td>${p.campagne}</td>
-            <td>${p.datum}</td>
-            <td>${p.CTR}%</td>
-            <td>${fmtEur(p.CPC)}</td>
-            <td class="${roasClass(p.ROAS)}">${p.ROAS}×</td>
+            <td>${p.campaign_name ?? p.campagne ?? '—'}</td>
+            <td>${p.date_start ?? p.datum ?? '—'}</td>
+            <td style="color:${ctr>3?'var(--green)':'inherit'}">${ctr ? ctr.toFixed(2) + '%' : '—'}</td>
+            <td>${p.cpc != null ? fmtEur(p.cpc) : p.CPC != null ? fmtEur(p.CPC) : '—'}</td>
+            <td class="${roasClass(p.ROAS)}">${p.ROAS != null ? p.ROAS + '×' : '—'}</td>
             <td>${fmtEur(p.spend)}</td>
             <td>${fmtK(p.impressions)}</td>
-          </tr>`).join('')}
+          </tr>`;}).join('')}
         </tbody>
       </table>
     </div>
@@ -550,6 +558,240 @@ function infoRow(lbl, val) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// PAGE 3b — DATASET BROWSER
+// ═══════════════════════════════════════════════════════════════
+
+const _ds = { type:'performance', page:1, limit:20, search:'', total:0, pages:1, data:[], loading:false };
+
+function navigateDataset(adId, type = 'performance') {
+  _ds.type   = type;
+  _ds.search = String(adId);
+  _ds.page   = 1;
+  navigate('dataset');
+}
+
+function renderDataset(el) {
+  el.innerHTML = `
+  <div class="page-header fade">
+    <div class="page-title">Dataset</div>
+    <div class="page-sub">Lokale atom-bestanden · performance &amp; creative · echte Meta data</div>
+  </div>
+  <div class="page-content">
+
+    <div class="ds-toolbar fade fade-1">
+      <div class="ds-tabs" id="ds-tabs">
+        <button class="ds-tab${_ds.type==='performance'?' active':''}" data-type="performance">Performance</button>
+        <button class="ds-tab${_ds.type==='creative'?' active':''}" data-type="creative">Creative</button>
+      </div>
+      <div class="ds-search-wrap">
+        <input id="ds-search" class="ds-search" type="search" placeholder="Zoeken in dataset…" autocomplete="off" value="${escapeHtml(_ds.search)}">
+      </div>
+      <div id="ds-count" class="ds-count"></div>
+    </div>
+
+    <div class="card fade fade-2" style="padding:0;overflow:hidden">
+      <div id="ds-table-wrap" style="overflow-x:auto">
+        <div id="ds-loading" class="ds-loading" style="display:none">
+          <span class="pl-spinner"></span> Laden…
+        </div>
+        <table class="mini-table ds-table" id="ds-table">
+          <thead id="ds-thead"></thead>
+          <tbody id="ds-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="ds-pagination fade fade-3" id="ds-pagination"></div>
+
+  </div>`;
+
+  // Tab switching
+  el.querySelector('#ds-tabs').addEventListener('click', e => {
+    const btn = e.target.closest('.ds-tab');
+    if (!btn) return;
+    el.querySelectorAll('.ds-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    _ds.type = btn.dataset.type;
+    _ds.page = 1;
+    _ds.search = '';
+    el.querySelector('#ds-search').value = '';
+    dsLoad(el);
+  });
+
+  // Search with debounce
+  let _dsTimer;
+  el.querySelector('#ds-search').addEventListener('input', e => {
+    clearTimeout(_dsTimer);
+    _dsTimer = setTimeout(() => {
+      _ds.search = e.target.value.trim();
+      _ds.page = 1;
+      dsLoad(el);
+    }, 320);
+  });
+
+  dsLoad(el);
+}
+
+async function dsLoad(el) {
+  if (_ds.loading) return;
+  _ds.loading = true;
+
+  const loading = el.querySelector('#ds-loading');
+  const tbody   = el.querySelector('#ds-tbody');
+  loading.style.display = 'flex';
+  tbody.innerHTML = '';
+
+  const params = new URLSearchParams({
+    type:   _ds.type,
+    page:   _ds.page,
+    limit:  _ds.limit,
+    search: _ds.search,
+  });
+
+  try {
+    const res  = await fetch(`/api/dataset?${params}`);
+    const json = await res.json();
+    _ds.total  = json.total;
+    _ds.pages  = json.pages;
+    _ds.data   = json.data;
+    dsRenderTable(el, json.data, _ds.type);
+    dsRenderPagination(el);
+    const start = (_ds.page - 1) * _ds.limit + 1;
+    const end   = Math.min(_ds.page * _ds.limit, _ds.total);
+    el.querySelector('#ds-count').textContent = _ds.total
+      ? `${start}–${end} van ${_ds.total} records`
+      : 'Geen resultaten';
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="20" style="color:var(--coral);padding:20px">${err.message}</td></tr>`;
+  }
+
+  loading.style.display = 'none';
+  _ds.loading = false;
+}
+
+function dsRenderTable(el, rows, type) {
+  const thead = el.querySelector('#ds-thead');
+  const tbody = el.querySelector('#ds-tbody');
+
+  if (!rows.length) {
+    thead.innerHTML = '';
+    tbody.innerHTML = '<tr><td colspan="20" style="padding:24px;color:var(--text-3);text-align:center;font-family:var(--mono);font-size:12px">Geen records gevonden</td></tr>';
+    return;
+  }
+
+  if (type === 'performance') {
+    thead.innerHTML = `<tr>
+      <th>Ad ID</th>
+      <th>Ad naam</th>
+      <th>Campaign ID</th>
+      <th>Campagne naam</th>
+      <th>Adset ID</th>
+      <th>Adset naam</th>
+      <th><span class="th-tip" data-tip="Impressies">Impr.</span></th>
+      <th><span class="th-tip" data-tip="Click-Through Rate %">CTR</span></th>
+      <th><span class="th-tip" data-tip="Cost Per Click €">CPC</span></th>
+      <th><span class="th-tip" data-tip="Cost Per Mille €">CPM</span></th>
+      <th><span class="th-tip" data-tip="Totale spend €">Spend</span></th>
+      <th><span class="th-tip" data-tip="Return On Ad Spend">ROAS</span></th>
+      <th>Aankopen</th>
+      <th>Periode</th>
+    </tr>`;
+
+    tbody.innerHTML = rows.map(r => {
+      const roas      = r.purchase_roas?.[0]?.value ?? null;
+      const purchases = r.actions?.find(a => a.action_type === 'purchase')?.value ?? null;
+      const roasCls   = roas != null ? (roas >= 4 ? 'td-green' : roas < 2 ? 'td-coral' : '') : '';
+      const ctrCls    = r.ctr != null ? (r.ctr > 3 ? 'td-green' : r.ctr < 1 ? 'td-coral' : '') : '';
+      const hl        = _ds.search ? _ds.search.toLowerCase() : '';
+      const hilite    = (val) => {
+        const s = String(val ?? '');
+        if (!hl || !s.toLowerCase().includes(hl)) return s;
+        const i = s.toLowerCase().indexOf(hl);
+        return s.slice(0, i) + `<mark class="ds-hl">${s.slice(i, i + hl.length)}</mark>` + s.slice(i + hl.length);
+      };
+      return `<tr class="${roas >= 5 ? 'tr-high-roas' : r.ctr > 3 ? 'tr-high-ctr' : ''}">
+        <td class="td-hi ds-id">${hilite(r.ad_id)}</td>
+        <td class="ds-name">${hilite(r.ad_name)}</td>
+        <td class="ds-id">${hilite(r.campaign_id)}</td>
+        <td class="ds-name">${hilite(r.campaign_name)}</td>
+        <td class="ds-id">${hilite(r.adset_id)}</td>
+        <td class="ds-name">${hilite(r.adset_name)}</td>
+        <td>${r.impressions != null ? fmtK(r.impressions) : '—'}</td>
+        <td class="${ctrCls}">${r.ctr != null ? r.ctr.toFixed(2) + '%' : '—'}</td>
+        <td>${r.cpc != null ? fmtEur(r.cpc) : '—'}</td>
+        <td>${r.cpm != null ? fmtEur(r.cpm) : '—'}</td>
+        <td>${r.spend != null ? fmtEur(r.spend) : '—'}</td>
+        <td class="${roasCls}">${roas != null ? roas.toFixed(2) + '×' : '—'}</td>
+        <td>${purchases != null ? purchases : '—'}</td>
+        <td style="white-space:nowrap;color:var(--text-3)">${r.date_start ?? ''} – ${r.date_stop ?? ''}</td>
+      </tr>`;
+    }).join('');
+
+  } else {
+    thead.innerHTML = `<tr>
+      <th>Ad ID</th>
+      <th>Ad naam</th>
+      <th>Datum</th>
+      <th>Object type</th>
+      <th>Headlines</th>
+      <th>CTA</th>
+      <th>Link</th>
+    </tr>`;
+
+    tbody.innerHTML = rows.map(r => {
+      const headline = r.headlines?.[0] ?? '—';
+      const cta      = r.ctas?.[0] ?? '—';
+      const link     = r.link_urls?.[0];
+      return `<tr>
+        <td class="td-hi ds-id">${r.ad_id ?? '—'}</td>
+        <td class="ds-name">${r.ad_name ?? '—'}</td>
+        <td style="white-space:nowrap;color:var(--text-3)">${r.date ?? r.created_time?.slice(0,10) ?? '—'}</td>
+        <td><span class="tag t-blue" style="font-size:9px">${r.object_type ?? '—'}</span></td>
+        <td class="ds-headline">${headline}</td>
+        <td><span class="tag t-teal" style="font-size:9px">${cta}</span></td>
+        <td>${link ? `<a href="${link}" target="_blank" rel="noopener" class="ds-link">↗ open</a>` : '—'}</td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+function dsRenderPagination(el) {
+  const pag = el.querySelector('#ds-pagination');
+  if (_ds.pages <= 1) { pag.innerHTML = ''; return; }
+
+  const win = 2;
+  const cur = _ds.page;
+  const tot = _ds.pages;
+
+  const pages = new Set([1, tot]);
+  for (let i = Math.max(1, cur - win); i <= Math.min(tot, cur + win); i++) pages.add(i);
+  const sorted = [...pages].sort((a, b) => a - b);
+
+  const btns = [];
+  let prev = 0;
+  for (const p of sorted) {
+    if (p - prev > 1) btns.push(`<span class="ds-pg-ellipsis">…</span>`);
+    btns.push(`<button class="ds-pg-btn${p === cur ? ' active' : ''}" data-page="${p}">${p}</button>`);
+    prev = p;
+  }
+
+  pag.innerHTML = `
+    <button class="ds-pg-btn ds-pg-nav" data-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>‹</button>
+    ${btns.join('')}
+    <button class="ds-pg-btn ds-pg-nav" data-page="${cur + 1}" ${cur >= tot ? 'disabled' : ''}>›</button>`;
+
+  pag.querySelectorAll('.ds-pg-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = parseInt(btn.dataset.page, 10);
+      if (!p || p < 1 || p > tot || p === _ds.page) return;
+      _ds.page = p;
+      dsLoad(el);
+      el.closest('#content').scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
 // PAGE 4 — PLN ANALYSE
 // ═══════════════════════════════════════════════════════════════
 function renderPLN(el) {
@@ -564,8 +806,7 @@ function renderPLN(el) {
       <div class="card">
         <div class="card-hd"><div class="card-title">Wat PLN doet</div></div>
         <div style="font-family:var(--mono);font-size:11px;color:var(--text-2);line-height:1.8">
-          PLN (Probabilistic Logic Networks) redeneert <em>continu</em> over alle atoms in de Atomspace. Het detecteert patronen,
-          berekent confidence scores en signaleert kansen. Brand atom staat buiten de analyse — wordt pas actief bij output.
+          PLN (Probabilistic Logic Networks) voert <em>echte</em> logische inferentie uit via OmegaClaw / PeTTa. Het laadt performance- en creative-atoms, berekent co-occurrence implicaties en vuurt Modus Ponens via lib_pln.metta om confidence scores af te leiden. Brand atom staat buiten de analyse — wordt pas actief bij output.
         </div>
         <div style="margin-top:14px;display:flex;gap:10px">
           <div class="kpi c-purple" style="flex:1;padding:12px 14px">
@@ -687,27 +928,37 @@ function renderGenereren(el) {
           <div class="card-label" style="margin-bottom:14px">Generatie parameters</div>
 
           <div class="form-group">
-            <label class="form-label">Product</label>
+            <label class="form-label-req">
+              Product <span class="req-star">*</span>
+              <span class="form-example" style="font-size:10px;color:var(--purple)">bijv. Zilveren armband, €39–€89</span>
+            </label>
             <input class="form-input" id="gen-product" type="text" placeholder="Beach bag collection, €45–€95" value="">
+            <div class="form-helper">Productnaam + prijsrange. Zo specifiek mogelijk (3–8 woorden).</div>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Period + context</label>
+            <label class="form-label-req">
+              Periode + context <span class="req-star">*</span>
+              <span class="form-example" style="font-size:10px;color:var(--purple)">bijv. Week 24, zomer</span>
+            </label>
             <input class="form-input" id="gen-context" type="text" placeholder="Week 24, summer, sunny forecast" value="">
+            <div class="form-helper">Weeknummer, seizoen en weersomstandigheid. PLN matcht historische atoms.</div>
           </div>
 
           <div class="form-group">
             <label class="form-label">Aantal advertenties</label>
             <select class="form-select" id="gen-count">
-              <option value="3">3 ads</option>
-              <option value="5" selected>5 ads</option>
-              <option value="10">10 ads</option>
+              <option value="3">3 ads — snel testen</option>
+              <option value="5" selected>5 ads — aanbevolen</option>
+              <option value="10">10 ads — uitgebreide set</option>
             </select>
+            <div class="form-helper">Meer ads = meer variatie. Aanbevolen: 5 voor eerste test.</div>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Extra instructies (optioneel)</label>
+            <label class="form-label">Extra instructies <span style="color:var(--text-3);font-weight:400">(optioneel)</span></label>
             <textarea class="form-textarea" id="gen-instructions" placeholder="Bijv: focus op cadeaumarkt, geen prijsvermelding, target op 35+ segment…"></textarea>
+            <div class="form-helper">Extra sturing bovenop de PLN patronen. Laat leeg voor optimale AI-keuze.</div>
           </div>
 
           <div class="form-group" style="margin-bottom:6px">
@@ -749,6 +1000,151 @@ function renderGenereren(el) {
     const count        = parseInt($('#gen-count').value);
     const instructions = $('#gen-instructions').value.trim();
     startPipeline(product, count, instructions, context);
+  });
+}
+
+function showReferenceModal(matchedAds) {
+  return new Promise(resolve => {
+    const adsWithImages = (matchedAds || [])
+      .filter(m => m.image_refs?.length > 0)
+      .slice(0, 8);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'ref-modal-overlay';
+    overlay.innerHTML = `
+      <div class="ref-modal">
+        <div class="ref-modal-hd">
+          <div>
+            <div class="ref-modal-title">Kies referentie-advertentie</div>
+            <div class="ref-modal-sub">Selecteer een winner als bron voor variatie, of upload je eigen afbeelding. Sla over voor text-to-image.</div>
+          </div>
+          <button class="ref-modal-close" id="ref-close" title="Overslaan">✕</button>
+        </div>
+        <div class="ref-modal-body">
+          ${adsWithImages.length ? `
+            <div class="ref-section-label">PLN-geselecteerde winners</div>
+            <div class="ref-grid">
+              ${adsWithImages.map(m => {
+                const imgFile = m.image_refs[0].replace(/^images\//, '');
+                return `<div class="ref-card" data-ad-id="${m.ad_id}">
+                  <img src="/sample-images/${imgFile}" alt="${m.ad_id}" loading="lazy">
+                  <div class="ref-card-score">score ${m.score.toFixed(2)}</div>
+                </div>`;
+              }).join('')}
+            </div>
+          ` : '<div class="ref-empty">Geen afbeeldingen beschikbaar via PLN — upload je eigen referentie hieronder.</div>'}
+          <div class="ref-section-label" style="margin-top:20px">Of upload je eigen referentie</div>
+          <label class="ref-upload-zone" id="ref-upload-zone">
+            <input type="file" accept="image/*" id="ref-file-input" style="display:none">
+            <div class="ref-upload-icon">⬆</div>
+            <div class="ref-upload-text">Sleep hier of klik om te uploaden</div>
+            <div class="ref-upload-name" id="ref-upload-name"></div>
+          </label>
+        </div>
+        <div class="ref-modal-footer">
+          <button class="ref-btn-skip" id="ref-btn-skip">Overslaan — text-to-image</button>
+          <button class="ref-btn-confirm" id="ref-btn-confirm">Genereer variatie →</button>
+        </div>
+      </div>`;
+
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('visible'));
+
+    let selectedAdId = null;
+    let uploadedBase64 = null;
+
+    const confirmBtn = overlay.querySelector('#ref-btn-confirm');
+    const uploadName = overlay.querySelector('#ref-upload-name');
+
+    function updateConfirm() {
+      confirmBtn.disabled = !selectedAdId && !uploadedBase64;
+    }
+
+    // Disable cards whose images fail to load (file missing from sample_data/images)
+    overlay.querySelectorAll('.ref-card img').forEach(img => {
+      img.addEventListener('error', () => {
+        const card = img.closest('.ref-card');
+        card.classList.add('ref-card-missing');
+        card.style.cursor = 'not-allowed';
+        card.style.opacity = '0.45';
+        const lbl = document.createElement('div');
+        lbl.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#f88;background:rgba(0,0,0,.55);border-radius:6px;pointer-events:none';
+        lbl.textContent = 'niet beschikbaar';
+        card.style.position = 'relative';
+        card.appendChild(lbl);
+        if (selectedAdId === card.dataset.adId) {
+          selectedAdId = null;
+          card.classList.remove('selected');
+          updateConfirm();
+        }
+      });
+    });
+
+    // Auto-select first card
+    if (adsWithImages.length) {
+      selectedAdId = adsWithImages[0].ad_id;
+      overlay.querySelector(`.ref-card[data-ad-id="${selectedAdId}"]`)?.classList.add('selected');
+    }
+    updateConfirm();
+
+    // Card clicks — skip missing cards
+    overlay.querySelectorAll('.ref-card').forEach(card => {
+      card.addEventListener('click', () => {
+        if (card.classList.contains('ref-card-missing')) return;
+        overlay.querySelectorAll('.ref-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedAdId = card.dataset.adId;
+        uploadedBase64 = null;
+        uploadName.textContent = '';
+        updateConfirm();
+      });
+    });
+
+    // File input
+    overlay.querySelector('#ref-file-input').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        uploadedBase64 = ev.target.result;
+        selectedAdId = null;
+        overlay.querySelectorAll('.ref-card').forEach(c => c.classList.remove('selected'));
+        uploadName.textContent = `✓  ${file.name}`;
+        updateConfirm();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Drag-drop
+    const zone = overlay.querySelector('#ref-upload-zone');
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        uploadedBase64 = ev.target.result;
+        selectedAdId = null;
+        overlay.querySelectorAll('.ref-card').forEach(c => c.classList.remove('selected'));
+        uploadName.textContent = `✓  ${file.name}`;
+        updateConfirm();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function close(adId, base64) {
+      overlay.classList.remove('visible');
+      setTimeout(() => document.body.removeChild(overlay), 200);
+      resolve({ selectedAdId: adId, uploadedBase64: base64 });
+    }
+
+    overlay.querySelector('#ref-close').addEventListener('click', () => close(null, null));
+    overlay.querySelector('#ref-btn-skip').addEventListener('click', () => close(null, null));
+    confirmBtn.addEventListener('click', () => close(selectedAdId, uploadedBase64));
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(null, null); });
   });
 }
 
@@ -798,6 +1194,8 @@ async function startPipeline(product, count, instructions, context = '') {
   state.generatedAds = [];
   state.generatedImages = [];
   state.plnSpec = null;
+  state.selectedWinnerAdId = null;
+  state.uploadedWinnerBase64 = null;
   const btn = $('#btn-gen');
   if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Pipeline draait…'; }
 
@@ -859,26 +1257,74 @@ async function startPipeline(product, count, instructions, context = '') {
     Headlines, body copy en CTA in brand-tone geschreven<br>
     Image prompts gereed voor DALL·E 3`);
 
-  // Stap 4 — Image generatie (real DALL-E 3, parallel)
+  // Stap 4 — Image generatie (gpt-image-1, parallel)
+  // Show reference picker modal — pipeline pauses until user confirms or skips
   setStep('image', 'active');
-  const images = await Promise.all(
-    ads.map(ad =>
+  const refPick = await showReferenceModal(state.plnSpec?.matched_ads || []);
+  state.selectedWinnerAdId = refPick.selectedAdId;
+  state.uploadedWinnerBase64 = refPick.uploadedBase64;
+
+  const winnerRef = state.selectedWinnerAdId
+    ? findWinnerImageRef(state.selectedWinnerAdId, state.plnSpec)
+    : null;
+  // Only use edit mode when a real source is available (ref path or uploaded image)
+  const useEdit = !!(winnerRef || state.uploadedWinnerBase64);
+  const brandPayload = {
+    name:    ATOMS.brand.naam,
+    tone:    ATOMS.brand.tone,
+    palette: ATOMS.brand.kleuren.map((c, i) => `${ATOMS.brand.kleur_namen[i]} (${c})`).join(', '),
+    logo:    '',
+  };
+  state.generatedImages = new Array(ads.length).fill(null);
+  let imagesReady = 0;
+  setStep('image', 'active', `0/${ads.length} afbeeldingen klaar…`);
+
+  const fetchAdImage = (ad, i) => {
+    const endpoint = useEdit ? '/api/generate-image-edit' : '/api/generate-image';
+    const body = useEdit
+      ? { adCopy: ad, brand: brandPayload, scene: ad.scene || ad.image_prompt,
+          sourceRef: winnerRef || undefined, sourceBase64: state.uploadedWinnerBase64 || undefined,
+          quality: 'low' }
+      : { adCopy: ad, brand: brandPayload, scene: ad.scene || ad.image_prompt };
+
+    const fallbackToTextToImage = () =>
       fetch('/api/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: ad.image_prompt }),
-      })
-      .then(r => r.json())
-      .then(d => d.success ? d.imageBase64 : null)
-      .catch(() => null)
-    )
-  );
-  state.generatedImages = images;
+        body: JSON.stringify({ adCopy: ad, brand: brandPayload, scene: ad.scene || ad.image_prompt }),
+      }).then(r => r.json()).then(d => d.success ? d.imageBase64 : null).catch(() => null);
+
+    return fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    .then(r => r.json())
+    .then(async d => {
+      let b64 = d.success ? d.imageBase64 : null;
+      if (!d.success && d.code === 'ref_not_found') {
+        console.warn(`[image] ref not found for ad ${i}, falling back to text-to-image`);
+        b64 = await fallbackToTextToImage();
+      }
+      state.generatedImages[i] = b64;
+      imagesReady++;
+      setStep('image', 'active', `${imagesReady}/${ads.length} afbeeldingen klaar…`);
+    })
+    .catch(async () => {
+      state.generatedImages[i] = await fallbackToTextToImage();
+      imagesReady++;
+      setStep('image', 'active', `${imagesReady}/${ads.length} afbeeldingen klaar…`);
+    });
+  };
+
+  await Promise.all(ads.map((ad, i) => fetchAdImage(ad, i)));
+  const images = state.generatedImages;
   const imgOk = images.filter(Boolean).length;
+  const imgMode = useEdit ? 'variatie van winner-advertentie' : 'text-to-image';
   setStep('image', imgOk > 0 ? 'done' : 'error', `
-    ${imgOk}/${ads.length} afbeeldingen gegenereerd via DALL·E 3<br>
+    ${imgOk}/${ads.length} afbeeldingen gegenereerd via gpt-image-1 (${imgMode})<br>
     Formaat: 1024×1024 · Meta feed-formaat<br>
-    Brand sturing toegepast in prompt`);
+    Tekst (headline, CTA, caption) direct in beeld gerenderd`);
 
   // Stap 5 — Verificatieloop 2 (real verify for first image)
   setStep('ver2', 'active');
@@ -912,7 +1358,37 @@ async function startPipeline(product, count, instructions, context = '') {
   if (btn) { btn.disabled = false; btn.innerHTML = '<span>⚡</span> Genereer advertenties'; }
 }
 
+function findWinnerImageRef(adId, spec) {
+  const match = spec?.matched_ads?.find(m => m.ad_id === adId);
+  if (match?.image_refs?.length) return match.image_refs[0];
+  return null;
+}
+
 // ── API CALL ──────────────────────────────────────────────────
+// Phase F.2: send feedback for a generated ad
+async function sendFeedback(adIndex, verdict, justPatterns, btn) {
+  const ad = state.generatedAds[adIndex];
+  if (!ad) return;
+  try {
+    await fetch('/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        pattern_name:           ad.pln_atoms?.pattern_name ?? null,
+        justification_patterns: justPatterns || ad.justification_patterns || [],
+        observed_outcome:       ad.pattern_used ?? null,
+        verdict,
+      }),
+    });
+    const up   = document.getElementById(`fb-up-${adIndex}`);
+    const down = document.getElementById(`fb-dn-${adIndex}`);
+    if (up)   up.className   = 'btn-feedback' + (verdict === 'up'   ? ' active-up'   : '');
+    if (down) down.className = 'btn-feedback' + (verdict === 'down' ? ' active-down' : '');
+  } catch (e) {
+    console.warn('[Feedback fout]', e.message);
+  }
+}
+
 async function generateAds(product, count, instructions) {
   try {
     const res = await fetch('/api/generate', {
@@ -920,7 +1396,8 @@ async function generateAds(product, count, instructions) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         product, count, instructions,
-        patterns: state.plnSpec?.top_patterns ?? PATTERNS.slice(0, 5),
+        patterns:  state.plnSpec?.patterns ?? state.plnSpec?.top_patterns ?? PATTERNS.slice(0, 5),
+        strategy:  state.plnSpec?.strategy ?? null,
         brandAtom: ATOMS.brand,
       }),
     });
@@ -979,30 +1456,26 @@ function renderOutput(el) {
   </div>
   <div class="page-content">
 
-    <div class="output-controls fade fade-1">
-      <div class="output-count">${ads.length} advertentie${ads.length!==1?'s':''} · ${state.apiOnline ? 'Claude API' : 'Demo-modus'}</div>
-      <div style="display:flex;gap:8px">
-        <button class="btn-sm" onclick="navigate('genereren')">← Opnieuw genereren</button>
-        <button class="btn-sm primary" onclick="alert('Export naar Meta Ads Manager — beschikbaar in productieversie')">↗ Exporteer naar Meta</button>
+    <div class="success-banner fade fade-1" style="margin-bottom:18px">
+      <div class="success-icon">✓</div>
+      <div style="flex:1">
+        <div class="success-title">${ads.length} Advertentie${ads.length!==1?'s':''} Gegenereerd ${state.apiOnline ? 'via Claude API' : '(demo-modus)'}</div>
+        <div class="success-text">
+          ${state.plnSpec ? `ROAS prognose: ${state.plnSpec.expected_roas}× · Confidence: ${(state.plnSpec.confidence*100).toFixed(0)}% · ` : ''}
+          Klik op een advertentie om te bekijken · Download afbeeldingen met de knop op elke kaart
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button class="btn-sm" onclick="navigate('genereren')">← Opnieuw</button>
+        <button class="btn-sm primary" onclick="alert('Export naar Meta Ads Manager — beschikbaar in productieversie')">↗ Exporteer</button>
       </div>
     </div>
 
-    ${state.plnSpec ? `
-    <div class="card fade fade-2" style="margin-bottom:16px">
-      <div class="card-hd">
-        <div class="card-title">PLN Specificatie — basis voor alle ${ads.length} advertenties</div>
-        <span class="tag t-purple">AtomSpace</span>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0">
-        ${infoRow('Elementen', (state.plnSpec.elements??[]).join(', '))}
-        ${infoRow('Stijl', state.plnSpec.style ?? '—')}
-        ${infoRow('Hook', state.plnSpec.hook ?? '—')}
-        ${infoRow('Tone', state.plnSpec.tone ?? '—')}
-        ${infoRow('Exp. ROAS', state.plnSpec.expected_roas != null ? state.plnSpec.expected_roas + '×' : '—')}
-        ${infoRow('Exp. CPC', state.plnSpec.expected_cpc != null ? '€' + state.plnSpec.expected_cpc : '—')}
-      </div>
-      ${state.plnSpec.reasoning ? `<div style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.7">${state.plnSpec.reasoning}</div>` : ''}
-    </div>` : ''}
+    <div class="output-controls fade fade-1" style="margin-bottom:10px">
+      <div class="output-count">${ads.length} advertentie${ads.length!==1?'s':''} · Klik ↗ Bekijk op een kaart om de lightbox te openen</div>
+    </div>
+
+    ${state.plnSpec ? renderReasoningTrace(state.plnSpec) : ''}
 
     <div class="ad-grid">
       ${ads.map((ad, i) => adCard(ad, i)).join('')}
@@ -1032,6 +1505,365 @@ function renderOutput(el) {
     <div class="notice notice-purple fade" style="margin-top:14px">
       ↻ <strong>Feedbackloop</strong> — na elke campagnecyclus stromen nieuwe Meta resultaten en Shopify conversies terug als nieuwe atoms. Patronen worden scherper, confidence scores groeien, verificatie wordt strenger.
     </div>
+  </div>
+
+  <div id="ad-lightbox" class="lightbox-overlay" style="display:none" onclick="if(event.target===this)closeLightbox()">
+    <div class="lightbox-inner">
+      <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+      <button class="lightbox-nav prev" onclick="navLightbox(-1)">‹</button>
+      <button class="lightbox-nav next" onclick="navLightbox(+1)">›</button>
+      <div class="lightbox-img-wrap" id="lb-img-wrap"></div>
+      <div class="lightbox-body" id="lb-body"></div>
+    </div>
+  </div>`;
+
+  window.openLightbox = function(idx) {
+    const overlay = document.getElementById('ad-lightbox');
+    if (!overlay) return;
+    overlay._idx = idx;
+    overlay._ads = ads;
+    renderLightboxContent(overlay, idx, ads);
+    overlay.style.display = 'flex';
+    document.addEventListener('keydown', lbKeyHandler);
+  };
+  window.closeLightbox = function() {
+    const overlay = document.getElementById('ad-lightbox');
+    if (overlay) overlay.style.display = 'none';
+    document.removeEventListener('keydown', lbKeyHandler);
+  };
+  window.navLightbox = function(dir) {
+    const overlay = document.getElementById('ad-lightbox');
+    if (!overlay) return;
+    const next = ((overlay._idx + dir) + overlay._ads.length) % overlay._ads.length;
+    overlay._idx = next;
+    renderLightboxContent(overlay, next, overlay._ads);
+  };
+  window.downloadAdImage = function(idx) {
+    const imgB64 = state.generatedImages?.[idx];
+    if (!imgB64) { alert('Geen afbeelding beschikbaar voor download.'); return; }
+    const a = document.createElement('a');
+    a.href = 'data:image/png;base64,' + imgB64;
+    a.download = `ad_${idx + 1}.png`;
+    a.click();
+  };
+
+  window.regenerateImage = async function(idx, quality = 'high') {
+    const ad = state.generatedAds?.[idx];
+    if (!ad) return;
+
+    const btn = document.getElementById(`regen-btn-${idx}`);
+    const imgWrap = document.getElementById(`ad-img-wrap-${idx}`);
+    if (btn) { btn.disabled = true; btn.textContent = '⟳ Bezig…'; }
+    if (imgWrap) imgWrap.style.opacity = '0.4';
+
+    const winnerRef = state.selectedWinnerAdId
+      ? findWinnerImageRef(state.selectedWinnerAdId, state.plnSpec)
+      : null;
+    const brandPayload = {
+      name:    ATOMS.brand.naam,
+      tone:    ATOMS.brand.tone,
+      palette: ATOMS.brand.kleuren.map((c, i) => `${ATOMS.brand.kleur_namen[i]} (${c})`).join(', '),
+      logo:    '',
+    };
+    const useEdit = !!(winnerRef || state.uploadedWinnerBase64);
+    if (!useEdit) { if (btn) { btn.disabled = false; btn.textContent = 'Regenereer HD'; } return; }
+
+    try {
+      const body = {
+        adCopy: ad, brand: brandPayload, scene: ad.scene || ad.image_prompt,
+        sourceRef: winnerRef || undefined, sourceBase64: state.uploadedWinnerBase64 || undefined,
+        quality,
+      };
+      const r = await fetch('/api/generate-image-edit', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const d = await r.json();
+      if (d.success && d.imageBase64) {
+        state.generatedImages[idx] = d.imageBase64;
+        const imgEl = document.querySelector(`[data-ad-index="${idx}"] img`);
+        if (imgEl) imgEl.src = 'data:image/png;base64,' + d.imageBase64;
+        if (btn) { btn.disabled = false; btn.textContent = 'Regenereer HD'; }
+        if (imgWrap) imgWrap.style.opacity = '1';
+      } else {
+        throw new Error(d.error || 'unknown');
+      }
+    } catch (e) {
+      console.error('[regenerateImage]', e);
+      if (btn) { btn.disabled = false; btn.textContent = 'Regenereer HD'; }
+      if (imgWrap) imgWrap.style.opacity = '1';
+    }
+  };
+  function lbKeyHandler(e) {
+    if (e.key === 'Escape') window.closeLightbox();
+    if (e.key === 'ArrowLeft')  window.navLightbox(-1);
+    if (e.key === 'ArrowRight') window.navLightbox(+1);
+  }
+  function renderLightboxContent(overlay, idx, adList) {
+    const ad = adList[idx];
+    const conf = typeof ad.confidence === 'number' ? ad.confidence : 0.7;
+    const imgB64 = state.generatedImages?.[idx];
+    const g = AD_GRADIENTS[idx % AD_GRADIENTS.length];
+    const imgHtml = imgB64
+      ? `<img class="lightbox-img" src="data:image/png;base64,${imgB64}" alt="${ad.headline}">`
+      : `<div style="height:260px;background:${g.bg};display:flex;align-items:center;justify-content:center;font-size:48px">${g.icon}</div>`;
+    overlay.querySelector('#lb-img-wrap').innerHTML = imgHtml;
+    overlay.querySelector('#lb-body').innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text-3)">Ad ${idx + 1} van ${adList.length}</span>
+        <span class="tag t-${conf>=.80?'green':conf>=.65?'amber':'purple'}">${conf>=.80?'Bewezen':conf>=.65?'Sterk':'Potentieel'}</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text-3)">${(conf*100).toFixed(0)}% confidence</span>
+      </div>
+      <div class="lightbox-headline">${ad.headline}</div>
+      <div class="lightbox-copy">${ad.body}</div>
+      <div style="margin-bottom:14px">
+        <span class="ad-cta">${ad.cta}</span>
+      </div>
+      <div class="lightbox-meta">
+        <div class="lm-item"><div class="lm-lbl">Patroon</div><div class="lm-val" style="font-size:11px">${ad.pattern_used ?? '—'}</div></div>
+        <div class="lm-item"><div class="lm-lbl">Exp. ROAS</div><div class="lm-val" style="color:${typeof ad.expected_roas==='number'&&ad.expected_roas>=3?'var(--green)':'var(--text)'}">${typeof ad.expected_roas==='number'?ad.expected_roas.toFixed(1)+'×':'—'}</div></div>
+        <div class="lm-item"><div class="lm-lbl">Timing</div><div class="lm-val" style="font-size:11px">${ad.timing ?? '—'}</div></div>
+        <div class="lm-item"><div class="lm-lbl">Budget/dag</div><div class="lm-val" style="font-size:11px">${ad.budget ?? '—'}</div></div>
+      </div>
+      ${renderAtomGraph(ad, idx)}`;
+  }
+}
+
+// ── Radial atom-graph: which atomspace pin-points produced this ad ──
+function renderAtomGraph(ad, idx) {
+  const pln = ad.pln_atoms;
+  if (!pln || !pln.primary_predicate) {
+    return `<div class="atom-graph-empty">Geen PLN atom-herkomst beschikbaar voor deze advertentie.</div>`;
+  }
+
+  const primary = {
+    pred:    pln.primary_predicate,
+    outcome: pln.primary_outcome,
+    s:       pln.strength,
+    c:       pln.confidence,
+    n:       pln.n,
+  };
+  const related  = (pln.related_atoms   || []).slice(0, 4);
+  const evidence = (pln.evidence_ad_ids || []).slice(0, 5);
+
+  // ── Helpers ────────────────────────────────────────────────────
+  const familyOf = name => {
+    if (!name) return 'other';
+    if (/^(ctr-high|cpc-low|roas-proxy)$/.test(name)) return 'outcome';
+    const fam = String(name).split('-')[0];
+    return ['cta','kw','object','campaign','adset','link'].includes(fam) ? fam : 'other';
+  };
+
+  // Resolve a human-readable display label for an atom name.
+  // For purely numeric IDs (adset / campaign numbers), show "fam …XXXX".
+  const displayAtom = fullName => {
+    if (!fullName) return '?';
+    const parts = String(fullName).split('-');
+    const fam   = parts[0];
+    const val   = parts.slice(1).join('-');
+    // Outcome names are already short
+    if (/^(ctr-high|cpc-low|roas-proxy)$/.test(fullName)) return fullName;
+    // Numeric-only value → show family + last 4 chars
+    if (val && /^\d+$/.test(val.replace(/-/g, ''))) {
+      return `${fam} …${val.slice(-4)}`;
+    }
+    // Long semantic value → trim to 10 chars
+    if (val && val.length > 10) return `${fam}-${val.slice(0, 9)}…`;
+    return fullName;
+  };
+
+  // Friendly edge label for a spoke
+  const spokeLabelOf = (p) => {
+    if (p.family === 'outcome') return p.name;   // show the real outcome name, not "outcome"
+    if (p.primary)             return 'primary';
+    return p.outcome ? `→ ${p.outcome}` : 'related';
+  };
+
+  const famColor = {
+    outcome:  '#22c55e',
+    cta:      '#c9a84c',
+    kw:       '#a78bfa',
+    object:   '#60a5fa',
+    campaign: '#2dd4bf',
+    adset:    '#7c5fff',
+    link:     '#ea7a3a',
+    other:    '#6b7280',
+  };
+
+  // ── Layout ─────────────────────────────────────────────────────
+  // Scale the orbit radii with node count to avoid cramping.
+  const W = 560, H = 400;
+  const cx = W / 2, cy = H / 2;
+
+  const spokes = [
+    { name: primary.pred,    family: familyOf(primary.pred),    weight: primary.s * primary.c, primary: true  },
+    { name: primary.outcome, family: 'outcome',                 weight: primary.s * primary.c, primary: true  },
+    ...related.map(r => ({
+      name:    r.pred_atom,
+      family:  familyOf(r.pred_atom),
+      weight:  (r.strength || 0) * (r.confidence || 0),
+      outcome: r.outcome,
+      primary: false,
+    })),
+  ].filter(s => s.name);
+
+  const N = spokes.length;
+  // Give more breathing room when there are many nodes
+  const baseR  = N <= 4 ? 130 : N <= 6 ? 150 : 165;
+  const primR  = baseR + 28;
+
+  const placed = spokes.map((s, i) => {
+    // Spread evenly; offset by a small angle so primary pair isn't perfectly vertical (avoids overlap)
+    const angle = (-Math.PI / 2) + 0.3 + (i * 2 * Math.PI / Math.max(N, 1));
+    const r = s.primary ? primR : baseR;
+    return { ...s, x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r, angle };
+  });
+
+  // ── Edges ──────────────────────────────────────────────────────
+  const svgEdges = placed.map(p => {
+    const t      = Math.max(0.05, Math.min(1, p.weight || 0));
+    const stroke = famColor[p.family] || famColor.other;
+    const width  = (1.0 + t * 3.0).toFixed(2);
+    const dash   = p.primary ? '' : 'stroke-dasharray="5 3"';
+    const op     = (0.3 + t * 0.55).toFixed(2);
+    return `<line x1="${cx}" y1="${cy}" x2="${p.x.toFixed(1)}" y2="${p.y.toFixed(1)}" stroke="${stroke}" stroke-width="${width}" ${dash} opacity="${op}"/>`;
+  }).join('');
+
+  // ── Evidence lines + dots ──────────────────────────────────────
+  // Draw thin dashed lines from center to each evidence dot so they look intentional.
+  const evidenceR = primR + 32;
+  const evAngleStart = Math.PI * 0.55; // cluster evidence on the right side
+  const svgEvidence = evidence.map((aid, i) => {
+    const a  = evAngleStart + i * (Math.PI * 0.18);
+    const x  = (cx + Math.cos(a) * evidenceR).toFixed(1);
+    const y  = (cy + Math.sin(a) * evidenceR).toFixed(1);
+    const shortId = String(aid).slice(-6);
+    return `
+      <line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#6b7280" stroke-width="1" stroke-dasharray="3 3" opacity="0.3"/>
+      <g>
+        <circle class="ag-evidence" cx="${x}" cy="${y}" r="5"/>
+        <text class="ag-evidence-lbl" x="${x}" y="${(+y + 14).toFixed(1)}" text-anchor="middle">…${shortId}</text>
+        <title>Bewijs-ad ${aid}</title>
+      </g>`;
+  }).join('');
+
+  // ── Spoke nodes ────────────────────────────────────────────────
+  const svgSpokes = placed.map(p => {
+    const col    = famColor[p.family] || famColor.other;
+    const nr     = p.primary ? 28 : 22;
+    const lx     = (p.x + Math.cos(p.angle) * (nr + 10)).toFixed(1);
+    const ly     = (p.y + Math.sin(p.angle) * (nr + 10)).toFixed(1);
+    const anchor = Math.cos(p.angle) > 0.25 ? 'start' : Math.cos(p.angle) < -0.25 ? 'end' : 'middle';
+    const label  = spokeLabelOf({ ...p, name: p.name });
+    return `
+      <g class="ag-node ${p.primary ? 'ag-primary' : ''}">
+        <title>${escapeSvg(p.name)}</title>
+        <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${nr}" fill="${col}" fill-opacity="${p.primary ? 0.92 : 0.72}" stroke="${col}" stroke-width="${p.primary ? 2.5 : 1.2}"/>
+        <text class="ag-node-text" x="${p.x.toFixed(1)}" y="${(p.y + 4).toFixed(1)}" text-anchor="middle">${escapeSvg(displayAtom(p.name))}</text>
+        <text class="ag-node-label" x="${lx}" y="${ly}" text-anchor="${anchor}">${escapeSvg(label)}</text>
+      </g>`;
+  }).join('');
+
+  // ── Center node ────────────────────────────────────────────────
+  const adNum  = idx + 1;
+  const imgB64 = state.generatedImages?.[idx];
+  // Use a clipPath element for reliable circular crop
+  const clipId = `ag-clip-${idx}`;
+  const centerImg = imgB64
+    ? `<defs><clipPath id="${clipId}"><circle cx="${cx}" cy="${cy}" r="33"/></clipPath></defs>
+       <image href="data:image/png;base64,${imgB64}" x="${cx-33}" y="${cy-33}" width="66" height="66" clip-path="url(#${clipId})"/>`
+    : `<circle cx="${cx}" cy="${cy}" r="34" fill="#1a1a2e"/>`;
+
+  // ── Confidence badge inside center ring ────────────────────────
+  const confPct = primary.c != null ? `${(primary.c * 100).toFixed(0)}%` : '';
+
+  return `
+    <div class="atom-graph-wrap">
+      <div class="atom-graph-hd">
+        <div class="atom-graph-title">Atomspace herkomst — pin-points die deze ad voedden</div>
+        <div class="atom-graph-sub">${spokes.length} atoms · n=${primary.n} · strength ${primary.s?.toFixed(2) ?? '–'} · conf ${primary.c?.toFixed(2) ?? '–'}${pln.roas != null ? ` · ROAS ${pln.roas}×` : ''}</div>
+      </div>
+      <svg class="atom-graph-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+        ${svgEdges}
+        ${svgEvidence}
+        ${centerImg}
+        <circle class="ag-center-ring" cx="${cx}" cy="${cy}" r="36"/>
+        <text class="ag-ad-num"   x="${cx}" y="${cy + 54}" text-anchor="middle">Ad ${adNum}</text>
+        ${confPct ? `<text class="ag-conf-pct" x="${cx}" y="${cy + 66}" text-anchor="middle">${confPct} conf</text>` : ''}
+        ${svgSpokes}
+      </svg>
+      <div class="atom-graph-legend">
+        <span><i style="background:${famColor.outcome}"></i>outcome</span>
+        <span><i style="background:${famColor.cta}"></i>cta</span>
+        <span><i style="background:${famColor.kw}"></i>kw</span>
+        <span><i style="background:${famColor.object}"></i>object-type</span>
+        <span><i style="background:${famColor.campaign}"></i>campaign</span>
+        <span><i style="background:${famColor.link}"></i>link-domain</span>
+        <span><i style="background:${famColor.adset}"></i>adset</span>
+        <span class="ag-leg-line"><i class="ag-line-solid"></i>primary</span>
+        <span class="ag-leg-line"><i class="ag-line-dash"></i>related</span>
+      </div>
+    </div>`;
+}
+
+// Shorten an atom name for display — keeps family prefix, truncates long values
+function shortAtom(name) {
+  const s = String(name || '');
+  if (s.length <= 14) return s;
+  return s.slice(0, 12) + '…';
+}
+function escapeSvg(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function adBronnen(ad) {
+  const evAds = ad.pln_atoms?.evidence_ads;
+  if (!evAds?.length) return '';
+
+  const rows = evAds.slice(0, 5).map(ev => {
+    const tab    = ev.in_creative ? 'creative' : 'performance';
+    const tabLbl = ev.in_creative ? 'creative' : 'performance';
+    const hlHtml = ev.headline
+      ? `<div class="ad-bron-hl">"${escapeHtml(ev.headline)}"</div>`
+      : '';
+    return `
+    <div class="ad-bron-row">
+      <div class="ad-bron-left">
+        <span class="ad-bron-id">${ev.ad_id}</span>
+        <span class="ad-bron-roas">${ev.roas != null ? ev.roas.toFixed(1)+'×' : ''}</span>
+        ${hlHtml}
+      </div>
+      <button class="ad-bron-btn" onclick="navigateDataset('${ev.ad_id}','${tab}')">
+        Zoek in ${tabLbl} →
+      </button>
+    </div>`;
+  }).join('');
+
+  // Creative examples from PLN spec (all 100 creative atoms scored by relevance)
+  const crEx = state.plnSpec?.creative_examples ?? [];
+  const crRows = crEx.map(ev => `
+    <div class="ad-bron-row">
+      <div class="ad-bron-left">
+        <span class="ad-bron-id">${ev.ad_id}</span>
+        <div class="ad-bron-hl">"${escapeHtml(ev.headline)}"</div>
+      </div>
+      <button class="ad-bron-btn" onclick="navigateDataset('${ev.ad_id}','creative')">
+        Zoek in creative →
+      </button>
+    </div>`).join('');
+
+  const crSection = crRows ? `
+    <div class="ad-bron-section-lbl">Verwante creatives uit dataset (${crEx.length})</div>
+    ${crRows}` : '';
+
+  return `
+  <div class="ad-bronnen">
+    <div class="ad-bron-title">
+      <span>Gebaseerd op ${evAds.length} echte advertentie${evAds.length !== 1 ? 's' : ''} uit dataset</span>
+      <span class="ad-bron-note">▤ Gegenereerde tekst — niet in dataset</span>
+    </div>
+    ${rows}
+    ${crSection}
   </div>`;
 }
 
@@ -1044,8 +1876,14 @@ function adCard(ad, i) {
     .map(a => `<span class="atom-tag">${a}</span>`).join('');
 
   const imgB64 = state.generatedImages?.[i];
+  const useEditForRegen = !!(
+    (state.selectedWinnerAdId ? findWinnerImageRef(state.selectedWinnerAdId, state.plnSpec) : null)
+    || state.uploadedWinnerBase64
+  );
   const imgSection = imgB64
-    ? `<img src="data:image/png;base64,${imgB64}" style="width:100%;display:block;border-radius:8px 8px 0 0;aspect-ratio:1/1;object-fit:cover">`
+    ? `<div id="ad-img-wrap-${i}" style="position:relative">
+        <img src="data:image/png;base64,${imgB64}" style="width:100%;display:block;border-radius:8px 8px 0 0;aspect-ratio:1/1;object-fit:cover">
+       </div>`
     : `<div class="ad-img" style="background:${g.bg}">
         <div class="ad-img-inner">
           <div class="ad-img-icon">${g.icon}</div>
@@ -1054,6 +1892,21 @@ function adCard(ad, i) {
         <div class="tier-badge">${tier}</div>
         <div class="conf-badge ${confClass(conf)}">${(conf*100).toFixed(0)}%</div>
        </div>`;
+
+  // Phase E.3: substantiation bar (4 segments) if available
+  const sub = ad.pln_atoms?.substantiation;
+  const substBar = sub ? (() => {
+    const segs = [
+      { v: sub.c_sample||0,      tip: `steekproef n=${sub.n||0}` },
+      { v: sub.c_spend||0,       tip: `besteding €${(sub.spend||0).toFixed(0)}` },
+      { v: sub.c_consistency||0, tip: `consistentie var=${sub.variance||0}` },
+      { v: sub.c_counter||0,     tip: `${sub.counter_n||0} tegenex.` },
+    ];
+    return `<div class="subst-conf-wrap">
+      <div class="subst-conf-lbl">conf ${(conf*100).toFixed(0)}% — steekproef · besteding · consistentie · tegenbewijzen</div>
+      <div class="subst-conf-bar">${segs.map(b=>`<div class="subst-seg" style="flex:${Math.max(.05,b.v)}" title="${b.tip}"></div>`).join('')}</div>
+    </div>`;
+  })() : '';
 
   const confBadge = imgB64
     ? `<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
@@ -1069,15 +1922,26 @@ function adCard(ad, i) {
        </details>`
     : '';
 
+  // Phase F.2: feedback thumbs
+  const justPats = JSON.stringify(ad.justification_patterns || []).replace(/'/g, "\\'");
+  const feedbackRow = `
+    <div class="feedback-row">
+      <span class="feedback-lbl">Werkte deze ad?</span>
+      <button class="btn-feedback" id="fb-up-${i}" onclick="sendFeedback(${i},'up',${justPats},this)">👍</button>
+      <button class="btn-feedback" id="fb-dn-${i}" onclick="sendFeedback(${i},'down',${justPats},this)">👎</button>
+    </div>`;
+
   return `
-  <div class="ad-card fade fade-${(i%3)+1}">
+  <div class="ad-card fade fade-${(i%3)+1}" data-ad-index="${i}">
     ${imgSection}
     <div class="ad-body">
       ${confBadge}
+      ${substBar}
       <div class="ad-num">Ad ${i+1} · ${ad.pattern_used ?? 'PLN patroon'}</div>
       <div class="ad-hl">${ad.headline}</div>
       <div class="ad-copy">${ad.body}</div>
       <div class="ad-cta">${ad.cta}</div>
+      ${ad.justification ? `<div style="font-size:10px;color:var(--text-3);font-style:italic;margin-top:4px;padding:4px 0;border-top:1px solid var(--border)">${escapeHtml(ad.justification)}</div>` : ''}
       <div class="ad-meta">
         <div class="ad-meta-row">
           <div class="am-lbl">Patroon</div>
@@ -1095,6 +1959,121 @@ function adCard(ad, i) {
         </div>
       </div>
       ${proofHtml}
+      ${adBronnen(ad)}
+    </div>
+    ${feedbackRow}
+    <div class="ad-card-actions">
+      <button class="btn-card-action primary" onclick="openLightbox(${i})">↗ Bekijk</button>
+      ${imgB64 ? `<button class="btn-card-action" onclick="downloadAdImage(${i})">↓ Download</button>` : ''}
+      ${imgB64 && useEditForRegen ? `<button class="btn-card-action" id="regen-btn-${i}" onclick="regenerateImage(${i},'high')">Regenereer HD</button>` : ''}
+      <button class="btn-card-action" onclick="navigator.clipboard?.writeText('${ad.headline.replace(/'/g,"\\'")} — ${ad.body.replace(/'/g,"\\'")}').then(()=>this.textContent='✓ Gekopieerd').catch(()=>{})">⎘ Copy</button>
+    </div>
+  </div>`;
+}
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Phase E.1: 5-Layer Reasoning Trace ───────────────────────
+function renderReasoningTrace(spec) {
+  if (!spec || !(spec.patterns || spec.top_patterns)?.length) return '';
+  const top5     = (spec.patterns || spec.top_patterns || []).slice(0, 5);
+  const strategy = spec.strategy || {};
+
+  // L1: Evidence thumbnails from top patterns
+  const evAds = [], seenEv = new Set();
+  for (const p of top5) {
+    for (const ev of (p.evidence_ads || [])) {
+      if (!seenEv.has(ev.ad_id)) { evAds.push(ev); seenEv.add(ev.ad_id); }
+    }
+    if (evAds.length >= 6) break;
+  }
+
+  // L2: unique conditions from top patterns
+  const featureChips = [...new Set(top5.flatMap(p => p.conditions || []))].slice(0, 8);
+
+  // L3: Pattern cards with substantiation bars
+  const patternCards = top5.map(p => {
+    const sub     = p.substantiation || {};
+    const confPct = ((p.confidence || 0) * 100).toFixed(0);
+    const weakCss = (p.confidence || 0) < 0.2 ? 'opacity:.5;border-style:dashed' : '';
+    const weakTxt = (p.confidence || 0) < 0.2 ? ' · ONZEKER' : '';
+    const segs    = [
+      { v: sub.c_sample || 0,      tip: `steekproef n=${sub.n||0}` },
+      { v: sub.c_spend || 0,       tip: `besteding €${(sub.spend||0).toFixed(0)}` },
+      { v: sub.c_consistency || 0, tip: `consistentie var=${sub.variance||0}` },
+      { v: sub.c_counter || 0,     tip: `${sub.counter_n||0} tegenex.` },
+    ];
+    const barsHtml = segs.map(b =>
+      `<div class="subst-seg" style="flex:${Math.max(.05,b.v)}" title="${escapeHtml(b.tip)}"></div>`
+    ).join('');
+    return `<div class="pattern-card" style="${weakCss}" data-pattern="${escapeHtml(p.name||'')}">
+      <div class="pc-name">${escapeHtml((p.name||'').replace(/--/g,' · '))}</div>
+      <div class="pc-outcome">${escapeHtml(p.outcome||'')}${weakTxt}</div>
+      <div class="pc-conf">${confPct}% conf · n=${sub.n||0} · €${(sub.spend||0).toFixed(0)}</div>
+      <div class="subst-bar" title="Steekproef · Besteding · Consistentie · Tegenbewijzen">${barsHtml}</div>
+    </div>`;
+  }).join('');
+
+  // L4: Strategy
+  const avoidTxt  = (strategy.avoid||[]).join(', ') || '—';
+  const justNames = (strategy.justification_patterns||[]).slice(0,3)
+    .map(n => `<code style="font-size:9px">${escapeHtml((n||'').replace(/--/g,' · '))}</code>`).join(', ');
+
+  // L5: Generated ads (filled once available)
+  const l5Html = state.generatedAds.length
+    ? state.generatedAds.slice(0,5).map((ad,i) => `
+      <div class="trace-l5-ad">
+        <div class="trace-l5-num">Ad ${i+1}</div>
+        <div class="trace-l5-hl">${escapeHtml((ad.headline||'').slice(0,30))}</div>
+        ${ad.justification ? `<div class="trace-l5-just">${escapeHtml(ad.justification.slice(0,80))}</div>` : ''}
+      </div>`).join('')
+    : '<div class="trace-l5-empty">Ads worden gegenereerd…</div>';
+
+  return `
+  <div class="reasoning-trace fade fade-1" style="margin-bottom:24px">
+    <div class="rt-header">
+      <div class="rt-title">5-Laags Redenering</div>
+      <div class="rt-sub">Historische data → kenmerken → patronen → strategie → advertenties</div>
+    </div>
+    <div class="trace-lane" id="trace-l1">
+      <div class="trace-lane-label">L1 Historisch</div>
+      <div class="trace-lane-content">
+        ${evAds.length ? evAds.slice(0,6).map(ev => {
+          const src = ev.image_ref ? `/sample-images/${ev.image_ref.split('/').pop()}` : null;
+          return src
+            ? `<img class="trace-ev-thumb" src="${src}" title="Ad ${ev.ad_id} · ROAS ${ev.roas||'?'}" onerror="this.style.display='none'">`
+            : `<div class="trace-ev-thumb trace-ev-ph" title="Ad ${ev.ad_id}">ad</div>`;
+        }).join('') : '<div class="trace-lane-empty">Geen historische ads gevonden</div>'}
+      </div>
+    </div>
+    <div class="trace-lane" id="trace-l2">
+      <div class="trace-lane-label">L2 Kenmerken</div>
+      <div class="trace-lane-content">
+        ${featureChips.map(f=>`<span class="feature-chip">${escapeHtml(f)}</span>`).join('')||'<div class="trace-lane-empty">Geen kenmerken</div>'}
+      </div>
+    </div>
+    <div class="trace-lane" id="trace-l3">
+      <div class="trace-lane-label">L3 Patronen</div>
+      <div class="trace-lane-content" style="flex-wrap:wrap;gap:8px">${patternCards||'<div class="trace-lane-empty">Geen patronen</div>'}</div>
+    </div>
+    <div class="trace-lane" id="trace-l4">
+      <div class="trace-lane-label">L4 Strategie</div>
+      <div class="trace-lane-content">
+        <div class="strategy-block">
+          <div class="sb-row"><span class="sb-lbl">Hook</span><span class="sb-val">${escapeHtml(strategy.hook||'—')}</span></div>
+          <div class="sb-row"><span class="sb-lbl">Visual</span><span class="sb-val">${escapeHtml(strategy.visual||'—')}</span></div>
+          <div class="sb-row"><span class="sb-lbl">CTA</span><span class="sb-val">${escapeHtml(strategy.cta||'—')}</span></div>
+          <div class="sb-row"><span class="sb-lbl">Toon</span><span class="sb-val">${escapeHtml(strategy.tone||'—')}</span></div>
+          <div class="sb-row"><span class="sb-lbl">Vermijd</span><span class="sb-val">${escapeHtml(avoidTxt)}</span></div>
+          <div class="sb-row"><span class="sb-lbl">Patronen</span><span class="sb-val">${justNames||'—'}</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="trace-lane" id="trace-l5">
+      <div class="trace-lane-label">L5 Gegenereerd</div>
+      <div class="trace-lane-content" style="flex-wrap:wrap;gap:8px">${l5Html}</div>
     </div>
   </div>`;
 }
@@ -1706,22 +2685,34 @@ function renderPipeline(el) {
   el.innerHTML = `
   <div class="page-header fade">
     <div class="page-title">Pipeline</div>
-    <div class="page-sub">7-fase ad generatie · PLN + Atomspace + Gemini · OmegaClaw</div>
+    <div class="page-sub">7-fase ad generatie · PLN + Atomspace + gpt-image-1 · OmegaClaw</div>
   </div>
   <div class="page-content">
+
+    <div class="pl-overall-progress fade">
+      <div class="pl-overall-label">
+        <span class="pl-overall-text" id="pl-prog-label">Fase 1 van 7 — Start door atoms te laden</span>
+        <span class="pl-overall-pct" id="pl-prog-pct">0%</span>
+      </div>
+      <div class="pl-overall-bar">
+        <div class="pl-overall-fill" id="pl-prog-fill" style="width:0%"></div>
+      </div>
+    </div>
+
     <div id="pl-stepper" class="pl-stepper">
       ${[
-        'Bronnen laden',
-        'Advertiser input',
-        'PLN spec',
-        'Concepten',
-        'Beeld generatie',
-        'Verificatie loop',
-        'Output',
-      ].map((label, i) => `
-        <div class="pl-step" id="pl-step-${i+1}">
+        ['Bronnen laden',   'Data atoms van schijf'],
+        ['Advertiser input','Product + context'],
+        ['PLN spec',        'Patroonherkenning'],
+        ['Concepten',       '10 ad concepten'],
+        ['Beeld generatie', 'gpt-image-1 beelden'],
+        ['Verificatie loop','Spec matching'],
+        ['Output',          'Finale advertenties'],
+      ].map(([label, sub], i) => `
+        <div class="pl-step" id="pl-step-${i+1}" data-phase="${i+1}" style="cursor:default">
           <div class="pl-step-num">${i+1}</div>
           <div class="pl-step-label">${label}</div>
+          <div class="pl-step-sub">${sub}</div>
         </div>
         ${i < 6 ? '<div class="pl-step-connector"></div>' : ''}
       `).join('')}
@@ -1729,27 +2720,45 @@ function renderPipeline(el) {
 
     <div id="pl-body" class="pl-body">
       <div id="pl-phase-1" class="pl-phase active">
+        <div class="pl-phase-desc">
+          <div class="pl-phase-desc-title">Fase 1 — Bronnen laden</div>
+          <div class="pl-phase-desc-text">Laadt Meta Ads performance atoms van schijf — gegenereerd vanuit de Meta CSV export. Elke atom bevat ad_id, CTR, CPC, ROAS en spend.</div>
+          <div class="pl-phase-desc-eta">⏱ Verwacht: 2–5 seconden</div>
+        </div>
         <div class="card">
-          <div class="card-hd"><div class="card-title">Fase 1 — Bronnen laden</div></div>
-          <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">
-            Laadt echte Meta Ads performance atoms van schijf (<code>atoms/performance/*.json</code>) gegenereerd vanuit de Meta CSV export.
-          </p>
+          <div class="card-hd">
+            <div class="card-title">Performance atoms</div>
+            <span class="tag t-blue">atoms/performance/*.json</span>
+          </div>
           <button class="btn-primary" id="pl-load-atoms">Atoms laden ↓</button>
           <div id="pl-atoms-result" style="margin-top:16px"></div>
         </div>
       </div>
 
       <div id="pl-phase-2" class="pl-phase" style="display:none">
+        <div class="pl-phase-desc">
+          <div class="pl-phase-desc-title">Fase 2 — Advertiser input</div>
+          <div class="pl-phase-desc-text">Geef het product en de context op. PLN gebruikt dit samen met de atoms om de beste visuele strategie te bepalen.</div>
+          <div class="pl-phase-desc-eta">⏱ Verwacht: directe invoer, PLN analyse duurt 5–10 sec</div>
+        </div>
         <div class="card">
-          <div class="card-hd"><div class="card-title">Fase 2 — Advertiser input</div></div>
-          <div style="display:grid;gap:12px">
+          <div class="card-hd"><div class="card-title">Product & context</div></div>
+          <div style="display:grid;gap:14px">
             <div>
-              <label class="form-label">Product / collectie</label>
-              <input id="pl-product" class="form-input" placeholder="bijv. Zilveren armband collectie, €39–€89" value="Zilveren armband collectie, €39–€89"/>
+              <label class="form-label-req">
+                Product / collectie <span class="req-star">*</span>
+                <span class="form-example">Bijv: Zilveren armband collectie, €39–€89</span>
+              </label>
+              <input id="pl-product" class="form-input" placeholder="Bijv. Zilveren armband collectie, €39–€89" value="Zilveren armband collectie, €39–€89"/>
+              <div class="form-helper">Naam van het product + prijsrange. Zo concreet mogelijk (3-8 woorden).</div>
             </div>
             <div>
-              <label class="form-label">Periode + context</label>
-              <input id="pl-context" class="form-input" placeholder="bijv. Week 24, zomer, zonnige voorspelling" value="Week 24, zomer, zonnige voorspelling"/>
+              <label class="form-label-req">
+                Periode + context <span class="req-star">*</span>
+                <span class="form-example">Bijv: Week 24, zomer, zonnig</span>
+              </label>
+              <input id="pl-context" class="form-input" placeholder="Bijv. Week 24, zomer, zonnige voorspelling" value="Week 24, zomer, zonnige voorspelling"/>
+              <div class="form-helper">Weeknummer, seizoen en weersomstandigheden. PLN matcht dit aan historische atoms.</div>
             </div>
             <button class="btn-primary" id="pl-run-pln">PLN analyse uitvoeren →</button>
           </div>
@@ -1757,47 +2766,93 @@ function renderPipeline(el) {
       </div>
 
       <div id="pl-phase-3" class="pl-phase" style="display:none">
+        <div class="pl-phase-desc">
+          <div class="pl-phase-desc-title">Fase 3 — PLN formele specificatie</div>
+          <div class="pl-phase-desc-text">PLN doorzoekt de Atomspace en identificeert bewezen patronen voor jouw product + context. Het output is een formele spec met visuele elementen, stijl, tone en ROAS voorspelling.</div>
+          <div class="pl-phase-desc-eta">⏱ Verwacht output: visuele elementen · stijl · verwachte ROAS · confidence score</div>
+        </div>
         <div class="card">
-          <div class="card-hd"><div class="card-title">Fase 3 — PLN formele specificatie</div></div>
+          <div class="card-hd">
+            <div class="card-title">PLN specificatie</div>
+            <span class="tag t-purple">Atomspace analyse</span>
+          </div>
           <div id="pl-spec-box"></div>
           <button class="btn-primary" id="pl-gen-concepts" style="margin-top:16px">10 concepten genereren →</button>
         </div>
       </div>
 
       <div id="pl-phase-4" class="pl-phase" style="display:none">
+        <div class="pl-phase-desc">
+          <div class="pl-phase-desc-title">Fase 4 — Advertentie concepten</div>
+          <div class="pl-phase-desc-text">Claude genereert 10 unieke advertentie concepten op basis van de PLN spec. Elk concept bevat headline, body copy, CTA, image prompt en ROAS voorspelling.</div>
+          <div class="pl-phase-desc-eta">⏱ Verwacht: 8–15 seconden · output: 10 concepten met image prompts</div>
+        </div>
         <div class="card">
-          <div class="card-hd"><div class="card-title">Fase 4 — Advertentie concepten (LLM)</div></div>
+          <div class="card-hd">
+            <div class="card-title">Ad concepten (LLM)</div>
+            <span class="tag t-purple">Claude API</span>
+          </div>
           <div id="pl-concepts-list"></div>
-          <button class="btn-primary" id="pl-gen-images" style="margin-top:16px;display:none">Beelden genereren met Gemini →</button>
+          <button class="btn-primary" id="pl-gen-images" style="margin-top:16px;display:none">Beelden genereren met gpt-image-1 →</button>
         </div>
       </div>
 
       <div id="pl-phase-5" class="pl-phase" style="display:none">
+        <div class="pl-phase-desc">
+          <div class="pl-phase-desc-title">Fase 5 — gpt-image-1 beeld generatie</div>
+          <div class="pl-phase-desc-text">gpt-image-1 genereert alle 10 beelden parallel op basis van de image prompts uit fase 4. Elk beeld wordt gestuurd door de PLN visuele spec.</div>
+          <div class="pl-phase-desc-eta">⏱ Verwacht: 20–45 seconden · 10 beelden van 1024×1024px</div>
+        </div>
         <div class="card">
-          <div class="card-hd"><div class="card-title">Fase 5 — Gemini beeld generatie</div></div>
+          <div class="card-hd">
+            <div class="card-title">Gegenereerde beelden</div>
+            <span class="tag t-teal">gpt-image-1 API</span>
+          </div>
           <div id="pl-images-grid" class="pl-images-grid"></div>
           <button class="btn-primary" id="pl-start-verify" style="margin-top:16px;display:none">Verificatie loop starten →</button>
         </div>
       </div>
 
       <div id="pl-phase-6" class="pl-phase" style="display:none">
+        <div class="pl-phase-desc">
+          <div class="pl-phase-desc-title">Fase 6 — Verificatie feedback loop</div>
+          <div class="pl-phase-desc-text">Vision model decomposeert elk beeld → PLN vergelijkt met de formele spec → corrigeert en regenereert totdat alle elementen 100% aanwezig zijn (max. 3 iteraties).</div>
+          <div class="pl-phase-desc-eta">⏱ Verwacht: 15–40 seconden · tot 3 iteraties per beeld</div>
+        </div>
         <div class="card">
-          <div class="card-hd"><div class="card-title">Fase 6 — Verificatie feedback loop</div></div>
-          <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">
-            Vision model decompose → PLN vergelijkt met spec → corrigeert tot 100% match.
-          </p>
+          <div class="card-hd">
+            <div class="card-title">Spec verificatie</div>
+            <span class="tag t-green">Vision LLM</span>
+          </div>
           <div id="pl-verify-list"></div>
           <button class="btn-primary" id="pl-to-output" style="margin-top:16px;display:none">Naar output →</button>
         </div>
       </div>
 
       <div id="pl-phase-7" class="pl-phase" style="display:none">
+        <div class="pl-phase-desc">
+          <div class="pl-phase-desc-title">Fase 7 — Geverifieerde advertenties</div>
+          <div class="pl-phase-desc-text">Alle advertenties zijn geverifieerd en klaar voor Meta Ads Manager. Elk advertentie is gebaseerd op bewezen PLN patronen uit historische data.</div>
+          <div class="pl-phase-desc-eta">✓ Pipeline voltooid · 100% of 7 fases doorlopen</div>
+        </div>
         <div class="card">
-          <div class="card-hd"><div class="card-title">Fase 7 — Geverifieerde advertenties</div></div>
+          <div class="card-hd">
+            <div class="card-title">Finale output</div>
+            <span class="tag t-green">Klaar voor publicatie</span>
+          </div>
           <div id="pl-final-output"></div>
         </div>
       </div>
     </div>
+
+    <div id="pl-action-bar" class="pl-action-bar" style="display:none">
+      <div class="pl-action-bar-info">
+        <div class="pl-action-bar-phase" id="pl-bar-phase">—</div>
+        <div class="pl-action-bar-label">Stap klaar — klik om door te gaan</div>
+      </div>
+      <button class="btn-primary" id="pl-bar-btn">—</button>
+    </div>
+
   </div>`;
 
   addPipelineStyles();
@@ -1809,15 +2864,20 @@ function addPipelineStyles() {
   const s = document.createElement('style');
   s.id = 'pl-styles';
   s.textContent = `
+    :root { --text-muted: #888888; }
     .pl-stepper { display:flex; align-items:center; gap:0; margin-bottom:24px; overflow-x:auto; padding:4px 0 12px; }
-    .pl-step { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:80px; }
-    .pl-step-num { width:32px; height:32px; border-radius:50%; border:2px solid rgba(255,255,255,0.12); display:flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:12px; color:var(--text-muted); transition:.3s; }
+    .pl-step { display:flex; flex-direction:column; align-items:center; gap:3px; min-width:90px; transition:.2s; }
+    .pl-step-num { width:38px; height:38px; border-radius:50%; border:2px solid var(--border-md); display:flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:13px; font-weight:600; color:var(--text-3); transition:.3s; background:var(--surface); }
     .pl-step.done .pl-step-num { background:var(--green); border-color:var(--green); color:#fff; }
-    .pl-step.active .pl-step-num { border-color:var(--purple); color:var(--purple); box-shadow:0 0 0 3px rgba(109,40,217,.15); }
-    .pl-step-label { font-size:10px; color:var(--text-muted); text-align:center; white-space:nowrap; }
+    .pl-step.active .pl-step-num { border-color:var(--purple); color:var(--purple); background:var(--purple-s); box-shadow:0 0 0 4px rgba(109,40,217,.12); }
+    .pl-step-label { font-size:11px; font-weight:600; color:var(--text-3); text-align:center; white-space:nowrap; }
+    .pl-step-sub { font-size:9px; font-family:'DM Mono',monospace; color:var(--text-3); text-align:center; white-space:nowrap; opacity:.7; }
     .pl-step.active .pl-step-label { color:var(--purple); }
+    .pl-step.active .pl-step-sub { color:var(--purple); opacity:.7; }
     .pl-step.done .pl-step-label { color:var(--green); }
-    .pl-step-connector { flex:1; height:2px; background:rgba(255,255,255,0.08); min-width:16px; }
+    .pl-step.done .pl-step-sub { color:var(--green); opacity:.7; }
+    .pl-step-connector { flex:1; height:2px; background:var(--border); min-width:16px; transition:background .4s; }
+    .pl-step-connector.done { background:var(--green); }
     .pl-body { display:flex; flex-direction:column; gap:16px; }
     .pl-phase { display:flex; flex-direction:column; gap:12px; }
     .pl-spec-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px; }
@@ -1856,17 +2916,52 @@ function addPipelineStyles() {
     .form-label { display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; }
     .form-input { width:100%; padding:8px 12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:var(--text); font-size:13px; outline:none; }
     .form-input:focus { border-color:var(--purple); }
+    .pl-concepts-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .pl-concept-v2 { padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--surface); transition:box-shadow .18s, transform .18s; }
+    .pl-concept-v2:hover { box-shadow:0 4px 18px rgba(0,0,0,.08); transform:translateY(-1px); }
+    .pl-concept-v2-hd { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+    .pl-cn-badge { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:12px; font-weight:700; color:#fff; flex-shrink:0; }
+    .pl-concept-headline { font-size:14px; font-weight:700; color:var(--text); margin-bottom:5px; line-height:1.3; }
+    .pl-concept-body-v2 { font-family:'DM Mono',monospace; font-size:11px; color:var(--text-2); line-height:1.55; margin-bottom:10px; }
+    .pl-concept-chips { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+    .pl-cta-chip { padding:3px 10px; background:var(--text); color:#fff; border-radius:4px; font-size:11px; font-weight:700; }
+    .pl-roas-chip { padding:3px 8px; border-radius:4px; font-family:'DM Mono',monospace; font-size:11px; font-weight:500; }
+    .pl-roas-bar-wrap { height:3px; background:var(--border); border-radius:2px; margin-bottom:9px; overflow:hidden; }
+    .pl-roas-bar-fill { height:100%; border-radius:2px; transition:width .8s ease; }
+    .pl-prompt-toggle { font-family:'DM Mono',monospace; font-size:10px; color:var(--text-3); cursor:pointer; user-select:none; transition:color .14s; }
+    .pl-prompt-toggle:hover { color:var(--purple); }
+    .pl-prompt-text { font-family:'DM Mono',monospace; font-size:10px; color:var(--text-3); margin-top:6px; line-height:1.5; display:none; padding:8px; background:var(--bg); border-radius:6px; border:1px solid var(--border); }
   `;
   document.head.appendChild(s);
 }
 
 function bindPipelineEvents(el, ps) {
+  const PHASE_LABELS = [
+    'Fase 1 van 7 — Atoms laden vanuit schijf',
+    'Fase 2 van 7 — Advertiser product & context invoeren',
+    'Fase 3 van 7 — PLN spec & patroonherkenning',
+    'Fase 4 van 7 — 10 advertentie concepten genereren',
+    'Fase 5 van 7 — gpt-image-1 beelden genereren',
+    'Fase 6 van 7 — Verificatie feedback loop',
+    'Fase 7 van 7 — Geverifieerde output bekijken',
+  ];
+
   function setStep(n) {
     ps.step = n;
     el.querySelectorAll('.pl-step').forEach((s, i) => {
       s.classList.toggle('done', i + 1 < n);
       s.classList.toggle('active', i + 1 === n);
     });
+    el.querySelectorAll('.pl-step-connector').forEach((c, i) => {
+      c.classList.toggle('done', i + 1 < n);
+    });
+    const pct = Math.round(((n - 1) / 7) * 100);
+    const fillEl = el.querySelector('#pl-prog-fill');
+    const pctEl  = el.querySelector('#pl-prog-pct');
+    const lblEl  = el.querySelector('#pl-prog-label');
+    if (fillEl) fillEl.style.width = pct + '%';
+    if (pctEl)  pctEl.textContent  = pct + '%';
+    if (lblEl)  lblEl.textContent  = PHASE_LABELS[n - 1] ?? '';
   }
 
   function showPhase(n) {
@@ -1874,6 +2969,22 @@ function bindPipelineEvents(el, ps) {
       p.style.display = (i + 1 === n) ? '' : 'none';
     });
     setStep(n);
+  }
+
+  function showActionBar(phaseLabel, btnLabel, onClick) {
+    const bar    = el.querySelector('#pl-action-bar');
+    const phase  = el.querySelector('#pl-bar-phase');
+    const btn    = el.querySelector('#pl-bar-btn');
+    if (!bar || !btn) return;
+    phase.textContent = phaseLabel;
+    btn.textContent   = btnLabel;
+    btn.onclick = onClick;
+    bar.style.display = 'flex';
+  }
+
+  function hideActionBar() {
+    const bar = el.querySelector('#pl-action-bar');
+    if (bar) bar.style.display = 'none';
   }
 
   // ── Phase 1: load atoms ───────────────────────────────────────
@@ -1900,23 +3011,91 @@ function bindPipelineEvents(el, ps) {
         return;
       }
 
+      const atoms = ps.performanceAtoms;
       result.innerHTML = `
-        <p style="color:#5DCAA5;font-size:13px;margin-bottom:10px">✓ ${ps.performanceAtoms.length} performance atoms geladen</p>
-        <table class="pl-atoms-table">
-          <tr><th>ad_id</th><th>ROAS</th><th>CPC</th><th>CTR</th><th>spend</th><th>campagne</th></tr>
-          ${ps.performanceAtoms.map(a => `
+        <div class="success-banner" style="margin-bottom:12px">
+          <div class="success-icon">✓</div>
+          <div>
+            <div class="success-title">${atoms.length} Performance Atoms Geladen</div>
+            <div class="success-text">Gem. ROAS: ${(atoms.reduce((s,a)=>s+(a.ROAS??0),0)/atoms.length).toFixed(1)}× · Gem. CTR: ${(atoms.reduce((s,a)=>s+(a.ctr??a.CTR??0),0)/atoms.length).toFixed(2)}%</div>
+          </div>
+        </div>
+        <div class="table-toolbar">
+          <input class="table-search" id="pl-atom-search" placeholder="Zoek op ad_id of campagne…" type="search">
+          <select class="table-sort" id="pl-atom-sort">
+            <option value="">Sorteren op…</option>
+            <option value="ctr-desc">CTR ↓</option>
+            <option value="ctr-asc">CTR ↑</option>
+            <option value="roas-desc">ROAS ↓</option>
+            <option value="roas-asc">ROAS ↑</option>
+            <option value="spend-desc">Spend ↓</option>
+          </select>
+          <span class="table-count" id="pl-atom-count">${atoms.length} atoms</span>
+        </div>
+        <div id="pl-atoms-table-wrap">
+          <table class="pl-atoms-table" id="pl-atoms-table">
             <tr>
-              <td>${a.ad_id}</td>
-              <td style="color:${a.ROAS >= 4 ? '#5DCAA5' : a.ROAS >= 2.5 ? '' : '#E24B4A'}">${a.ROAS}</td>
-              <td>€${a.CPC}</td>
-              <td>${(a.CTR * 100).toFixed(1)}%</td>
-              <td>€${a.spend}</td>
-              <td>${a.campagne}</td>
-            </tr>`).join('')}
-        </table>
+              <th>ad_id</th>
+              <th><span class="th-tip" data-tip="Click-Through Rate — % van gebruikers dat klikt">CTR</span></th>
+              <th><span class="th-tip" data-tip="Cost Per Click — kosten per klik in euro">CPC</span></th>
+              <th><span class="th-tip" data-tip="Cost Per Mille — kosten per 1000 vertoningen">CPM</span></th>
+              <th><span class="th-tip" data-tip="Return On Ad Spend — opbrengst per euro uitgegeven">ROAS</span></th>
+              <th>Spend</th>
+              <th>Campagne</th>
+            </tr>
+            ${atoms.map(a => {
+              const ctr = a.ctr ?? a.CTR ?? 0;
+              const roas = a.ROAS ?? 0;
+              const rowCls = ctr > 3 ? 'tr-high-ctr' : roas >= 5 ? 'tr-high-roas' : '';
+              return `<tr class="${rowCls}" data-ad="${a.ad_id}" data-camp="${a.campaign_name??''}" data-ctr="${ctr}" data-roas="${roas}" data-spend="${a.spend??0}">
+                <td style="font-weight:600">${a.ad_id}</td>
+                <td style="color:${ctr>3?'var(--green)':'inherit'}">${ctr ? ctr.toFixed(2) + '%' : '—'}</td>
+                <td>${a.cpc != null ? fmtEur(a.cpc) : '—'}</td>
+                <td>${a.cpm != null ? fmtEur(a.cpm) : '—'}</td>
+                <td style="color:${roas>=4?'var(--green)':roas<2?'var(--coral)':'inherit'}">${roas ? roas + '×' : '—'}</td>
+                <td>${a.spend != null ? fmtEur(a.spend) : '—'}</td>
+                <td>${a.campaign_name ?? '—'}</td>
+              </tr>`;
+            }).join('')}
+          </table>
+        </div>
         <button class="btn-primary" id="pl-next-1" style="margin-top:14px">Doorgaan naar advertiser input →</button>`;
 
-      el.querySelector('#pl-next-1').addEventListener('click', () => showPhase(2));
+      // Search + sort for atom table
+      const searchEl = result.querySelector('#pl-atom-search');
+      const sortEl   = result.querySelector('#pl-atom-sort');
+      const countEl  = result.querySelector('#pl-atom-count');
+      function filterAtoms() {
+        const q   = searchEl.value.toLowerCase();
+        const key = sortEl.value;
+        const rows = [...result.querySelectorAll('#pl-atoms-table tr:not(:first-child)')];
+        rows.forEach(r => {
+          const ad   = (r.dataset.ad   || '').toLowerCase();
+          const camp = (r.dataset.camp || '').toLowerCase();
+          r.style.display = (!q || ad.includes(q) || camp.includes(q)) ? '' : 'none';
+        });
+        if (key) {
+          const [field, dir] = key.split('-');
+          const map = { ctr:'ctr', roas:'roas', spend:'spend' };
+          const prop = map[field];
+          rows.sort((a, b) => {
+            const av = parseFloat(a.dataset[prop] ?? 0);
+            const bv = parseFloat(b.dataset[prop] ?? 0);
+            return dir === 'desc' ? bv - av : av - bv;
+          }).forEach(r => r.parentNode.appendChild(r));
+        }
+        const vis = rows.filter(r => r.style.display !== 'none').length;
+        countEl.textContent = `${vis} van ${rows.length} atoms`;
+      }
+      searchEl.addEventListener('input', filterAtoms);
+      sortEl.addEventListener('change', filterAtoms);
+
+      el.querySelector('#pl-next-1').addEventListener('click', () => { hideActionBar(); showPhase(2); });
+      showActionBar(
+        'Fase 1 voltooid — Atoms geladen',
+        'Doorgaan naar Advertiser input →',
+        () => { hideActionBar(); showPhase(2); }
+      );
 
     } catch (e) {
       result.innerHTML = `<p style="color:#E24B4A;font-size:13px">Fout: ${e.message}</p>`;
@@ -1936,7 +3115,14 @@ function bindPipelineEvents(el, ps) {
     showPhase(3);
 
     const specBox = el.querySelector('#pl-spec-box');
-    specBox.innerHTML = `<div style="color:var(--text-muted);font-size:13px"><span class="pl-spinner"></span> PLN doorzoekt Atomspace…</div>`;
+    specBox.innerHTML = `
+      <div class="loading-state">
+        <span class="ls-icon">🔍</span>
+        <div class="ls-title">PLN doorzoekt Atomspace…</div>
+        <div class="ls-progress-wrap"><div class="ls-progress-fill" style="width:65%"></div></div>
+        <div class="ls-desc">Patronen analyseren voor "${ps.product}"</div>
+        <div class="ls-eta">Vergelijkt atoms · berekent confidence scores</div>
+      </div>`;
 
     try {
       const r = await fetch('/api/pln-spec', {
@@ -1954,6 +3140,13 @@ function bindPipelineEvents(el, ps) {
       ps.spec = data.spec;
 
       specBox.innerHTML = `
+        <div class="success-banner" style="margin-bottom:14px">
+          <div class="success-icon">✓</div>
+          <div>
+            <div class="success-title">PLN Analyse voltooid</div>
+            <div class="success-text">${ps.spec.top_patterns?.length ?? 0} patronen gevonden · Verwachte ROAS: ${ps.spec.expected_roas}× · Confidence: ${(ps.spec.confidence * 100).toFixed(0)}%</div>
+          </div>
+        </div>
         <div class="pl-spec-row"><span class="pl-spec-label">Visuele elementen</span><span>${ps.spec.elements.map(e => `<span class="pl-elem-tag">${e}</span>`).join('')}</span></div>
         <div class="pl-spec-row"><span class="pl-spec-label">Stijl</span><span class="pl-spec-val">${ps.spec.style}</span></div>
         <div class="pl-spec-row"><span class="pl-spec-label">Toon</span><span class="pl-spec-val">${ps.spec.tone}</span></div>
@@ -1977,6 +3170,11 @@ function bindPipelineEvents(el, ps) {
             </div>`).join('')}
         </div>`;
 
+      showActionBar(
+        'Fase 3 — PLN Specificatie klaar',
+        '10 concepten genereren →',
+        () => { hideActionBar(); el.querySelector('#pl-gen-concepts').click(); }
+      );
     } catch (e) {
       specBox.innerHTML = `<p style="color:#E24B4A;font-size:13px">PLN fout: ${e.message}</p>`;
     }
@@ -1992,7 +3190,14 @@ function bindPipelineEvents(el, ps) {
     showPhase(4);
 
     const list = el.querySelector('#pl-concepts-list');
-    list.innerHTML = `<div style="color:var(--text-muted);font-size:13px"><span class="pl-spinner"></span> LLM genereert 10 advertentie concepten…</div>`;
+    list.innerHTML = `
+      <div class="loading-state">
+        <span class="ls-icon">⚡</span>
+        <div class="ls-title">Generating 10 Ad Concepts</div>
+        <div class="ls-progress-wrap"><div class="ls-progress-fill" style="width:40%"></div></div>
+        <div class="ls-desc">Claude schrijft headlines, body copy en image prompts</div>
+        <div class="ls-eta">Geschat: 8–15 seconden</div>
+      </div>`;
 
     try {
       const patterns = ps.spec ? ps.spec.top_patterns || [] : PATTERNS.slice(0, 3);
@@ -2011,15 +3216,51 @@ function bindPipelineEvents(el, ps) {
       if (!data.success) throw new Error(data.error);
       ps.concepts = data.ads;
 
-      list.innerHTML = ps.concepts.map((c, i) => `
-        <div class="pl-concept">
-          <div class="pl-concept-head">${i + 1}. ${c.headline}</div>
-          <div class="pl-concept-body">${c.body}</div>
-          <div class="pl-concept-meta">CTA: ${c.cta} · ROAS: ${c.expected_roas} · conf: ${(c.confidence * 100).toFixed(0)}%</div>
-          <div class="pl-concept-meta" style="margin-top:4px;font-size:10px">🖼 ${c.image_prompt}</div>
-        </div>`).join('');
+      const roasVals = ps.concepts.map(c => c.expected_roas).filter(r => typeof r === 'number');
+      list.innerHTML = `
+        <div class="success-banner" style="margin-bottom:14px">
+          <div class="success-icon">✓</div>
+          <div>
+            <div class="success-title">${ps.concepts.length} Ad Concepts Gegenereerd</div>
+            <div class="success-text">ROAS range: ${Math.min(...roasVals).toFixed(1)}× – ${Math.max(...roasVals).toFixed(1)}× · Klaar voor beeld generatie</div>
+          </div>
+        </div>`;
+
+      const grid = document.createElement('div');
+      grid.className = 'pl-concepts-grid';
+      grid.innerHTML = ps.concepts.map((c, i) => {
+        const conf    = typeof c.confidence === 'number' ? c.confidence : 0.7;
+        const tier    = conf >= .80 ? 'Bewezen' : conf >= .65 ? 'Sterk' : 'Potentieel';
+        const color   = conf >= .80 ? 'var(--green)' : conf >= .65 ? 'var(--amber)' : 'var(--purple)';
+        const roasPct = Math.min(100, ((c.expected_roas || 0) / 7) * 100).toFixed(0);
+        return `
+          <div class="pl-concept-v2">
+            <div class="pl-concept-v2-hd">
+              <div class="pl-cn-badge" style="background:${color}">${i + 1}</div>
+              <span style="padding:2px 8px;border-radius:3px;font-family:'DM Mono',monospace;font-size:10px;background:${color === 'var(--green)' ? 'var(--green-s)' : color === 'var(--amber)' ? 'var(--amber-s)' : 'var(--purple-s)'};color:${color}">${tier}</span>
+            </div>
+            <div class="pl-concept-headline">${c.headline}</div>
+            <div class="pl-concept-body-v2">${c.body}</div>
+            <div class="pl-concept-chips">
+              <span class="pl-cta-chip">${c.cta}</span>
+              <span class="pl-roas-chip" style="background:${color === 'var(--green)' ? 'var(--green-s)' : color === 'var(--amber)' ? 'var(--amber-s)' : 'var(--purple-s)'};color:${color}">ROAS ${c.expected_roas}×</span>
+              <span class="pl-roas-chip" style="background:var(--bg);color:var(--text-3)">conf ${(conf * 100).toFixed(0)}%</span>
+            </div>
+            <div class="pl-roas-bar-wrap">
+              <div class="pl-roas-bar-fill" style="width:${roasPct}%;background:${color}"></div>
+            </div>
+            <div class="pl-prompt-toggle" onclick="const t=this.nextElementSibling;t.style.display=t.style.display==='block'?'none':'block';this.textContent=t.style.display==='block'?'▾ 🖼 Verberg prompt':'▸ 🖼 Image prompt'">▸ 🖼 Image prompt</div>
+            <div class="pl-prompt-text">${c.image_prompt}</div>
+          </div>`;
+      }).join('');
+      list.appendChild(grid);
 
       el.querySelector('#pl-gen-images').style.display = '';
+      showActionBar(
+        'Fase 4 — Concepten klaar',
+        'Beelden genereren met gpt-image-1 →',
+        () => { hideActionBar(); el.querySelector('#pl-gen-images').click(); }
+      );
     } catch (e) {
       list.innerHTML = `<p style="color:#E24B4A;font-size:13px">Fout: ${e.message}</p>`;
     }
@@ -2031,7 +3272,7 @@ function bindPipelineEvents(el, ps) {
   el.querySelector('#pl-gen-images').addEventListener('click', async () => {
     const btn = el.querySelector('#pl-gen-images');
     btn.disabled = true;
-    btn.innerHTML = '<span class="pl-spinner"></span> Gemini genereert beelden…';
+    btn.innerHTML = '<span class="pl-spinner"></span> gpt-image-1 genereert beelden…';
     showPhase(5);
 
     const grid = el.querySelector('#pl-images-grid');
@@ -2067,8 +3308,13 @@ function bindPipelineEvents(el, ps) {
     }));
 
     el.querySelector('#pl-start-verify').style.display = '';
+    showActionBar(
+      'Fase 5 — Beelden gegenereerd',
+      'Verificatie loop starten →',
+      () => { hideActionBar(); el.querySelector('#pl-start-verify').click(); }
+    );
     btn.disabled = false;
-    btn.textContent = 'Beelden genereren met Gemini →';
+    btn.textContent = 'Beelden genereren met gpt-image-1 →';
   });
 
   // ── Phase 5 → 6: verification loop ───────────────────────────
@@ -2172,6 +3418,11 @@ function bindPipelineEvents(el, ps) {
     }
 
     el.querySelector('#pl-to-output').style.display = '';
+    showActionBar(
+      'Fase 6 — Verificatie afgerond',
+      'Finale output bekijken →',
+      () => { hideActionBar(); el.querySelector('#pl-to-output').click(); }
+    );
   });
 
   // ── Phase 6 → 7: final output ────────────────────────────────
@@ -2179,10 +3430,18 @@ function bindPipelineEvents(el, ps) {
     showPhase(7);
     const out = el.querySelector('#pl-final-output');
 
+    const verified = ps.generatedAds.filter(a => a.verified).length;
     out.innerHTML = `
-      <p style="color:#5DCAA5;font-size:13px;margin-bottom:16px">
-        ✓ ${ps.generatedAds.filter(a => a.verified).length} van ${ps.generatedAds.length} advertenties geverifieerd
-      </p>
+      <div class="success-banner" style="margin-bottom:16px">
+        <div class="success-icon">🎉</div>
+        <div>
+          <div class="success-title">Pipeline Voltooid — ${verified} van ${ps.generatedAds.length} advertenties geverifieerd</div>
+          <div class="success-text">Alle fases doorlopen · PLN patronen toegepast · Spec verificatie afgerond</div>
+          <div class="success-actions">
+            <button class="btn-sm primary" onclick="navigate('output')">→ Bekijk in Output pagina</button>
+          </div>
+        </div>
+      </div>
       ${ps.generatedAds.map((ad, i) => `
         <div class="pl-final-ad">
           ${ad.imageBase64

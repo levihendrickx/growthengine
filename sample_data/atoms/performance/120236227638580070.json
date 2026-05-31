@@ -1,0 +1,49 @@
+{
+  "ad_id": "120236227638580070",
+  "ad_name": "08-11 | TA8 | Creative 1",
+  "campaign_id": "120235465311810070",
+  "campaign_name": "NL-BE | Andromeda Broad Scaling",
+  "adset_id": "120235465312030070",
+  "adset_name": "NL-BE | Andromeda Broad Scaling",
+  "impressions": 9780.0,
+  "clicks": 167.0,
+  "ctr": 1.707566,
+  "cpc": 0.534671,
+  "cpm": 9.129857,
+  "spend": 89.29,
+  "reach": 4633.0,
+  "frequency": 2.110943,
+  "date_start": "2026-01-28",
+  "date_stop": "2026-04-28",
+  "actions": [
+    {
+      "action_type": "link_click",
+      "value": 167.0
+    },
+    {
+      "action_type": "add_to_cart",
+      "value": 7.0
+    },
+    {
+      "action_type": "initiate_checkout",
+      "value": 2.0
+    },
+    {
+      "action_type": "purchase",
+      "value": 1.0
+    }
+  ],
+  "action_values": [
+    {
+      "action_type": "purchase",
+      "value": 48.09
+    }
+  ],
+  "purchase_roas": [
+    {
+      "action_type": "omni_purchase",
+      "value": 0.5386
+    }
+  ],
+  "synthetic": true
+}

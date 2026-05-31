@@ -34,8 +34,34 @@ INSIGHTS_FIELDS = [
     "impressions", "clicks", "ctr", "cpc", "cpm",
     "spend", "reach", "frequency",
     "date_start", "date_stop",
+    "actions", "action_values", "purchase_roas",
+    "cost_per_action_type", "conversions",
 ]
 NUMERIC_FIELDS = {"impressions", "clicks", "ctr", "cpc", "cpm", "spend", "reach", "frequency"}
+ACTION_BREAKDOWN_FIELDS = {
+    "actions", "action_values", "purchase_roas",
+    "cost_per_action_type", "conversions",
+}
+
+
+def normalize_action_list(items):
+    """Meta returns action breakdowns as [{action_type, value, ...}] with value as a string.
+    Coerce value (and any 1d/7d/28d attribution windows) to float; pass through unknown keys."""
+    out = []
+    for entry in items or []:
+        if not isinstance(entry, dict):
+            continue
+        normalized = {}
+        for k, v in entry.items():
+            if k == "action_type":
+                normalized[k] = v
+            else:
+                try:
+                    normalized[k] = float(v)
+                except (ValueError, TypeError):
+                    normalized[k] = v
+        out.append(normalized)
+    return out
 
 
 def fetch_insights(token: str, api_version: str, ad_account_id: str, days: int, limit: int) -> list[dict]:
@@ -73,6 +99,8 @@ def to_atom(row: dict) -> dict:
                 atom[k] = float(v)
             except (ValueError, TypeError):
                 atom[k] = v
+        elif k in ACTION_BREAKDOWN_FIELDS:
+            atom[k] = normalize_action_list(v)
         else:
             atom[k] = v
     return atom

@@ -1,0 +1,49 @@
+{
+  "ad_id": "120242472413640070",
+  "ad_name": "21-02 | TB7 | Creative 4 (vid) - Kopie",
+  "campaign_id": "120242459911870070",
+  "campaign_name": "NL-BE | Zombie",
+  "adset_id": "120242461191120070",
+  "adset_name": "NL-BE | Zombie (costcap 35)",
+  "impressions": 21204.0,
+  "clicks": 371.0,
+  "ctr": 1.74967,
+  "cpc": 0.622803,
+  "cpm": 10.897001,
+  "spend": 231.06,
+  "reach": 9069.0,
+  "frequency": 2.338075,
+  "date_start": "2026-01-28",
+  "date_stop": "2026-04-28",
+  "actions": [
+    {
+      "action_type": "link_click",
+      "value": 371.0
+    },
+    {
+      "action_type": "add_to_cart",
+      "value": 26.0
+    },
+    {
+      "action_type": "initiate_checkout",
+      "value": 14.0
+    },
+    {
+      "action_type": "purchase",
+      "value": 3.0
+    }
+  ],
+  "action_values": [
+    {
+      "action_type": "purchase",
+      "value": 125.55
+    }
+  ],
+  "purchase_roas": [
+    {
+      "action_type": "omni_purchase",
+      "value": 0.5434
+    }
+  ],
+  "synthetic": true
+}

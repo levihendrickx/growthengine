@@ -1,0 +1,49 @@
+{
+  "ad_id": "120240629323430070",
+  "ad_name": "06-02 | VA26 | Creative 6",
+  "campaign_id": "120235501082170070",
+  "campaign_name": "NL-BE | Andromeda Testing",
+  "adset_id": "120240629075830070",
+  "adset_name": "NL_Testing_Batch_Valentijn26",
+  "impressions": 1634.0,
+  "clicks": 28.0,
+  "ctr": 1.713586,
+  "cpc": 0.602143,
+  "cpm": 10.318237,
+  "spend": 16.86,
+  "reach": 1031.0,
+  "frequency": 1.584869,
+  "date_start": "2026-01-28",
+  "date_stop": "2026-04-28",
+  "actions": [
+    {
+      "action_type": "link_click",
+      "value": 28.0
+    },
+    {
+      "action_type": "add_to_cart",
+      "value": 1.0
+    },
+    {
+      "action_type": "initiate_checkout",
+      "value": 1.0
+    },
+    {
+      "action_type": "purchase",
+      "value": 0.0
+    }
+  ],
+  "action_values": [
+    {
+      "action_type": "purchase",
+      "value": 0.0
+    }
+  ],
+  "purchase_roas": [
+    {
+      "action_type": "omni_purchase",
+      "value": 0.0
+    }
+  ],
+  "synthetic": true
+}

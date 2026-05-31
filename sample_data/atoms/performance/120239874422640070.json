@@ -1,0 +1,49 @@
+{
+  "ad_id": "120239874422640070",
+  "ad_name": "17-01 | TB6 | Creative 4",
+  "campaign_id": "120235465311810070",
+  "campaign_name": "NL-BE | Andromeda Broad Scaling",
+  "adset_id": "120235465312030070",
+  "adset_name": "NL-BE | Andromeda Broad Scaling",
+  "impressions": 14768.0,
+  "clicks": 204.0,
+  "ctr": 1.381365,
+  "cpc": 0.716765,
+  "cpm": 9.901138,
+  "spend": 146.22,
+  "reach": 6394.0,
+  "frequency": 2.309665,
+  "date_start": "2026-01-28",
+  "date_stop": "2026-04-28",
+  "actions": [
+    {
+      "action_type": "link_click",
+      "value": 204.0
+    },
+    {
+      "action_type": "add_to_cart",
+      "value": 26.0
+    },
+    {
+      "action_type": "initiate_checkout",
+      "value": 9.0
+    },
+    {
+      "action_type": "purchase",
+      "value": 5.0
+    }
+  ],
+  "action_values": [
+    {
+      "action_type": "purchase",
+      "value": 293.57
+    }
+  ],
+  "purchase_roas": [
+    {
+      "action_type": "omni_purchase",
+      "value": 2.0077
+    }
+  ],
+  "synthetic": true
+}

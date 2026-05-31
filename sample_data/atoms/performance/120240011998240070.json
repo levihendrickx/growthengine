@@ -1,0 +1,48 @@
+{
+  "ad_id": "120240011998240070",
+  "ad_name": "Video 16-01-26",
+  "campaign_id": "120239719101580070",
+  "campaign_name": "ALL | Brand Awareness",
+  "adset_id": "120239720732140070",
+  "adset_name": "DE-AT | Brand Awareness",
+  "impressions": 370.0,
+  "clicks": 0.0,
+  "ctr": 0.0,
+  "cpm": 1.108108,
+  "spend": 0.41,
+  "reach": 342.0,
+  "frequency": 1.081871,
+  "date_start": "2026-01-28",
+  "date_stop": "2026-04-28",
+  "actions": [
+    {
+      "action_type": "link_click",
+      "value": 0.0
+    },
+    {
+      "action_type": "add_to_cart",
+      "value": 0.0
+    },
+    {
+      "action_type": "initiate_checkout",
+      "value": 0.0
+    },
+    {
+      "action_type": "purchase",
+      "value": 0.0
+    }
+  ],
+  "action_values": [
+    {
+      "action_type": "purchase",
+      "value": 0.0
+    }
+  ],
+  "purchase_roas": [
+    {
+      "action_type": "omni_purchase",
+      "value": 0.0
+    }
+  ],
+  "synthetic": true
+}

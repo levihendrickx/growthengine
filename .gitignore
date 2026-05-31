@@ -31,5 +31,11 @@ images/
 <<<<<<< HEAD
 
 test_exec.mjs
+<<<<<<< Updated upstream
 =======
 >>>>>>> 03db763347d37addb7acc4639deaf6b4cc2d83ee
+=======
+
+# Deployment script — contains secrets, never commit
+deploy_to_railway.bat
+>>>>>>> Stashed changes

@@ -1,0 +1,49 @@
+{
+  "ad_id": "120239720573530070",
+  "ad_name": "Video 25-06-25",
+  "campaign_id": "120239719101580070",
+  "campaign_name": "ALL | Brand Awareness",
+  "adset_id": "120239719101590070",
+  "adset_name": "NL-BE | Brand Awareness",
+  "impressions": 29061.0,
+  "clicks": 23.0,
+  "ctr": 0.079144,
+  "cpc": 1.031739,
+  "cpm": 0.816558,
+  "spend": 23.73,
+  "reach": 20993.0,
+  "frequency": 1.384319,
+  "date_start": "2026-01-28",
+  "date_stop": "2026-04-28",
+  "actions": [
+    {
+      "action_type": "link_click",
+      "value": 23.0
+    },
+    {
+      "action_type": "add_to_cart",
+      "value": 0.0
+    },
+    {
+      "action_type": "initiate_checkout",
+      "value": 0.0
+    },
+    {
+      "action_type": "purchase",
+      "value": 0.0
+    }
+  ],
+  "action_values": [
+    {
+      "action_type": "purchase",
+      "value": 0.0
+    }
+  ],
+  "purchase_roas": [
+    {
+      "action_type": "omni_purchase",
+      "value": 0.0
+    }
+  ],
+  "synthetic": true
+}

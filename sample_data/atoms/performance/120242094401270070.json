@@ -1,0 +1,49 @@
+{
+  "ad_id": "120242094401270070",
+  "ad_name": "26-02 | TB8 | Creative 5 - Kopie - Kopie",
+  "campaign_id": "120235465311810070",
+  "campaign_name": "NL-BE | Andromeda Broad Scaling",
+  "adset_id": "120235465312030070",
+  "adset_name": "NL-BE | Andromeda Broad Scaling",
+  "impressions": 1676.0,
+  "clicks": 14.0,
+  "ctr": 0.835322,
+  "cpc": 1.707143,
+  "cpm": 14.260143,
+  "spend": 23.9,
+  "reach": 1242.0,
+  "frequency": 1.349436,
+  "date_start": "2026-01-28",
+  "date_stop": "2026-04-28",
+  "actions": [
+    {
+      "action_type": "link_click",
+      "value": 14.0
+    },
+    {
+      "action_type": "add_to_cart",
+      "value": 1.0
+    },
+    {
+      "action_type": "initiate_checkout",
+      "value": 1.0
+    },
+    {
+      "action_type": "purchase",
+      "value": 1.0
+    }
+  ],
+  "action_values": [
+    {
+      "action_type": "purchase",
+      "value": 34.34
+    }
+  ],
+  "purchase_roas": [
+    {
+      "action_type": "omni_purchase",
+      "value": 1.4368
+    }
+  ],
+  "synthetic": true
+}

@@ -1,0 +1,49 @@
+{
+  "ad_id": "120242462263150070",
+  "ad_name": "26-02 | TB8 | Creative 3 - Kopie",
+  "campaign_id": "120242459911870070",
+  "campaign_name": "NL-BE | Zombie",
+  "adset_id": "120242461191120070",
+  "adset_name": "NL-BE | Zombie (costcap 35)",
+  "impressions": 48.0,
+  "clicks": 2.0,
+  "ctr": 4.166667,
+  "cpc": 0.315,
+  "cpm": 13.125,
+  "spend": 0.63,
+  "reach": 44.0,
+  "frequency": 1.090909,
+  "date_start": "2026-01-28",
+  "date_stop": "2026-04-28",
+  "actions": [
+    {
+      "action_type": "link_click",
+      "value": 2.0
+    },
+    {
+      "action_type": "add_to_cart",
+      "value": 0.0
+    },
+    {
+      "action_type": "initiate_checkout",
+      "value": 0.0
+    },
+    {
+      "action_type": "purchase",
+      "value": 0.0
+    }
+  ],
+  "action_values": [
+    {
+      "action_type": "purchase",
+      "value": 0.0
+    }
+  ],
+  "purchase_roas": [
+    {
+      "action_type": "omni_purchase",
+      "value": 0.0
+    }
+  ],
+  "synthetic": true
+}

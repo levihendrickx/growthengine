@@ -1,0 +1,49 @@
+{
+  "ad_id": "120241276952720070",
+  "ad_name": "21-02 | TB7 | Creative 3 (vid) - Kopie",
+  "campaign_id": "120235501082170070",
+  "campaign_name": "NL-BE | Andromeda Testing",
+  "adset_id": "120241276441570070",
+  "adset_name": "NL_Testing_Batch_7",
+  "impressions": 11209.0,
+  "clicks": 173.0,
+  "ctr": 1.543403,
+  "cpc": 0.614451,
+  "cpm": 9.483451,
+  "spend": 106.3,
+  "reach": 6482.0,
+  "frequency": 1.72925,
+  "date_start": "2026-01-28",
+  "date_stop": "2026-04-28",
+  "actions": [
+    {
+      "action_type": "link_click",
+      "value": 173.0
+    },
+    {
+      "action_type": "add_to_cart",
+      "value": 21.0
+    },
+    {
+      "action_type": "initiate_checkout",
+      "value": 12.0
+    },
+    {
+      "action_type": "purchase",
+      "value": 7.0
+    }
+  ],
+  "action_values": [
+    {
+      "action_type": "purchase",
+      "value": 455.68
+    }
+  ],
+  "purchase_roas": [
+    {
+      "action_type": "omni_purchase",
+      "value": 4.2867
+    }
+  ],
+  "synthetic": true
+}
