@@ -3,6 +3,10 @@ node_modules/
 .env.local
 .claude/settings.local.json
 
+# Local Python virtualenv — per-dev, never committed.
+.venv/
+venv/
+
 # Obsidian — vault config & cache (notes themselves are tracked, settings are personal)
 docs/.obsidian/
 
@@ -24,5 +28,8 @@ images/
 # the actual creatives without needing Meta credentials.
 !sample_data/images/
 !sample_data/images/**
+<<<<<<< HEAD
 
 test_exec.mjs
+=======
+>>>>>>> 03db763347d37addb7acc4639deaf6b4cc2d83ee

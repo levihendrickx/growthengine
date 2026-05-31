@@ -1,0 +1,3332 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "growthengine",
+    "languages": [
+      "python",
+      "javascript",
+      "prolog",
+      "metta",
+      "dockerfile",
+      "yaml",
+      "markdown",
+      "shell",
+      "batch",
+      "css",
+      "html",
+      "json",
+      "toml"
+    ],
+    "frameworks": [
+      "anthropic",
+      "express",
+      "docker",
+      "github-actions",
+      "pytest"
+    ],
+    "description": "AI-powered ad generation and optimization platform using MeTTa/Prolog reasoning, Python backends, ChromaDB vector storage, and a web application",
+    "analyzedAt": "2026-05-28T13:33:30.013Z",
+    "gitCommitHash": "7236f7b80df8b268c3884bcb14542b94a7d3ecf2"
+  },
+  "nodes": [
+    {
+      "id": "service:.dockerignore",
+      "type": "service",
+      "name": ".dockerignore",
+      "filePath": ".dockerignore",
+      "summary": "Docker build context exclusion file that strips node_modules, secrets (.env files), git history, large repos, Python caches, and unused scripts/docs from the image build context, keeping the image lean for the client demo deployment.",
+      "tags": [
+        "containerization",
+        "infrastructure",
+        "security",
+        "deployment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:Dockerfile",
+      "type": "service",
+      "name": "Dockerfile",
+      "filePath": "Dockerfile",
+      "summary": "Single-stage Docker build based on node:20-bookworm-slim that installs Python 3 and the webapp's Python dependencies, copies the Express webapp, Python scripts, sample atom data, and a MeTTa lib file, then launches the Node.js server on port 8001 for the Growth Engine client demo.",
+      "tags": [
+        "containerization",
+        "infrastructure",
+        "deployment",
+        "orchestration"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "SWI-Prolog and PeTTa runtime are intentionally excluded from the image; pln_query.py falls back to its pure-Python PLN implementation automatically, keeping the build fast and the image small."
+    },
+    {
+      "id": "pipeline:.github/workflows/language-check.yml",
+      "type": "pipeline",
+      "name": "language-check.yml",
+      "filePath": ".github/workflows/language-check.yml",
+      "summary": "GitHub Actions CI workflow that enforces English-only content by scanning PR-changed text files for Dutch-language patterns, failing the check if any Dutch text is detected (per ADR 0004).",
+      "tags": [
+        "ci-cd",
+        "quality-gate",
+        "linting",
+        "enforcement",
+        "language-policy"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Embeds a non-trivial inline bash script with mapfile, grep regex patterns, and loop logic directly in the workflow YAML run block — a common but harder-to-maintain pattern compared to a separate shell script file."
+    },
+    {
+      "id": "step:.github/workflows/language-check.yml:language-check",
+      "type": "pipeline",
+      "name": "language-check",
+      "filePath": ".github/workflows/language-check.yml",
+      "lineRange": [
+        8,
+        69
+      ],
+      "summary": "CI job that runs on ubuntu-latest, checks out the full git history, then executes a bash script to detect Dutch text in PR-modified files using a curated regex pattern list.",
+      "tags": [
+        "ci-cd",
+        "quality-gate",
+        "enforcement"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "step:.github/workflows/language-check.yml:Detect Dutch in changed text files",
+      "type": "pipeline",
+      "name": "Detect Dutch in changed text files",
+      "filePath": ".github/workflows/language-check.yml",
+      "lineRange": [
+        16,
+        69
+      ],
+      "summary": "Inline bash step that computes the diff between PR base and head SHAs, filters to relevant text-file extensions excluding generated/data paths, then applies a Dutch-word regex to flag any matches and exit non-zero if found.",
+      "tags": [
+        "ci-cd",
+        "linting",
+        "language-policy"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:.env.example",
+      "type": "config",
+      "name": ".env.example",
+      "filePath": ".env.example",
+      "summary": "Documents all required environment variables for the Growth Engine platform, including Meta Marketing API tokens, Shopify credentials, and Anthropic API key, with empty values as safe placeholders.",
+      "tags": [
+        "configuration",
+        "security",
+        "api-schema",
+        "environment"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Uses KEY=VALUE format; all sensitive values are intentionally empty to prevent credential leakage."
+    },
+    {
+      "id": "document:CONTRIBUTING.md",
+      "type": "document",
+      "name": "CONTRIBUTING.md",
+      "filePath": "CONTRIBUTING.md",
+      "summary": "Defines contribution guidelines covering the English-only language policy, feature-branch PR flow, commit message conventions, and secrets-handling rules for the Growth Engine project.",
+      "tags": [
+        "documentation",
+        "development",
+        "security",
+        "ci-cd"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:DEPLOY.md",
+      "type": "document",
+      "name": "DEPLOY.md",
+      "filePath": "DEPLOY.md",
+      "summary": "Step-by-step guide for deploying the Growth Engine to Railway via GitHub integration, covering environment variable setup, public URL generation, and troubleshooting common Dockerfile and module errors.",
+      "tags": [
+        "documentation",
+        "deployment",
+        "infrastructure",
+        "configuration"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:NOTES.md",
+      "type": "document",
+      "name": "NOTES.md",
+      "filePath": "NOTES.md",
+      "summary": "Personal developer notes tracking early Git setup history for the Growth Engine project, including the first commit and GitHub CLI login.",
+      "tags": [
+        "documentation",
+        "development"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "PeTTa (MeTTa language implementation in Prolog) project overview describing dependencies, usage, MORK/FAISS optional speedups, Jupyter kernel support, MeTTa HTTP server, and WASM execution.",
+      "tags": [
+        "documentation",
+        "entry-point",
+        "overview"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:SETUP.md",
+      "type": "document",
+      "name": "SETUP.md",
+      "filePath": "SETUP.md",
+      "summary": "Comprehensive Windows setup guide for running OmegaClaw-Core on top of PeTTa, covering one-time prerequisites, virtual environment creation, LLM provider switching, embedding configuration, and troubleshooting for SWI-Prolog and janus interop issues.",
+      "tags": [
+        "documentation",
+        "deployment",
+        "configuration",
+        "development"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:ad-generation-architecture (1).html",
+      "type": "file",
+      "name": "ad-generation-architecture (1).html",
+      "filePath": "ad-generation-architecture (1).html",
+      "summary": "Standalone HTML/SVG diagram visualizing the multi-phase ad generation architecture including data sources (Shopify, Meta), PLN atomspace reasoning, image generation, and the verification feedback loop.",
+      "tags": [
+        "documentation",
+        "markup",
+        "infrastructure"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Entirely self-contained SVG embedded in HTML with no external JS dependencies; uses inline styles and embedded font imports."
+    },
+    {
+      "id": "file:build.sh",
+      "type": "file",
+      "name": "build.sh",
+      "filePath": "build.sh",
+      "summary": "Shell script that clones and builds the optional mork_ffi and faiss_ffi native libraries used by PeTTa for faster MORK-based atom spaces and FAISS-based atom-vector spaces.",
+      "tags": [
+        "build-system",
+        "infrastructure",
+        "script"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:diag.bat",
+      "type": "file",
+      "name": "diag.bat",
+      "filePath": "diag.bat",
+      "summary": "Windows batch diagnostic script that prints the SWI-Prolog version, Python version, and enumerates all predicates exported by the janus library to confirm whether py_call/3 is available on the current installation.",
+      "tags": [
+        "script",
+        "utility",
+        "development"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:plan.md",
+      "type": "document",
+      "name": "plan.md",
+      "filePath": "plan.md",
+      "summary": "Detailed multi-phase implementation plan for integrating real OmegaClaw PLN inference, AI-rendered text-on-image ad generation, and an image-variation loop into the Growth Engine webapp, covering architecture decisions, code snippets, and open questions for the client.",
+      "tags": [
+        "documentation",
+        "development",
+        "api-schema",
+        "data-pipeline"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "config:railway.toml",
+      "type": "config",
+      "name": "railway.toml",
+      "filePath": "railway.toml",
+      "summary": "Railway deployment configuration specifying Dockerfile-based builds, a Node.js server start command, a health-check path, and an on-failure restart policy with a maximum of 3 retries.",
+      "tags": [
+        "configuration",
+        "deployment",
+        "infrastructure",
+        "ci-cd"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:requirements.txt",
+      "type": "document",
+      "name": "requirements.txt",
+      "filePath": "requirements.txt",
+      "summary": "Root-level Python dependency manifest pinning requests, python-dotenv, and the anthropic SDK for the Growth Engine's Python components.",
+      "tags": [
+        "documentation",
+        "configuration",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:run.bat",
+      "type": "file",
+      "name": "run.bat",
+      "filePath": "run.bat",
+      "summary": "Windows batch launcher for the OmegaClaw/PeTTa agent that validates prerequisites (OPENAI_API_KEY, swipl on PATH, .venv existence), activates the virtual environment, and starts SWI-Prolog with the main PeTTa entry point and configured provider settings.",
+      "tags": [
+        "script",
+        "entry-point",
+        "deployment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:run.sh",
+      "type": "file",
+      "name": "run.sh",
+      "filePath": "run.sh",
+      "summary": "POSIX shell launcher for PeTTa that conditionally preloads the mork_ffi native library if it has been compiled, then invokes swipl with the main.pl entry point and passes all arguments through.",
+      "tags": [
+        "script",
+        "entry-point",
+        "deployment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:setup.bat",
+      "type": "file",
+      "name": "setup.bat",
+      "filePath": "setup.bat",
+      "summary": "Windows batch setup script that creates a Python virtual environment, installs CPU-only PyTorch, and installs all OmegaClaw-Core requirements, with clear error messages guiding next steps for SWI-Prolog installation and API key configuration.",
+      "tags": [
+        "script",
+        "build-system",
+        "deployment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:test.sh",
+      "type": "file",
+      "name": "test.sh",
+      "filePath": "test.sh",
+      "summary": "POSIX shell test runner that executes all .metta example files in parallel via run.sh, parses pass/fail indicators from stdout, stops all tests on the first failure, and exits with a non-zero code on any failure.",
+      "tags": [
+        "test",
+        "script",
+        "entry-point"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:atoms/performance/ad_001.json",
+      "type": "config",
+      "name": "ad_001.json",
+      "filePath": "atoms/performance/ad_001.json",
+      "summary": "Ad performance atom record for ad_001, storing key metrics (CTR, CPC, ROAS, spend, impressions) for the zomer_sale_2025 campaign on 2025-06-01. Serves as a discrete data unit consumed by the MeTTa/Prolog reasoning pipeline for ad optimization analysis.",
+      "tags": [
+        "data",
+        "ad-performance",
+        "metrics",
+        "atom",
+        "campaign"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Flat JSON atom with 8 fields representing a single ad's performance snapshot; the 'campagne' field uses Dutch spelling, reflecting the project's multilingual dataset origin."
+    },
+    {
+      "id": "config:atoms/performance/ad_002.json",
+      "type": "config",
+      "name": "ad_002.json",
+      "filePath": "atoms/performance/ad_002.json",
+      "summary": "Ad performance atom record for ad_002, storing key metrics (CTR, CPC, ROAS, spend, impressions) for a specific campaign and date. Serves as a discrete data unit consumed by the MeTTa/Prolog reasoning pipeline for ad optimization analysis.",
+      "tags": [
+        "data",
+        "ad-performance",
+        "metrics",
+        "atom",
+        "campaign"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:atoms/performance/ad_003.json",
+      "type": "config",
+      "name": "ad_003.json",
+      "filePath": "atoms/performance/ad_003.json",
+      "summary": "Ad performance atom record for ad_003, storing key metrics (CTR, CPC, ROAS, spend, impressions) for a specific campaign and date. Serves as a discrete data unit consumed by the MeTTa/Prolog reasoning pipeline for ad optimization analysis.",
+      "tags": [
+        "data",
+        "ad-performance",
+        "metrics",
+        "atom",
+        "campaign"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:atoms/performance/ad_004.json",
+      "type": "config",
+      "name": "ad_004.json",
+      "filePath": "atoms/performance/ad_004.json",
+      "summary": "Ad performance atom record for ad_004, storing key metrics (CTR, CPC, ROAS, spend, impressions) for a specific campaign and date. Serves as a discrete data unit consumed by the MeTTa/Prolog reasoning pipeline for ad optimization analysis.",
+      "tags": [
+        "data",
+        "ad-performance",
+        "metrics",
+        "atom",
+        "campaign"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:atoms/performance/ad_005.json",
+      "type": "config",
+      "name": "ad_005.json",
+      "filePath": "atoms/performance/ad_005.json",
+      "summary": "Ad performance atom record for ad_005, storing key metrics (CTR, CPC, ROAS, spend, impressions) for a specific campaign and date. Serves as a discrete data unit consumed by the MeTTa/Prolog reasoning pipeline for ad optimization analysis.",
+      "tags": [
+        "data",
+        "ad-performance",
+        "metrics",
+        "atom",
+        "campaign"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/decisions/0001-docs-folder-as-obsidian-vault.md",
+      "type": "document",
+      "name": "0001-docs-folder-as-obsidian-vault.md",
+      "filePath": "docs/decisions/0001-docs-folder-as-obsidian-vault.md",
+      "summary": "Architecture Decision Record establishing that all team notes, specs, and decisions live as Markdown files inside the `docs/` folder of the growthengine repo rather than in an external tool; the Obsidian-vault aspect of this decision was later superseded by ADR 0004.",
+      "tags": [
+        "documentation",
+        "architecture-decision",
+        "development",
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/decisions/0002-pr-flow.md",
+      "type": "document",
+      "name": "0002-pr-flow.md",
+      "filePath": "docs/decisions/0002-pr-flow.md",
+      "summary": "Architecture Decision Record defining the team's feature-branch and Pull Request workflow, including branch naming conventions (`feature/<name>`, `fix/<name>`), what changes may land directly on `main` versus require a PR, and review responsibilities between team members.",
+      "tags": [
+        "documentation",
+        "architecture-decision",
+        "development",
+        "ci-cd"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/decisions/0003-import-architecture.md",
+      "type": "document",
+      "name": "0003-import-architecture.md",
+      "filePath": "docs/decisions/0003-import-architecture.md",
+      "summary": "Architecture Decision Record specifying the one-script-per-platform import architecture for ingesting ad performance and commerce data from Meta, Shopify, TikTok, and Google Ads into the Atomspace, including folder layout, per-script conventions, and API safety rules for production Meta and Shopify accounts.",
+      "tags": [
+        "documentation",
+        "architecture-decision",
+        "data-pipeline",
+        "api-schema"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "This ADR contains concrete safety rules for Meta Graph API (read-only scopes, rate limiting, API version pinning) and Shopify Custom App integration — both targeting production accounts."
+    },
+    {
+      "id": "document:docs/decisions/0004-drop-obsidian-and-switch-to-english.md",
+      "type": "document",
+      "name": "0004-drop-obsidian-and-switch-to-english.md",
+      "filePath": "docs/decisions/0004-drop-obsidian-and-switch-to-english.md",
+      "summary": "Architecture Decision Record dropping Obsidian as a documentation tool in favor of plain GitHub-rendered Markdown, and mandating English as the sole language for all repo content (code, comments, commit messages, docs, ADRs) following a third contributor joining the team.",
+      "tags": [
+        "documentation",
+        "architecture-decision",
+        "development",
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/notes/2026-04-28-setup.md",
+      "type": "document",
+      "name": "2026-04-28-setup.md",
+      "filePath": "docs/notes/2026-04-28-setup.md",
+      "summary": "Developer setup journal for the first working day on Growth Engine, covering Git installation, GitHub CLI setup, repo cloning, first commit, and next steps including exploring the webapp and planning a Stoney data POC.",
+      "tags": [
+        "documentation",
+        "development",
+        "setup",
+        "onboarding"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/notes/2026-04-28.md",
+      "type": "document",
+      "name": "2026-04-28.md",
+      "filePath": "docs/notes/2026-04-28.md",
+      "summary": "Comprehensive daily log for the first real working day, documenting tooling installation, ADR creation, Meta API setup with a read-only system user and scoped token, the first feature branch importing 100 performance atoms, and lessons learned about Git workflow, Meta API scoping, and Windows tooling.",
+      "tags": [
+        "documentation",
+        "development",
+        "meta-api",
+        "onboarding"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/notes/2026-05-03-vision-descriptions.md",
+      "type": "document",
+      "name": "2026-05-03-vision-descriptions.md",
+      "filePath": "docs/notes/2026-05-03-vision-descriptions.md",
+      "summary": "Architecture decision and progress note for layer 3 of the data pipeline, describing how Claude Sonnet vision was used to generate factual per-image descriptions for creative atoms, enabling downstream PLN pattern recognition such as identifying winning creative themes.",
+      "tags": [
+        "documentation",
+        "data-pipeline",
+        "api-schema",
+        "development"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:webapp/.env.example",
+      "type": "config",
+      "name": ".env.example",
+      "filePath": "webapp/.env.example",
+      "summary": "Environment variable template for the Growth Engine webapp, documenting required keys for Anthropic, OpenAI, the OmegaClaw Python executable path, PeTTa root, and a synthetic-conversions flag for demo data transparency.",
+      "tags": [
+        "configuration",
+        "environment",
+        "security",
+        "api-keys"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Bilingual comments — Dutch and English — reflect the mixed-locale team developing this POC."
+    },
+    {
+      "id": "file:webapp/auth-callback.html",
+      "type": "file",
+      "name": "auth-callback.html",
+      "filePath": "webapp/auth-callback.html",
+      "summary": "OAuth / magic-link callback page that exchanges the Supabase PKCE token, upserts the user profile, creates a default workspace on first login, and redirects to /connect.",
+      "tags": [
+        "authentication",
+        "entry-point",
+        "oauth",
+        "supabase"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "All Supabase client logic is inline JavaScript using the UMD CDN build; no bundler involved."
+    },
+    {
+      "id": "file:webapp/connect.html",
+      "type": "file",
+      "name": "connect.html",
+      "filePath": "webapp/connect.html",
+      "summary": "Post-login data-connection onboarding page that lets authenticated users choose a data source (Meta Ads, Shopify, CSV, or demo data) and previews sample AI-generated insights; enforces session guard via Supabase.",
+      "tags": [
+        "onboarding",
+        "authentication",
+        "data-connection",
+        "supabase"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Self-contained HTML file with ~787 lines of inline CSS and an embedded JavaScript auth/routing block; no external JS bundle loaded."
+    },
+    {
+      "id": "file:webapp/index.html",
+      "type": "file",
+      "name": "index.html",
+      "filePath": "webapp/index.html",
+      "summary": "Main application shell that renders the sidebar navigation and a dynamic page container; bootstraps the SPA by loading app.js and auth.js.",
+      "tags": [
+        "entry-point",
+        "component",
+        "spa",
+        "navigation"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Written with lang=nl (Dutch) reflecting the original POC locale; links to Google Fonts (Inter, Syne, DM Mono, Playfair Display, JetBrains Mono) for the design system."
+    },
+    {
+      "id": "config:webapp/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "webapp/package.json",
+      "summary": "Node.js project manifest for the Growth Engine webapp, declaring ESM module type and dependencies on Express, Anthropic SDK, OpenAI SDK, dotenv, and CORS, with start/dev scripts targeting server.js.",
+      "tags": [
+        "configuration",
+        "build-system",
+        "dependencies",
+        "nodejs"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:webapp/requirements.txt",
+      "type": "document",
+      "name": "requirements.txt",
+      "filePath": "webapp/requirements.txt",
+      "summary": "Python dependency file for webapp subprocess scripts (gen_image.py, gen_image_edit.py), requiring the openai package; notes that janus-swi for PeTTa/PLN is installed separately via the Dockerfile.",
+      "tags": [
+        "documentation",
+        "dependencies",
+        "python",
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:webapp/style.css",
+      "type": "file",
+      "name": "style.css",
+      "filePath": "webapp/style.css",
+      "summary": "Comprehensive CSS design system for the Growth Engine SPA, defining CSS custom properties for colors and typography, sidebar/nav/content layout, page components (home, dashboard, dataset, pipeline, genereren, output, atomspace), and responsive utilities across 3,329 lines.",
+      "tags": [
+        "component",
+        "ui",
+        "design-system",
+        "styling"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Uses CSS custom properties (design tokens) extensively, including font stacks for Syne (headings), DM Mono (monospace), and Inter; dark sidebar with light content area pattern."
+    },
+    {
+      "id": "document:.claude/skills/growthengine/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": ".claude/skills/growthengine/SKILL.md",
+      "summary": "Claude Code skill file that loads full Growth Engine project context — stack details, API endpoints, key file locations, pipeline flow, state shape, conventions, and open questions — for fast session initialization.",
+      "tags": [
+        "documentation",
+        "configuration",
+        "entry-point",
+        "development"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:.github/PULL_REQUEST_TEMPLATE.md",
+      "type": "document",
+      "name": "PULL_REQUEST_TEMPLATE.md",
+      "filePath": ".github/PULL_REQUEST_TEMPLATE.md",
+      "summary": "GitHub pull request template enforcing structured PR descriptions with what/why, changes, and review notes sections, plus contributor reminders for English titles and secret hygiene.",
+      "tags": [
+        "documentation",
+        "development",
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:.understand-anything/.understandignore",
+      "type": "config",
+      "name": ".understandignore",
+      "filePath": ".understand-anything/.understandignore",
+      "summary": "Exclusion rules for the understand-anything analysis tool, mirroring .gitignore patterns to skip sample data, examples, and environment files from codebase analysis.",
+      "tags": [
+        "configuration",
+        "build-system",
+        "infrastructure"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:0",
+      "type": "file",
+      "name": "0",
+      "filePath": "0",
+      "summary": "Appears to be a binary or auto-generated artifact file with no meaningful code content, likely a stray file or database artifact.",
+      "tags": [
+        "data"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:chroma_db/0b4d8381-03b9-460f-92c8-3f0483102452/data_level0.bin",
+      "type": "file",
+      "name": "data_level0.bin",
+      "filePath": "chroma_db/0b4d8381-03b9-460f-92c8-3f0483102452/data_level0.bin",
+      "summary": "Binary HNSW index data file for a ChromaDB vector collection, storing level-0 graph structure for approximate nearest-neighbor search over embeddings.",
+      "tags": [
+        "data",
+        "database",
+        "infrastructure"
+      ],
+      "complexity": "simple",
+      "languageNotes": "HNSW (Hierarchical Navigable Small World) binary format used internally by ChromaDB's hnswlib backend."
+    },
+    {
+      "id": "file:chroma_db/0b4d8381-03b9-460f-92c8-3f0483102452/header.bin",
+      "type": "file",
+      "name": "header.bin",
+      "filePath": "chroma_db/0b4d8381-03b9-460f-92c8-3f0483102452/header.bin",
+      "summary": "Binary header file for a ChromaDB HNSW index segment, containing metadata such as vector dimensions, element count, and index parameters.",
+      "tags": [
+        "data",
+        "database",
+        "infrastructure"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:chroma_db/0b4d8381-03b9-460f-92c8-3f0483102452/length.bin",
+      "type": "file",
+      "name": "length.bin",
+      "filePath": "chroma_db/0b4d8381-03b9-460f-92c8-3f0483102452/length.bin",
+      "summary": "Binary length-table file for a ChromaDB HNSW index segment, recording the number of neighbors per node across graph layers.",
+      "tags": [
+        "data",
+        "database",
+        "infrastructure"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:chroma_db/0b4d8381-03b9-460f-92c8-3f0483102452/link_lists.bin",
+      "type": "file",
+      "name": "link_lists.bin",
+      "filePath": "chroma_db/0b4d8381-03b9-460f-92c8-3f0483102452/link_lists.bin",
+      "summary": "Binary adjacency-list file for a ChromaDB HNSW index, encoding the neighbor link lists for higher graph layers used in approximate nearest-neighbor traversal.",
+      "tags": [
+        "data",
+        "database",
+        "infrastructure"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:chroma_db/chroma.sqlite3",
+      "type": "file",
+      "name": "chroma.sqlite3",
+      "filePath": "chroma_db/chroma.sqlite3",
+      "summary": "ChromaDB SQLite metadata database persisting collection definitions, embedding metadata, and segment configuration for the vector store used by the Growth Engine.",
+      "tags": [
+        "database",
+        "data",
+        "infrastructure"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "ChromaDB uses SQLite as its primary metadata store alongside HNSW binary files for vectors."
+    },
+    {
+      "id": "document:docs/architecture.md",
+      "type": "document",
+      "name": "architecture.md",
+      "filePath": "docs/architecture.md",
+      "summary": "Comprehensive living architecture document describing Growth Engine's 13-layer system across input/atomspace, reasoning (MeTTa/PLN), and generation/verification phases, with ownership assignments and open questions.",
+      "tags": [
+        "documentation",
+        "architecture",
+        "overview"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:docs/assets/growth_engine_architecture.html",
+      "type": "file",
+      "name": "growth_engine_architecture.html",
+      "filePath": "docs/assets/growth_engine_architecture.html",
+      "summary": "Interactive browser-based architecture diagram visualizing Growth Engine's 13-layer pipeline with colored, animated layer-by-layer rendering; companion to the Markdown architecture document.",
+      "tags": [
+        "documentation",
+        "markup",
+        "architecture"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Standalone HTML with embedded CSS/JS, written in Dutch (lang=nl), intended for local viewing rather than deployment."
+    },
+    {
+      "id": "document:docs/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "docs/README.md",
+      "summary": "Documentation index for the docs/ directory, describing the folder structure (notes, decisions, assets, specs, meetings), linking to the architecture document, and stating documentation conventions.",
+      "tags": [
+        "documentation",
+        "entry-point",
+        "overview"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:lib/lib_builtin_types.metta",
+      "type": "file",
+      "name": "lib_builtin_types.metta",
+      "filePath": "lib/lib_builtin_types.metta",
+      "summary": "MeTTa type declarations for all built-in arithmetic, comparison, boolean, and mathematical operators, providing a typed foundation for MeTTa programs in the Growth Engine library.",
+      "tags": [
+        "type-definition",
+        "utility",
+        "schema-definition"
+      ],
+      "complexity": "simple",
+      "languageNotes": "MeTTa uses dependent typing; these `:` declarations add type constraints to built-in operators so type-checking can proceed at the MeTTa level."
+    },
+    {
+      "id": "file:lib/lib_combinatorics.metta",
+      "type": "file",
+      "name": "lib_combinatorics.metta",
+      "filePath": "lib/lib_combinatorics.metta",
+      "summary": "MeTTa combinatorics library providing range generation, pair selection (choose2), k-combination selection (chooseK), and list prefix extraction (takeK) utilities for use in reasoning pipelines.",
+      "tags": [
+        "utility",
+        "data-model",
+        "service"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Uses MeTTa's non-deterministic `superpose` for generating multiple return values from a single function call — a functional-logic paradigm pattern."
+    },
+    {
+      "id": "file:lib/lib_datastructures.metta",
+      "type": "file",
+      "name": "lib_datastructures.metta",
+      "filePath": "lib/lib_datastructures.metta",
+      "summary": "MeTTa library implementing an amortized O(1) functional queue and a hash-based uniqueness-check space, providing efficient mutable-style data structures for MeTTa's purely-functional model.",
+      "tags": [
+        "utility",
+        "data-model",
+        "service"
+      ],
+      "complexity": "simple",
+      "languageNotes": "The functional queue uses a two-list trick (in/out) for amortized O(1) enqueue/dequeue; the space uniqueness check exploits MeTTa's atomspace as a hash set via `repra`."
+    },
+    {
+      "id": "file:lib/lib_he.metta",
+      "type": "file",
+      "name": "lib_he.metta",
+      "filePath": "lib/lib_he.metta",
+      "summary": "Hyperon-Experimental compatibility shim providing equality checks, assertion helpers, error handling, evaluation control, quoting utilities, and type introspection functions for MeTTa programs that target the experimental Hyperon runtime.",
+      "tags": [
+        "utility",
+        "middleware",
+        "service"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Acts as a polyfill for functions that were experimental in earlier Hyperon releases but are now more directly expressible in core MeTTa."
+    },
+    {
+      "id": "file:lib/lib_import.metta",
+      "type": "file",
+      "name": "lib_import.metta",
+      "filePath": "lib/lib_import.metta",
+      "summary": "MeTTa import bridge that loads lib_import.pl into the MeTTa runtime and exposes static-import!, git-import!, and use-module! functions for bringing Prolog modules into MeTTa programs.",
+      "tags": [
+        "utility",
+        "middleware",
+        "entry-point"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Uses `!(import_prolog_function ...)` to call Prolog predicates from MeTTa — a cross-language FFI pattern bridging MeTTa and SWI-Prolog via janus_swi."
+    },
+    {
+      "id": "file:lib/lib_import.pl",
+      "type": "file",
+      "name": "lib_import.pl",
+      "filePath": "lib/lib_import.pl",
+      "summary": "SWI-Prolog library implementing static file import (with .qlf caching), Prolog module loading, and git repository cloning/caching for importing external code into the MeTTa/Prolog reasoning environment.",
+      "tags": [
+        "utility",
+        "middleware",
+        "service"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Implements a three-tier import strategy: load .qlf if cached, compile .pl to .qlf if present, or generate .pl from .metta then compile — optimizing cold-start load times."
+    },
+    {
+      "id": "file:lib/lib_llm.metta",
+      "type": "file",
+      "name": "lib_llm.metta",
+      "filePath": "lib/lib_llm.metta",
+      "summary": "MeTTa LLM integration library that exposes GPT (via OpenAI API) and OpenRouter model invocation, text embedding, and Python eval helpers as callable MeTTa functions for use in the reasoning pipeline.",
+      "tags": [
+        "service",
+        "api-handler",
+        "middleware"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Injects Python builtins at runtime via py-eval to support keyword-argument dispatch and index access, working around MeTTa's lack of native Python interop for complex call patterns."
+    },
+    {
+      "id": "file:lib/lib_llm.py",
+      "type": "file",
+      "name": "lib_llm.py",
+      "filePath": "lib/lib_llm.py",
+      "summary": "Python helper module providing OpenRouter chat completion and text embedding API calls, imported by lib_llm.metta to give MeTTa programs access to non-OpenAI models via the OpenRouter gateway.",
+      "tags": [
+        "service",
+        "api-handler",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:lib/lib_llm.py:openrouter_chat",
+      "type": "function",
+      "name": "openrouter_chat",
+      "filePath": "lib/lib_llm.py",
+      "lineRange": [
+        5,
+        19
+      ],
+      "summary": "Sends a user prompt to an OpenRouter-hosted model and returns the response text, reading the API key from the OPENROUTER_API_KEY environment variable.",
+      "tags": [
+        "api-handler",
+        "service",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:lib/lib_llm.py:openrouter_embed",
+      "type": "function",
+      "name": "openrouter_embed",
+      "filePath": "lib/lib_llm.py",
+      "lineRange": [
+        21,
+        33
+      ],
+      "summary": "Generates a text embedding vector via the OpenRouter embeddings endpoint, returning the first embedding from the response for use in semantic search or similarity comparisons.",
+      "tags": [
+        "api-handler",
+        "service",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:lib/lib_mm2.metta",
+      "type": "file",
+      "name": "lib_mm2.metta",
+      "filePath": "lib/lib_mm2.metta",
+      "summary": "MeTTa library defining a minimal MeTTa-Morph 2 (mm2) DSL with operators for add (+), remove (-), query (?), and transform (~>) on an atomspace named &mork, enabling concise atomspace manipulation.",
+      "tags": [
+        "utility",
+        "data-model",
+        "service"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Uses Unicode fullwidth operators (＋ －) to avoid collision with MeTTa's built-in arithmetic operators while providing an idiomatic DSL feel."
+    },
+    {
+      "id": "file:lib/lib_nars.metta",
+      "type": "file",
+      "name": "lib_nars.metta",
+      "filePath": "lib/lib_nars.metta",
+      "summary": "MeTTa implementation of a NARS (Non-Axiomatic Reasoning System) engine with truth functions (Deduction, Abduction, Induction, Revision, etc.), NAL 1-5 inference rules, and a priority-queue-based forward chainer (NARS.Derive) with configurable step limits.",
+      "tags": [
+        "service",
+        "data-model",
+        "validation"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Implements NARS truth values as `(stv frequency confidence)` tuples; the forward chainer uses a stamp-disjointness check to prevent evidential cycles, consistent with OpenNARS design."
+    },
+    {
+      "id": "file:lib/lib_patrick.metta",
+      "type": "file",
+      "name": "lib_patrick.metta",
+      "filePath": "lib/lib_patrick.metta",
+      "summary": "MeTTa utility library providing general-purpose higher-order functions including function composition, for-loop sugar, and iterative state stepping, contributed by team member Patrick.",
+      "tags": [
+        "utility",
+        "service",
+        "middleware"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Uses `!(add-translator-rule! for)` to register `for` as a syntactic translator rule, allowing it to be used as a quasi-macro at the top level in MeTTa programs."
+    },
+    {
+      "id": "file:lib/lib_pln.metta",
+      "type": "file",
+      "name": "lib_pln.metta",
+      "filePath": "lib/lib_pln.metta",
+      "summary": "Comprehensive MeTTa implementation of Probabilistic Logic Networks (PLN) including truth functions (Deduction, Abduction, Induction, Revision, ModusPonens, etc.), inference rules for Inheritance/Implication/Similarity/Equivalence, and a priority-queue forward chainer (PLN.Derive/PLN.Query) central to the Growth Engine's reasoning layer.",
+      "tags": [
+        "service",
+        "data-model",
+        "validation"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Implements full PLN deduction with consistency checks (conditional-probability-consistency) per the PLN book formulas. The `|-` operator is the inference rule application symbol. Uses `stv` (simple truth value) as (frequency, confidence) pairs."
+    },
+    {
+      "id": "file:lib/lib_roman.metta",
+      "type": "file",
+      "name": "lib_roman.metta",
+      "filePath": "lib/lib_roman.metta",
+      "summary": "MeTTa utility library providing higher-order functional programming primitives (map, fold, set intersection/subtraction/union), function composition operators, and list utilities contributed by team member Roman.",
+      "tags": [
+        "utility",
+        "service",
+        "middleware"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Defines set operations on MeTTa expressions using predicate-parameterized versions (/?\\, \\?, \\?/) enabling generic equality/alpha-equality variants — a Haskell-style type-class pattern adapted for MeTTa."
+    },
+    {
+      "id": "file:lib/lib_spaces.metta",
+      "type": "file",
+      "name": "lib_spaces.metta",
+      "filePath": "lib/lib_spaces.metta",
+      "summary": "MeTTa library providing AtomSpace utility operations including atom migration between spaces, pattern-based search, predicate checking, bulk removal, and efficient counting via fold.",
+      "tags": [
+        "utility",
+        "atomspace",
+        "metta",
+        "knowledge-graph"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:lib/lib_tabling.metta",
+      "type": "file",
+      "name": "lib_tabling.metta",
+      "filePath": "lib/lib_tabling.metta",
+      "summary": "MeTTa library that enables Prolog-style tabling (memoization) for predicates by dynamically injecting Prolog table declarations at runtime via string-based code loading.",
+      "tags": [
+        "utility",
+        "metta",
+        "prolog-interop",
+        "memoization"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Uses MeTTa's translatePredicate and progn to bridge into Prolog's tabling system at runtime."
+    },
+    {
+      "id": "file:lib/lib_vector.metta",
+      "type": "file",
+      "name": "lib_vector.metta",
+      "filePath": "lib/lib_vector.metta",
+      "summary": "MeTTa library implementing vector math primitives — dot product, cosine similarity, L2 norm, and random unit-vector generation — for use in embedding-based reasoning.",
+      "tags": [
+        "utility",
+        "metta",
+        "vector-math",
+        "similarity"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Vectors are represented as MeTTa cons-lists; random-normal-vector uses recursive accumulation and normalization in a single pass."
+    },
+    {
+      "id": "file:lib/lib_zar.metta",
+      "type": "file",
+      "name": "lib_zar.metta",
+      "filePath": "lib/lib_zar.metta",
+      "summary": "MeTTa library providing Prolog interop wrappers (consult, use_module) that let MeTTa code load and import functions from Prolog files without needing main.pl scaffolding.",
+      "tags": [
+        "utility",
+        "metta",
+        "prolog-interop",
+        "module-loading"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:lib/lib_zar.pl",
+      "type": "file",
+      "name": "lib_zar.pl",
+      "filePath": "lib/lib_zar.pl",
+      "summary": "Prolog helper module providing command-line argument access utilities (get, index, count, presence check) for use in MeTTa scripts that need CLI parameter handling.",
+      "tags": [
+        "utility",
+        "prolog",
+        "cli",
+        "helper"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:MANIFEST.in",
+      "type": "file",
+      "name": "MANIFEST.in",
+      "filePath": "MANIFEST.in",
+      "summary": "Python package manifest file that includes all files under the src/ directory in the source distribution.",
+      "tags": [
+        "configuration",
+        "packaging",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:python/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "python/__init__.py",
+      "summary": "Package marker file that designates the python/ directory as a Python package; contains no executable code.",
+      "tags": [
+        "entry-point",
+        "barrel",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:python/HE/compileme.metta",
+      "type": "file",
+      "name": "compileme.metta",
+      "filePath": "python/HE/compileme.metta",
+      "summary": "MeTTa demonstration file defining a recursive Fibonacci function, used as a test target loaded by the Hyperon Experimental pettamorph integration.",
+      "tags": [
+        "test",
+        "metta",
+        "example",
+        "fibonacci"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:python/HE/hyperonexperimental.metta",
+      "type": "file",
+      "name": "hyperonexperimental.metta",
+      "filePath": "python/HE/hyperonexperimental.metta",
+      "summary": "MeTTa driver script demonstrating the pettamorph extension by importing the module, loading a MeTTa file, defining inline functions, and running example computations including Fibonacci.",
+      "tags": [
+        "example",
+        "metta",
+        "integration",
+        "entry-point"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:python/HE/pettamorph.py",
+      "type": "file",
+      "name": "pettamorph.py",
+      "filePath": "python/HE/pettamorph.py",
+      "summary": "Hyperon extension module that bridges MeTTa atom evaluation to the PeTTa Python runtime, exposing a `petta` atom that can load MeTTa files or evaluate MeTTa expressions from within a running Hyperon MeTTa space.",
+      "tags": [
+        "middleware",
+        "metta",
+        "hyperon",
+        "integration"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Uses Hyperon's register_atoms decorator and OperationObject to register native Python atoms callable from MeTTa. Handles both file-path and inline expression dispatch via string introspection."
+    },
+    {
+      "id": "function:python/HE/pettamorph.py:call_petta",
+      "type": "function",
+      "name": "call_petta",
+      "filePath": "python/HE/pettamorph.py",
+      "lineRange": [
+        26,
+        44
+      ],
+      "summary": "Dispatches a MeTTa expression or file path to the PeTTa runtime; loads .metta files or evaluates expression strings and returns the results as a MeTTa superpose atom.",
+      "tags": [
+        "middleware",
+        "metta",
+        "dispatch",
+        "integration"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:python/HE/pettamorph.py:petta_atoms",
+      "type": "function",
+      "name": "petta_atoms",
+      "filePath": "python/HE/pettamorph.py",
+      "lineRange": [
+        47,
+        52
+      ],
+      "summary": "Hyperon registration function that registers the `petta` atom operation into the MeTTa space, enabling MeTTa code to call PeTTa from within Hyperon.",
+      "tags": [
+        "middleware",
+        "hyperon",
+        "registration",
+        "entry-point"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:python/helper.pl",
+      "type": "file",
+      "name": "helper.pl",
+      "filePath": "python/helper.pl",
+      "summary": "Prolog helper module loaded by PeTTa at startup to provide the run_metta_helper/4 predicate that orchestrates verbosity control, working directory management, and MeTTa evaluation dispatch.",
+      "tags": [
+        "utility",
+        "prolog",
+        "helper",
+        "prolog-interop"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:python/petta.py",
+      "type": "file",
+      "name": "petta.py",
+      "filePath": "python/petta.py",
+      "summary": "Core PeTTa Python class that bootstraps the SWI-Prolog/janus_swi bridge on first use (thread-safe singleton), then exposes load_metta_file and process_metta_string methods for evaluating MeTTa code via Prolog.",
+      "tags": [
+        "service",
+        "metta",
+        "prolog-interop",
+        "singleton",
+        "tested"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Uses a module-level CONSULTED flag with double-checked locking to initialize the Prolog runtime exactly once across all threads."
+    },
+    {
+      "id": "class:python/petta.py:PeTTa",
+      "type": "class",
+      "name": "PeTTa",
+      "filePath": "python/petta.py",
+      "lineRange": [
+        9,
+        46
+      ],
+      "summary": "Thread-safe MeTTa runtime wrapper that initializes the janus_swi Prolog bridge once and provides load_metta_file and process_metta_string methods for evaluating MeTTa code.",
+      "tags": [
+        "service",
+        "singleton",
+        "prolog-interop",
+        "metta"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:python/pyproject.toml",
+      "type": "config",
+      "name": "pyproject.toml",
+      "filePath": "python/pyproject.toml",
+      "summary": "Python project configuration declaring the python package with janus-swi (>=1.5.2) and pytest dependencies, targeting Python 3.10+.",
+      "tags": [
+        "configuration",
+        "packaging",
+        "build-system",
+        "dependencies"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:python/tests/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "python/tests/__init__.py",
+      "summary": "Empty package marker making python/tests/ a Python package for test discovery.",
+      "tags": [
+        "test",
+        "barrel",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:python/tests/conftest.py",
+      "type": "file",
+      "name": "conftest.py",
+      "filePath": "python/tests/conftest.py",
+      "summary": "Pytest configuration providing session-scoped fixtures for the repo root path, PeTTa module, PeTTa instances (default and verbose), and the dummy.metta test data path.",
+      "tags": [
+        "test",
+        "configuration",
+        "fixture"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:python/tests/data/dummy.metta",
+      "type": "file",
+      "name": "dummy.metta",
+      "filePath": "python/tests/data/dummy.metta",
+      "summary": "MeTTa test fixture file that imports dummy2.metta, defines a simple increment function, and applies it to a list — used to verify load_metta_file behavior in tests.",
+      "tags": [
+        "test",
+        "metta",
+        "fixture",
+        "data"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:python/tests/data/dummy2.metta",
+      "type": "file",
+      "name": "dummy2.metta",
+      "filePath": "python/tests/data/dummy2.metta",
+      "summary": "MeTTa test fixture file defining map-flat — a recursive cons-list map function imported by dummy.metta during test execution.",
+      "tags": [
+        "test",
+        "metta",
+        "fixture",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:python/tests/test_petta.py",
+      "type": "file",
+      "name": "test_petta.py",
+      "filePath": "python/tests/test_petta.py",
+      "summary": "Pytest test suite for the PeTTa class covering file loading, string processing consistency between verbose and non-verbose instances, and variable unification output format.",
+      "tags": [
+        "test",
+        "pytest",
+        "metta",
+        "integration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:run.metta",
+      "type": "file",
+      "name": "run.metta",
+      "filePath": "run.metta",
+      "summary": "Top-level MeTTa entry point that imports the lib_import library, pulls OmegaClaw-Core from GitHub, and launches the omegaclaw reasoning engine.",
+      "tags": [
+        "entry-point",
+        "metta",
+        "orchestration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/build_atomspace.py",
+      "type": "file",
+      "name": "build_atomspace.py",
+      "filePath": "scripts/build_atomspace.py",
+      "summary": "Script that combines performance and creative ad atoms with GPT-4o-mini-derived branding classifications to generate a MeTTa AtomSpace knowledge graph file for the OmegaClaw reasoning engine.",
+      "tags": [
+        "script",
+        "data-pipeline",
+        "knowledge-graph",
+        "openai"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:scripts/build_atomspace.py:performance_atoms",
+      "type": "function",
+      "name": "performance_atoms",
+      "filePath": "scripts/build_atomspace.py",
+      "lineRange": [
+        60,
+        71
+      ],
+      "summary": "Converts a performance atom dictionary for a given ad_id into MeTTa s-expressions covering impressions, clicks, spend, reach, and campaign metadata.",
+      "tags": [
+        "utility",
+        "data-pipeline",
+        "metta",
+        "serialization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/build_atomspace.py:creative_atoms",
+      "type": "function",
+      "name": "creative_atoms",
+      "filePath": "scripts/build_atomspace.py",
+      "lineRange": [
+        74,
+        94
+      ],
+      "summary": "Converts a creative atom dictionary into MeTTa s-expressions for image descriptions, headline, body snippet, CTA, and product URL.",
+      "tags": [
+        "utility",
+        "data-pipeline",
+        "metta",
+        "serialization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/build_atomspace.py:branding_atoms",
+      "type": "function",
+      "name": "branding_atoms",
+      "filePath": "scripts/build_atomspace.py",
+      "lineRange": [
+        97,
+        157
+      ],
+      "summary": "Calls GPT-4o-mini to classify an ad's tone, season, mood, product category, and visual theme, then returns the results as MeTTa branding atom strings with retry logic.",
+      "tags": [
+        "openai",
+        "data-pipeline",
+        "metta",
+        "llm"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/build_atomspace.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/build_atomspace.py",
+      "lineRange": [
+        160,
+        227
+      ],
+      "summary": "Entry point that reads all performance and creative atom JSON files, orchestrates the three atom-generation functions, and writes the combined MeTTa knowledge graph to disk.",
+      "tags": [
+        "entry-point",
+        "data-pipeline",
+        "orchestration",
+        "script"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/describe_creative_images.py",
+      "type": "file",
+      "name": "describe_creative_images.py",
+      "filePath": "scripts/describe_creative_images.py",
+      "summary": "Script that iterates creative atom JSON files, sends each ad image to Claude Sonnet via the Anthropic Vision API, and writes a factual description back into the atom's image dict for downstream PLN reasoning.",
+      "tags": [
+        "script",
+        "data-pipeline",
+        "anthropic",
+        "vision-llm"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:scripts/describe_creative_images.py:describe_image",
+      "type": "function",
+      "name": "describe_image",
+      "filePath": "scripts/describe_creative_images.py",
+      "lineRange": [
+        85,
+        126
+      ],
+      "summary": "Sends a base64-encoded image to Claude Sonnet with a strict factual-description system prompt and returns the description text, retrying on transient API errors.",
+      "tags": [
+        "anthropic",
+        "vision-llm",
+        "api-handler",
+        "retry"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/describe_creative_images.py:process_atom",
+      "type": "function",
+      "name": "process_atom",
+      "filePath": "scripts/describe_creative_images.py",
+      "lineRange": [
+        129,
+        180
+      ],
+      "summary": "Processes one creative atom file, iterating its images, calling describe_image for each unannotated image, and writing the updated atom back to disk; returns (described, skipped, missing) counts.",
+      "tags": [
+        "data-pipeline",
+        "file-io",
+        "orchestration"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/describe_creative_images.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/describe_creative_images.py",
+      "lineRange": [
+        183,
+        233
+      ],
+      "summary": "CLI entry point for the image description pipeline, supporting --limit, --ad-id, --force, and --dry-run arguments and aggregating per-atom result counts.",
+      "tags": [
+        "entry-point",
+        "cli",
+        "data-pipeline",
+        "script"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/import_meta_api.py",
+      "type": "file",
+      "name": "import_meta_api.py",
+      "filePath": "scripts/import_meta_api.py",
+      "summary": "Script that fetches ad performance data from the Meta Marketing API Insights endpoint and writes one JSON performance atom per ad to the atoms/performance/ directory.",
+      "tags": [
+        "script",
+        "data-pipeline",
+        "api-handler",
+        "meta-ads"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/import_meta_api.py:fetch_insights",
+      "type": "function",
+      "name": "fetch_insights",
+      "filePath": "scripts/import_meta_api.py",
+      "lineRange": [
+        67,
+        91
+      ],
+      "summary": "Fetches ad insight rows from the Meta Graph API /insights endpoint for a given date window, with retry on transient HTTP errors.",
+      "tags": [
+        "api-handler",
+        "meta-ads",
+        "retry",
+        "data-pipeline"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/import_meta_api.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/import_meta_api.py",
+      "lineRange": [
+        121,
+        168
+      ],
+      "summary": "CLI entry point that loads credentials from .env, fetches Meta API insights, normalizes each row to an atom, and writes JSON files to atoms/performance/.",
+      "tags": [
+        "entry-point",
+        "cli",
+        "data-pipeline",
+        "meta-ads"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/import_meta_creative.py",
+      "type": "file",
+      "name": "import_meta_creative.py",
+      "filePath": "scripts/import_meta_creative.py",
+      "summary": "Script that fetches ad creative metadata (images, copy variants, CTAs) from the Meta Marketing API, downloads full-resolution images, and writes creative atom JSON files for each ad.",
+      "tags": [
+        "script",
+        "data-pipeline",
+        "api-handler",
+        "meta-ads"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:scripts/import_meta_creative.py:fetch_ads",
+      "type": "function",
+      "name": "fetch_ads",
+      "filePath": "scripts/import_meta_creative.py",
+      "lineRange": [
+        94,
+        108
+      ],
+      "summary": "Paginates through the Meta /ads endpoint collecting ad objects with nested creative fields until the requested limit is reached.",
+      "tags": [
+        "api-handler",
+        "meta-ads",
+        "pagination",
+        "data-pipeline"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/import_meta_creative.py:extract_fields",
+      "type": "function",
+      "name": "extract_fields",
+      "filePath": "scripts/import_meta_creative.py",
+      "lineRange": [
+        145,
+        196
+      ],
+      "summary": "Extracts and deduplicates all creative text variants (headlines, bodies, descriptions, CTAs, link URLs) and image hashes from a Meta ad object's nested creative and asset_feed_spec structures.",
+      "tags": [
+        "data-pipeline",
+        "parsing",
+        "meta-ads",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/import_meta_creative.py:download_image",
+      "type": "function",
+      "name": "download_image",
+      "filePath": "scripts/import_meta_creative.py",
+      "lineRange": [
+        230,
+        262
+      ],
+      "summary": "Downloads a Meta ad image URL to the local images/ directory, choosing the file extension from the response Content-Type, with retry on transient errors.",
+      "tags": [
+        "file-io",
+        "data-pipeline",
+        "retry",
+        "meta-ads"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/import_meta_creative.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/import_meta_creative.py",
+      "lineRange": [
+        297,
+        377
+      ],
+      "summary": "CLI entry point that orchestrates ad fetching, image hash resolution, image download, and creative atom writing for the full Meta creative import pipeline.",
+      "tags": [
+        "entry-point",
+        "cli",
+        "data-pipeline",
+        "orchestration"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/parse_meta_csv.py",
+      "type": "file",
+      "name": "parse_meta_csv.py",
+      "filePath": "scripts/parse_meta_csv.py",
+      "summary": "Script that parses a Meta Ads CSV export and writes one JSON performance atom per ad_id to atoms/performance/, serving as an offline alternative to the API import script.",
+      "tags": [
+        "script",
+        "data-pipeline",
+        "csv",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/parse_meta_csv.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/parse_meta_csv.py",
+      "lineRange": [
+        34,
+        65
+      ],
+      "summary": "Reads a Meta Ads CSV file, coerces numeric fields, and writes one JSON performance atom per ad_id row to atoms/performance/.",
+      "tags": [
+        "entry-point",
+        "csv",
+        "data-pipeline",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/synthesize_actions.py",
+      "type": "file",
+      "name": "synthesize_actions.py",
+      "filePath": "scripts/synthesize_actions.py",
+      "summary": "Script that fabricates deterministic, plausible Meta action breakdown data (add-to-cart, checkout, purchase, ROAS) for sample performance atoms using md5-seeded random values, enabling offline PLN pattern discovery.",
+      "tags": [
+        "script",
+        "data-pipeline",
+        "test-data",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/synthesize_actions.py:seeded_unit",
+      "type": "function",
+      "name": "seeded_unit",
+      "filePath": "scripts/synthesize_actions.py",
+      "lineRange": [
+        35,
+        38
+      ],
+      "summary": "Returns a deterministic float in [0, 1) derived from an md5 hash of (ad_id, salt), ensuring reproducible synthetic data across runs and platforms.",
+      "tags": [
+        "utility",
+        "deterministic",
+        "hashing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/synthesize_actions.py:synthesize",
+      "type": "function",
+      "name": "synthesize",
+      "filePath": "scripts/synthesize_actions.py",
+      "lineRange": [
+        41,
+        78
+      ],
+      "summary": "Generates a synthetic actions/action_values/purchase_roas breakdown for one ad atom using seeded rates and a CTR-signal bonus to create discoverable PLN conversion patterns.",
+      "tags": [
+        "data-pipeline",
+        "synthetic-data",
+        "utility",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/synthesize_actions.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/synthesize_actions.py",
+      "lineRange": [
+        81,
+        147
+      ],
+      "summary": "CLI entry point that scans sample performance atom files, computes the median CTR for normalization, and enriches each file with synthetic action breakdowns unless already present.",
+      "tags": [
+        "entry-point",
+        "cli",
+        "data-pipeline",
+        "script"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:setup.py",
+      "type": "file",
+      "name": "setup.py",
+      "filePath": "setup.py",
+      "summary": "Python package setup script defining the 'petta' package, a Python wrapper for the MeTTa/Prolog reasoning engine, with janus-swi as a runtime dependency.",
+      "tags": [
+        "entry-point",
+        "configuration",
+        "build-system",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/filereader.pl",
+      "type": "file",
+      "name": "filereader.pl",
+      "filePath": "src/filereader.pl",
+      "summary": "Prolog module responsible for loading and processing MeTTa source files — reads files into strings, strips comments, tokenises S-expressions into balanced blocks, and dispatches to the translation pipeline.",
+      "tags": [
+        "utility",
+        "file-io",
+        "metta",
+        "parser"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Uses DCG (Definite Clause Grammars) extensively for character-level parsing of MeTTa syntax. Tracks parenthesis depth and string-literal state manually via accumulator arguments."
+    },
+    {
+      "id": "file:src/main.pl",
+      "type": "file",
+      "name": "main.pl",
+      "filePath": "src/main.pl",
+      "summary": "Entry point for the Prolog MeTTa interpreter — loads all engine modules, defines a Prolog/MeTTa interop example, and dispatches CLI arguments to file-loading or interactive demo modes.",
+      "tags": [
+        "entry-point",
+        "cli",
+        "metta",
+        "interop"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/metta.pl",
+      "type": "file",
+      "name": "metta.pl",
+      "filePath": "src/metta.pl",
+      "summary": "Core MeTTa standard library implemented in Prolog — defines arithmetic, comparison, list, string, type, control-flow, and I/O predicates that form the built-in runtime for the MeTTa language.",
+      "tags": [
+        "service",
+        "metta",
+        "standard-library",
+        "runtime"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Implements MeTTa builtins as Prolog predicates with extra output-argument convention (e.g., '+'(A,B,R)). Loads all sibling modules (parser, translator, specializer, filereader, spaces) at startup and conditionally loads mork FFI via a flag."
+    },
+    {
+      "id": "file:src/parser.pl",
+      "type": "file",
+      "name": "parser.pl",
+      "filePath": "src/parser.pl",
+      "summary": "Bidirectional MeTTa S-expression parser — provides sread/2 for parsing MeTTa strings into Prolog terms and swrite/2 for serialising Prolog terms back to MeTTa S-expression strings.",
+      "tags": [
+        "utility",
+        "parser",
+        "serialization",
+        "metta"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Uses DCG rules for both directions. Variable tracking is done with an environment accumulator (E0/E) so the same Prolog variable is reused for repeated MeTTa variable names."
+    },
+    {
+      "id": "file:src/spaces.pl",
+      "type": "file",
+      "name": "spaces.pl",
+      "filePath": "src/spaces.pl",
+      "summary": "MeTTa atomspace management module — implements add-atom, remove-atom, match, and get-atoms predicates that maintain the dynamic fact database used as MeTTa's working memory.",
+      "tags": [
+        "service",
+        "metta",
+        "data-model",
+        "atomspace"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/specializer.pl",
+      "type": "file",
+      "name": "specializer.pl",
+      "filePath": "src/specializer.pl",
+      "summary": "Higher-order function specializer for the MeTTa runtime — detects when a MeTTa function receives another function as an argument and generates a specialized Prolog clause to eliminate the dispatch overhead.",
+      "tags": [
+        "optimization",
+        "metta",
+        "higher-order",
+        "specialization"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Implements a partial-evaluation / call-specialization strategy: when higher-order arguments are concrete, a new predicate variant is compiled and asserted, avoiding dynamic dispatch on subsequent calls."
+    },
+    {
+      "id": "file:src/translator.pl",
+      "type": "file",
+      "name": "translator.pl",
+      "filePath": "src/translator.pl",
+      "summary": "MeTTa-to-Prolog compiler — translates MeTTa function definitions (= Head Body) into Prolog clauses, handles constrained arguments, partial closures, and the runtime reduce/collapse dispatch loop.",
+      "tags": [
+        "compiler",
+        "metta",
+        "code-generation",
+        "runtime"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Central compilation step: translate_clause/2 flattens a MeTTa function definition into a Prolog clause with prefix goals for structural constraints. The reduce/2 and translate_expr predicates implement the applicative evaluation model."
+    },
+    {
+      "id": "file:webapp/app.js",
+      "type": "file",
+      "name": "app.js",
+      "filePath": "webapp/app.js",
+      "summary": "Main frontend application for the Growth Engine web UI — implements a multi-page SPA with pages for dashboard, atomspace, dataset browser, PLN patterns, ad generation pipeline, and output rendering, communicating with the backend API for PLN spec, ad copy, and image generation.",
+      "tags": [
+        "entry-point",
+        "component",
+        "api-handler",
+        "event-handler"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Single-file vanilla-JS SPA (no framework). Page routing is manual via navigate(). SVG atom-graph visualisation is rendered inline. The pipeline flow is orchestrated by startPipeline() using async/await chained fetch calls."
+    },
+    {
+      "id": "function:webapp/app.js:startPipeline",
+      "type": "function",
+      "name": "startPipeline",
+      "filePath": "webapp/app.js",
+      "lineRange": [
+        1192,
+        1359
+      ],
+      "summary": "Orchestrates the full ad-generation pipeline: fetches PLN spec, runs PLN reasoning, calls generateAds, shows a reference image modal, fetches ad images in parallel, runs vision verification, and navigates to the output page.",
+      "tags": [
+        "api-handler",
+        "event-handler",
+        "pipeline"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:webapp/app.js:renderPipeline",
+      "type": "function",
+      "name": "renderPipeline",
+      "filePath": "webapp/app.js",
+      "lineRange": [
+        2684,
+        2871
+      ],
+      "summary": "Renders the interactive step-by-step pipeline UI page, injecting HTML for all pipeline phases, adding styles, and binding all user interaction events via bindPipelineEvents.",
+      "tags": [
+        "component",
+        "event-handler"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:webapp/app.js:bindPipelineEvents",
+      "type": "function",
+      "name": "bindPipelineEvents",
+      "filePath": "webapp/app.js",
+      "lineRange": [
+        2949,
+        3479
+      ],
+      "summary": "Attaches all DOM event listeners for the pipeline page — handling atom loading, PLN query submission, concept generation, image generation, and verification steps with live UI feedback.",
+      "tags": [
+        "event-handler",
+        "api-handler"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:webapp/app.js:renderOutput",
+      "type": "function",
+      "name": "renderOutput",
+      "filePath": "webapp/app.js",
+      "lineRange": [
+        1435,
+        1630
+      ],
+      "summary": "Renders the generated ads output page including the reasoning trace, ad cards with images, a summary table, lightbox navigation, and feedback/export controls.",
+      "tags": [
+        "component",
+        "event-handler"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:webapp/app.js:renderHome",
+      "type": "function",
+      "name": "renderHome",
+      "filePath": "webapp/app.js",
+      "lineRange": [
+        2143,
+        2553
+      ],
+      "summary": "Renders the landing/home page with hero slider, feature sections, pipeline steps overview, and example ad cards used as a marketing-style entry point.",
+      "tags": [
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:webapp/app.js:renderAtomGraph",
+      "type": "function",
+      "name": "renderAtomGraph",
+      "filePath": "webapp/app.js",
+      "lineRange": [
+        1633,
+        1807
+      ],
+      "summary": "Renders a radial SVG graph visualising the PLN atom relationships for a single ad — positioning spoke nodes by family, drawing weighted edges, and labelling evidence ad IDs.",
+      "tags": [
+        "component",
+        "data-model"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:webapp/app.js:showReferenceModal",
+      "type": "function",
+      "name": "showReferenceModal",
+      "filePath": "webapp/app.js",
+      "lineRange": [
+        1006,
+        1149
+      ],
+      "summary": "Displays a modal dialog for selecting or uploading a reference ad image to guide image-edit generation, resolving a Promise with the selected image data when confirmed.",
+      "tags": [
+        "component",
+        "event-handler"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:webapp/app.js:renderDashboard",
+      "type": "function",
+      "name": "renderDashboard",
+      "filePath": "webapp/app.js",
+      "lineRange": [
+        215,
+        310
+      ],
+      "summary": "Renders the analytics dashboard page with KPI cards, a ROAS line chart, atom summary cards, activity feed, and a sortable performance data table.",
+      "tags": [
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:webapp/app.js:renderBronnen",
+      "type": "function",
+      "name": "renderBronnen",
+      "filePath": "webapp/app.js",
+      "lineRange": [
+        342,
+        411
+      ],
+      "summary": "Renders the data sources (bronnen) page showing connected ad data source cards, a processing pipeline diagram, and a CSV/JSON file upload zone.",
+      "tags": [
+        "component",
+        "event-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:webapp/app.js:renderGenereren",
+      "type": "function",
+      "name": "renderGenereren",
+      "filePath": "webapp/app.js",
+      "lineRange": [
+        914,
+        1004
+      ],
+      "summary": "Renders the ad generation form page with top PLN patterns preview, product/context inputs, count selector, instructions field, and triggers startPipeline on submission.",
+      "tags": [
+        "component",
+        "event-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:webapp/app.js:renderReasoningTrace",
+      "type": "function",
+      "name": "renderReasoningTrace",
+      "filePath": "webapp/app.js",
+      "lineRange": [
+        1979,
+        2079
+      ],
+      "summary": "Renders the PLN reasoning trace panel showing the top patterns, their substantiation breakdown bars, feature chips, strategy elements, and evidence ad thumbnails.",
+      "tags": [
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:webapp/app.js:renderLineChart",
+      "type": "function",
+      "name": "renderLineChart",
+      "filePath": "webapp/app.js",
+      "lineRange": [
+        135,
+        194
+      ],
+      "summary": "Generates an inline SVG line chart with gradient fill, axis labels, and sampled data-point circles for ROAS time-series visualisation.",
+      "tags": [
+        "utility",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:webapp/app.js:dsLoad",
+      "type": "function",
+      "name": "dsLoad",
+      "filePath": "webapp/app.js",
+      "lineRange": [
+        635,
+        670
+      ],
+      "summary": "Fetches a paginated, filtered dataset page from the backend API and delegates rendering to dsRenderTable and dsRenderPagination.",
+      "tags": [
+        "api-handler",
+        "data-model"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:webapp/app.js:generateAds",
+      "type": "function",
+      "name": "generateAds",
+      "filePath": "webapp/app.js",
+      "lineRange": [
+        1392,
+        1417
+      ],
+      "summary": "Calls the /api/generate-ads backend endpoint with the PLN spec and top patterns, returning the generated ad concepts.",
+      "tags": [
+        "api-handler"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:webapp/auth.js",
+      "type": "file",
+      "name": "auth.js",
+      "filePath": "webapp/auth.js",
+      "summary": "Client-side authentication module providing a login/signup modal with Google, Apple, and email-password flows, exposing window.AuthModal as the public API.",
+      "tags": [
+        "component",
+        "security",
+        "event-handler",
+        "middleware"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Self-contained IIFE with no framework dependencies. OAuth flows are stubbed out with dev-mode placeholders where client IDs are empty — the actual provider SDK calls are commented as TODO."
+    },
+    {
+      "id": "file:webapp/gen_image_edit.py",
+      "type": "file",
+      "name": "gen_image_edit.py",
+      "filePath": "webapp/gen_image_edit.py",
+      "summary": "Deprecated Python CLI script that generated image variations using GPT Image Edit — its logic has been ported to server.js (buildEditPrompt), so this file is no longer invoked.",
+      "tags": [
+        "utility",
+        "api-handler",
+        "deprecated"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:webapp/gen_image.py",
+      "type": "file",
+      "name": "gen_image.py",
+      "filePath": "webapp/gen_image.py",
+      "summary": "Python CLI script that generates a new ad image from a structured prompt JSON (scene, headline, CTA, brand) using the OpenAI gpt-image-2 model, with retry logic for rate limiting.",
+      "tags": [
+        "api-handler",
+        "utility",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:webapp/gen_image.py:build_prompt",
+      "type": "function",
+      "name": "build_prompt",
+      "filePath": "webapp/gen_image.py",
+      "lineRange": [
+        47,
+        97
+      ],
+      "summary": "Assembles a detailed OpenAI image-generation prompt from structured ad copy fields (headline, sub, body, CTA, caption, scene) and brand identity (name, tone, palette, logo).",
+      "tags": [
+        "utility",
+        "serialization"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:webapp/pln_query.py",
+      "type": "file",
+      "name": "pln_query.py",
+      "filePath": "webapp/pln_query.py",
+      "summary": "Core PLN reasoning bridge that loads performance and creative atom JSON files, computes per-ad atom strengths and confidence scores, mines associative patterns across atom families, and outputs a PLN spec with top patterns for ad generation.",
+      "tags": [
+        "service",
+        "api-handler",
+        "data-model",
+        "validation"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Implements a full probabilistic logic network (PLN) pattern-mining pipeline in pure Python: TF-IDF keyword extraction, corpus normalization, substantiation scoring (sample size, spend, consistency, counter-examples), and optional PeTTa/MeTTa integration for symbolic reasoning."
+    },
+    {
+      "id": "function:webapp/pln_query.py:load_json_dir",
+      "type": "function",
+      "name": "load_json_dir",
+      "filePath": "webapp/pln_query.py",
+      "lineRange": [
+        40,
+        52
+      ],
+      "summary": "Loads all JSON atom files from a directory into a dict keyed by ad_id, silently skipping malformed files.",
+      "tags": [
+        "utility",
+        "file-io"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:webapp/pln_query.py:extract_kws",
+      "type": "function",
+      "name": "extract_kws",
+      "filePath": "webapp/pln_query.py",
+      "lineRange": [
+        74,
+        81
+      ],
+      "summary": "Extracts top N TF-IDF–weighted keywords from a list of texts, filtering stopwords and optionally applying a precomputed IDF corpus.",
+      "tags": [
+        "utility",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:webapp/server.js",
+      "type": "file",
+      "name": "server.js",
+      "filePath": "webapp/server.js",
+      "summary": "Express.js backend server that exposes REST API endpoints for PLN spec generation, ad copy generation, image generation (text-to-image and image-to-image), vision verification, atom loading, and feedback recording — bridging the frontend to Python scripts and the OpenAI API.",
+      "tags": [
+        "api-handler",
+        "service",
+        "entry-point",
+        "middleware"
+      ],
+      "complexity": "complex",
+      "languageNotes": "ESM module with a shared OpenAI client. Python scripts are invoked via runPython() which uses promisify(execFile) — async subprocess calls with JSON stdout parsing. The image-edit prompt builder was ported from gen_image_edit.py into buildEditPrompt()."
+    },
+    {
+      "id": "function:webapp/server.js:buildEditPrompt",
+      "type": "function",
+      "name": "buildEditPrompt",
+      "filePath": "webapp/server.js",
+      "lineRange": [
+        23,
+        59
+      ],
+      "summary": "Builds the structured OpenAI image-edit prompt from ad copy and brand identity fields, ported from the deprecated gen_image_edit.py.",
+      "tags": [
+        "utility",
+        "serialization"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:webapp/supabase.js",
+      "type": "file",
+      "name": "supabase.js",
+      "filePath": "webapp/supabase.js",
+      "summary": "Client-side Supabase initialisation module — fetches connection config from /api/config, creates the Supabase client, and exposes it as window.sbReady (a Promise) and window._sb for downstream auth and data calls.",
+      "tags": [
+        "middleware",
+        "service",
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:webapp/test_dalle.mjs",
+      "type": "file",
+      "name": "test_dalle.mjs",
+      "filePath": "webapp/test_dalle.mjs",
+      "summary": "Minimal one-off test script verifying that the OpenAI DALL-E 3 API key is valid and the images.generate endpoint responds successfully.",
+      "tags": [
+        "test",
+        "utility"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "service:Dockerfile",
+      "target": "service:.dockerignore",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "pipeline:.github/workflows/language-check.yml",
+      "target": "step:.github/workflows/language-check.yml:language-check",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "step:.github/workflows/language-check.yml:language-check",
+      "target": "step:.github/workflows/language-check.yml:Detect Dutch in changed text files",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "document:DEPLOY.md",
+      "target": "config:railway.toml",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:SETUP.md",
+      "target": "file:run.bat",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:SETUP.md",
+      "target": "file:setup.bat",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:SETUP.md",
+      "target": "file:diag.bat",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "file:build.sh",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "file:run.sh",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:test.sh",
+      "target": "file:run.sh",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:run.bat",
+      "target": "file:setup.bat",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:railway.toml",
+      "target": "file:run.sh",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/decisions/0004-drop-obsidian-and-switch-to-english.md",
+      "target": "document:docs/decisions/0001-docs-folder-as-obsidian-vault.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/decisions/0003-import-architecture.md",
+      "target": "document:docs/decisions/0002-pr-flow.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:webapp/index.html",
+      "target": "file:webapp/style.css",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:webapp/auth-callback.html",
+      "target": "file:webapp/index.html",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:webapp/connect.html",
+      "target": "file:webapp/index.html",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:webapp/package.json",
+      "target": "file:webapp/index.html",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:webapp/.env.example",
+      "target": "config:webapp/package.json",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:webapp/requirements.txt",
+      "target": "file:webapp/index.html",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:.claude/skills/growthengine/SKILL.md",
+      "target": "document:docs/architecture.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/README.md",
+      "target": "document:docs/architecture.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/README.md",
+      "target": "file:docs/assets/growth_engine_architecture.html",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/architecture.md",
+      "target": "file:docs/assets/growth_engine_architecture.html",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:lib/lib_llm.metta",
+      "target": "file:lib/lib_llm.py",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:lib/lib_import.metta",
+      "target": "file:lib/lib_import.pl",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:lib/lib_llm.py",
+      "target": "function:lib/lib_llm.py:openrouter_chat",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/lib_llm.py",
+      "target": "function:lib/lib_llm.py:openrouter_embed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/lib_llm.py",
+      "target": "function:lib/lib_llm.py:openrouter_chat",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/lib_llm.py",
+      "target": "function:lib/lib_llm.py:openrouter_embed",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:chroma_db/0b4d8381-03b9-460f-92c8-3f0483102452/data_level0.bin",
+      "target": "file:chroma_db/chroma.sqlite3",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:chroma_db/0b4d8381-03b9-460f-92c8-3f0483102452/header.bin",
+      "target": "file:chroma_db/chroma.sqlite3",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:chroma_db/0b4d8381-03b9-460f-92c8-3f0483102452/length.bin",
+      "target": "file:chroma_db/chroma.sqlite3",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:chroma_db/0b4d8381-03b9-460f-92c8-3f0483102452/link_lists.bin",
+      "target": "file:chroma_db/chroma.sqlite3",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:lib/lib_nars.metta",
+      "target": "file:lib/lib_pln.metta",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:python/HE/pettamorph.py",
+      "target": "file:python/petta.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:python/HE/pettamorph.py",
+      "target": "function:python/HE/pettamorph.py:call_petta",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:python/HE/pettamorph.py",
+      "target": "function:python/HE/pettamorph.py:petta_atoms",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:python/HE/pettamorph.py",
+      "target": "function:python/HE/pettamorph.py:call_petta",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:python/HE/pettamorph.py",
+      "target": "function:python/HE/pettamorph.py:petta_atoms",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:python/HE/pettamorph.py:call_petta",
+      "target": "class:python/petta.py:PeTTa",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:python/petta.py",
+      "target": "class:python/petta.py:PeTTa",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:python/petta.py",
+      "target": "class:python/petta.py:PeTTa",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:python/petta.py",
+      "target": "file:python/helper.pl",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:python/tests/conftest.py",
+      "target": "file:python/petta.py",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:python/tests/conftest.py",
+      "target": "file:python/tests/data/dummy.metta",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:python/petta.py",
+      "target": "file:python/tests/test_petta.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "Direction corrected (was test → production)"
+    },
+    {
+      "source": "file:python/tests/data/dummy.metta",
+      "target": "file:python/tests/data/dummy2.metta",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:python/HE/hyperonexperimental.metta",
+      "target": "file:python/HE/compileme.metta",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:python/HE/hyperonexperimental.metta",
+      "target": "file:python/HE/pettamorph.py",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:python/pyproject.toml",
+      "target": "file:python/petta.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:python/pyproject.toml",
+      "target": "file:python/__init__.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:scripts/build_atomspace.py",
+      "target": "function:scripts/build_atomspace.py:performance_atoms",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/build_atomspace.py",
+      "target": "function:scripts/build_atomspace.py:creative_atoms",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/build_atomspace.py",
+      "target": "function:scripts/build_atomspace.py:branding_atoms",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/build_atomspace.py",
+      "target": "function:scripts/build_atomspace.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/describe_creative_images.py",
+      "target": "function:scripts/describe_creative_images.py:describe_image",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/describe_creative_images.py",
+      "target": "function:scripts/describe_creative_images.py:process_atom",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/describe_creative_images.py",
+      "target": "function:scripts/describe_creative_images.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/import_meta_api.py",
+      "target": "function:scripts/import_meta_api.py:fetch_insights",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/import_meta_api.py",
+      "target": "function:scripts/import_meta_api.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/import_meta_creative.py",
+      "target": "function:scripts/import_meta_creative.py:fetch_ads",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/import_meta_creative.py",
+      "target": "function:scripts/import_meta_creative.py:extract_fields",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/import_meta_creative.py",
+      "target": "function:scripts/import_meta_creative.py:download_image",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/import_meta_creative.py",
+      "target": "function:scripts/import_meta_creative.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/parse_meta_csv.py",
+      "target": "function:scripts/parse_meta_csv.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/synthesize_actions.py",
+      "target": "function:scripts/synthesize_actions.py:seeded_unit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/synthesize_actions.py",
+      "target": "function:scripts/synthesize_actions.py:synthesize",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/synthesize_actions.py",
+      "target": "function:scripts/synthesize_actions.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/import_meta_api.py",
+      "target": "file:scripts/import_meta_creative.py",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:scripts/import_meta_api.py",
+      "target": "file:scripts/parse_meta_csv.py",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:scripts/synthesize_actions.py",
+      "target": "file:scripts/import_meta_api.py",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:scripts/describe_creative_images.py",
+      "target": "file:scripts/import_meta_creative.py",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:scripts/build_atomspace.py",
+      "target": "file:scripts/describe_creative_images.py",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:webapp/app.js",
+      "target": "function:webapp/app.js:startPipeline",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/app.js",
+      "target": "function:webapp/app.js:renderPipeline",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/app.js",
+      "target": "function:webapp/app.js:bindPipelineEvents",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/app.js",
+      "target": "function:webapp/app.js:renderOutput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/app.js",
+      "target": "function:webapp/app.js:renderHome",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/app.js",
+      "target": "function:webapp/app.js:renderAtomGraph",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/app.js",
+      "target": "function:webapp/app.js:showReferenceModal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/app.js",
+      "target": "function:webapp/app.js:renderDashboard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/app.js",
+      "target": "function:webapp/app.js:renderBronnen",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/app.js",
+      "target": "function:webapp/app.js:renderGenereren",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/app.js",
+      "target": "function:webapp/app.js:renderReasoningTrace",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/app.js",
+      "target": "function:webapp/app.js:renderLineChart",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/app.js",
+      "target": "function:webapp/app.js:dsLoad",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/app.js",
+      "target": "function:webapp/app.js:generateAds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/gen_image.py",
+      "target": "function:webapp/gen_image.py:build_prompt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/pln_query.py",
+      "target": "function:webapp/pln_query.py:load_json_dir",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/pln_query.py",
+      "target": "function:webapp/pln_query.py:extract_kws",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:webapp/server.js",
+      "target": "function:webapp/server.js:buildEditPrompt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/main.pl",
+      "target": "file:src/metta.pl",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:src/metta.pl",
+      "target": "file:src/parser.pl",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:src/metta.pl",
+      "target": "file:src/translator.pl",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:src/metta.pl",
+      "target": "file:src/specializer.pl",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:src/metta.pl",
+      "target": "file:src/filereader.pl",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:src/metta.pl",
+      "target": "file:src/spaces.pl",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:src/filereader.pl",
+      "target": "file:src/translator.pl",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:src/filereader.pl",
+      "target": "file:src/spaces.pl",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:src/specializer.pl",
+      "target": "file:src/translator.pl",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:src/specializer.pl",
+      "target": "file:src/spaces.pl",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:webapp/server.js",
+      "target": "file:webapp/pln_query.py",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:webapp/server.js",
+      "target": "file:webapp/gen_image.py",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:webapp/server.js",
+      "target": "file:webapp/gen_image_edit.py",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:webapp/app.js",
+      "target": "file:webapp/server.js",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:webapp/auth.js",
+      "target": "file:webapp/supabase.js",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:webapp/app.js",
+      "target": "file:webapp/supabase.js",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:setup.py",
+      "target": "file:src/metta.pl",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:webapp/app.js:startPipeline",
+      "target": "function:webapp/app.js:generateAds",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:webapp/app.js:startPipeline",
+      "target": "function:webapp/app.js:showReferenceModal",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:webapp/app.js:renderPipeline",
+      "target": "function:webapp/app.js:bindPipelineEvents",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:webapp/app.js:renderOutput",
+      "target": "function:webapp/app.js:renderReasoningTrace",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:webapp/app.js:renderOutput",
+      "target": "function:webapp/app.js:renderAtomGraph",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:webapp/app.js:renderDashboard",
+      "target": "function:webapp/app.js:renderLineChart",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:webapp/test_dalle.mjs",
+      "target": "file:webapp/server.js",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:web-application",
+      "name": "Web Application",
+      "description": "Express.js REST API server, single-page application frontend, authentication flows, image generation endpoints, and PLN query bridge serving the Growth Engine's ad generation UI",
+      "nodeIds": [
+        "file:webapp/server.js",
+        "file:webapp/app.js",
+        "file:webapp/auth.js",
+        "file:webapp/supabase.js",
+        "file:webapp/pln_query.py",
+        "file:webapp/gen_image.py",
+        "file:webapp/gen_image_edit.py",
+        "file:webapp/index.html",
+        "file:webapp/auth-callback.html",
+        "file:webapp/connect.html",
+        "file:webapp/style.css",
+        "file:webapp/test_dalle.mjs",
+        "config:webapp/package.json",
+        "config:webapp/.env.example",
+        "document:webapp/requirements.txt"
+      ]
+    },
+    {
+      "id": "layer:metta-runtime",
+      "name": "MeTTa Runtime",
+      "description": "Core Prolog-based MeTTa interpreter including the parser, compiler, atomspace manager, higher-order function specializer, and CLI entry point that implements the MeTTa language execution engine",
+      "nodeIds": [
+        "file:src/main.pl",
+        "file:src/metta.pl",
+        "file:src/parser.pl",
+        "file:src/translator.pl",
+        "file:src/specializer.pl",
+        "file:src/spaces.pl",
+        "file:src/filereader.pl"
+      ]
+    },
+    {
+      "id": "layer:reasoning-library",
+      "name": "Reasoning Library",
+      "description": "MeTTa and Prolog shared libraries providing PLN probabilistic logic, NARS non-axiomatic reasoning, LLM integration, AtomSpace utilities, and functional programming primitives used across the Growth Engine",
+      "nodeIds": [
+        "file:lib/lib_builtin_types.metta",
+        "file:lib/lib_combinatorics.metta",
+        "file:lib/lib_datastructures.metta",
+        "file:lib/lib_he.metta",
+        "file:lib/lib_import.metta",
+        "file:lib/lib_import.pl",
+        "file:lib/lib_llm.metta",
+        "file:lib/lib_llm.py",
+        "file:lib/lib_mm2.metta",
+        "file:lib/lib_nars.metta",
+        "file:lib/lib_patrick.metta",
+        "file:lib/lib_pln.metta",
+        "file:lib/lib_roman.metta",
+        "file:lib/lib_spaces.metta",
+        "file:lib/lib_tabling.metta",
+        "file:lib/lib_vector.metta",
+        "file:lib/lib_zar.metta",
+        "file:lib/lib_zar.pl"
+      ]
+    },
+    {
+      "id": "layer:python-bridge",
+      "name": "Python Bridge",
+      "description": "Python package wrapping SWI-Prolog via janus_swi to expose the MeTTa runtime as a Python API, including the Hyperon Experimental integration adapter, helper predicates, and pytest test suite for the PeTTa class",
+      "nodeIds": [
+        "file:python/__init__.py",
+        "file:python/petta.py",
+        "file:python/helper.pl",
+        "file:python/HE/pettamorph.py",
+        "file:python/HE/hyperonexperimental.metta",
+        "file:python/HE/compileme.metta",
+        "file:python/tests/__init__.py",
+        "file:python/tests/conftest.py",
+        "file:python/tests/test_petta.py",
+        "file:python/tests/data/dummy.metta",
+        "file:python/tests/data/dummy2.metta",
+        "config:python/pyproject.toml"
+      ]
+    },
+    {
+      "id": "layer:data-pipeline",
+      "name": "Data Pipeline",
+      "description": "ETL scripts that import ad performance data from Meta Marketing API and CSV exports, annotate creative images with Claude vision, synthesize test data, and build the MeTTa knowledge graph AtomSpace; includes the ad performance atom records consumed by the pipeline",
+      "nodeIds": [
+        "file:scripts/import_meta_api.py",
+        "file:scripts/import_meta_creative.py",
+        "file:scripts/parse_meta_csv.py",
+        "file:scripts/describe_creative_images.py",
+        "file:scripts/build_atomspace.py",
+        "file:scripts/synthesize_actions.py",
+        "config:atoms/performance/ad_001.json",
+        "config:atoms/performance/ad_002.json",
+        "config:atoms/performance/ad_003.json",
+        "config:atoms/performance/ad_004.json",
+        "config:atoms/performance/ad_005.json"
+      ]
+    },
+    {
+      "id": "layer:vector-store",
+      "name": "Vector Store",
+      "description": "ChromaDB persistent vector database files storing HNSW index structures and SQLite metadata that back the Growth Engine's semantic similarity search over ad atoms",
+      "nodeIds": [
+        "file:chroma_db/0b4d8381-03b9-460f-92c8-3f0483102452/data_level0.bin",
+        "file:chroma_db/0b4d8381-03b9-460f-92c8-3f0483102452/header.bin",
+        "file:chroma_db/0b4d8381-03b9-460f-92c8-3f0483102452/length.bin",
+        "file:chroma_db/0b4d8381-03b9-460f-92c8-3f0483102452/link_lists.bin",
+        "file:chroma_db/chroma.sqlite3"
+      ]
+    },
+    {
+      "id": "layer:documentation",
+      "name": "Documentation",
+      "description": "Architecture decision records, setup guides, developer notes, daily logs, deployment guides, and the living architecture document describing the Growth Engine's 13-layer system",
+      "nodeIds": [
+        "document:README.md",
+        "document:CONTRIBUTING.md",
+        "document:DEPLOY.md",
+        "document:NOTES.md",
+        "document:SETUP.md",
+        "document:plan.md",
+        "document:requirements.txt",
+        "document:docs/architecture.md",
+        "document:docs/README.md",
+        "document:docs/decisions/0001-docs-folder-as-obsidian-vault.md",
+        "document:docs/decisions/0002-pr-flow.md",
+        "document:docs/decisions/0003-import-architecture.md",
+        "document:docs/decisions/0004-drop-obsidian-and-switch-to-english.md",
+        "document:docs/notes/2026-04-28-setup.md",
+        "document:docs/notes/2026-04-28.md",
+        "document:docs/notes/2026-05-03-vision-descriptions.md",
+        "document:.claude/skills/growthengine/SKILL.md",
+        "document:.github/PULL_REQUEST_TEMPLATE.md",
+        "file:docs/assets/growth_engine_architecture.html",
+        "file:ad-generation-architecture (1).html"
+      ]
+    },
+    {
+      "id": "layer:infrastructure-config",
+      "name": "Infrastructure & Configuration",
+      "description": "Docker containerization, Railway deployment config, GitHub Actions CI, build and launcher scripts for Windows and POSIX platforms, Python package setup, and all project-level environment and tooling configuration files",
+      "nodeIds": [
+        "service:Dockerfile",
+        "service:.dockerignore",
+        "pipeline:.github/workflows/language-check.yml",
+        "config:railway.toml",
+        "config:.env.example",
+        "config:.understand-anything/.understandignore",
+        "file:build.sh",
+        "file:run.sh",
+        "file:run.bat",
+        "file:setup.bat",
+        "file:diag.bat",
+        "file:test.sh",
+        "file:run.metta",
+        "file:setup.py",
+        "file:MANIFEST.in",
+        "file:0",
+        "step:.github/workflows/language-check.yml:language-check",
+        "step:.github/workflows/language-check.yml:Detect Dutch in changed text files"
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "Project Overview",
+      "description": "README.md frames the project as a PeTTa-powered MeTTa runtime — the foundation that makes symbolic AI reasoning possible inside GrowthEngine. Reading it first establishes why the system uses Prolog and MeTTa rather than a conventional ML stack: it needs transparent, auditable probabilistic logic for ad optimization decisions. The architecture document goes deeper, describing the 13-layer system from data ingestion all the way through ad generation, giving you the full map before exploring individual rooms.",
+      "nodeIds": [
+        "document:README.md",
+        "document:docs/architecture.md"
+      ]
+    },
+    {
+      "order": 2,
+      "title": "System Architecture & Roadmap",
+      "description": "plan.md lays out the multi-phase integration plan for PLN reasoning and ad generation, showing how the project evolved and where it is headed. The interactive architecture HTML diagram complements the text document with a visual, clickable representation of all 13 layers and how data flows between them. Together these two artifacts give you the architectural intent behind every code file you will encounter in subsequent steps.",
+      "nodeIds": [
+        "document:plan.md",
+        "file:docs/assets/growth_engine_architecture.html"
+      ]
+    },
+    {
+      "order": 3,
+      "title": "Environment & Dependencies",
+      "description": "Before the system can run, four categories of external credentials must be wired together: Meta Marketing API keys for ad data, Supabase for user authentication and storage, Anthropic Claude for vision and copy generation, and OpenAI for embeddings and image generation. The root .env.example documents all of these, while webapp/.env.example scopes the variables relevant to the Express server specifically. Understanding the dependency surface here explains why each downstream component exists.",
+      "nodeIds": [
+        "config:.env.example",
+        "config:webapp/.env.example",
+        "config:webapp/package.json"
+      ]
+    },
+    {
+      "order": 4,
+      "title": "MeTTa Runtime CLI Entry Point",
+      "description": "src/main.pl is the command-line entry point for the Prolog-based MeTTa interpreter. It bootstraps the runtime and delegates immediately to metta.pl, which acts as the hub loading the parser, compiler, atomspace manager, and higher-order function specializer. run.metta sits at the project root as the top-level MeTTa script: it uses git-import to pull OmegaClaw-Core on demand and then launches the omegaclaw reasoner, making it the outermost entry point when running MeTTa programs directly.",
+      "nodeIds": [
+        "file:src/main.pl",
+        "file:run.metta"
+      ],
+      "languageLesson": "Prolog programs execute by goal satisfaction rather than sequential instruction. A top-level entry point typically calls initialization/1 or :- goal directives, which the runtime executes at load time. MeTTa's S-expression syntax (borrowed from Lisp) is parsed into Prolog terms by the bidirectional parser in Step 5."
+    },
+    {
+      "order": 5,
+      "title": "MeTTa Interpreter Core",
+      "description": "src/metta.pl is the runtime hub that ties together four subsystems: the parser, the translator/compiler, the atomspace, and the specializer. src/parser.pl handles bidirectional conversion between MeTTa S-expression text and Prolog terms. src/translator.pl compiles MeTTa function definitions into native Prolog clauses, enabling fast execution. src/spaces.pl implements the AtomSpace — the symbolic knowledge store that supports add-atom, remove-atom, match, and get-atoms operations that the reasoning library depends on.",
+      "nodeIds": [
+        "file:src/metta.pl",
+        "file:src/parser.pl",
+        "file:src/translator.pl",
+        "file:src/spaces.pl"
+      ],
+      "languageLesson": "MeTTa's AtomSpace is a hypergraph database of symbolic atoms and links. Unlike a relational database, atoms can be both data and code — a function definition is itself an atom that can be queried, modified, or reasoned about at runtime. This is what enables the meta-level reasoning PLN performs in later steps."
+    },
+    {
+      "order": 6,
+      "title": "Reasoning Libraries: PLN & NARS",
+      "description": "lib/lib_pln.metta implements Probabilistic Logic Networks (PLN) in native MeTTa: truth value functions, deduction, abduction, induction, and a forward chainer. This is the mathematical core of the system's ability to derive confidence-weighted conclusions from uncertain data. lib/lib_nars.metta implements the complementary Non-Axiomatic Reasoning System (NARS), which handles resource-bounded inference under incomplete information. These two libraries together give GrowthEngine its symbolic reasoning backbone, distinct from the statistical models used in conventional ad-tech.",
+      "nodeIds": [
+        "file:lib/lib_pln.metta",
+        "file:lib/lib_nars.metta"
+      ],
+      "languageLesson": "PLN truth values are pairs (strength, confidence) where strength is the probability an atom is true and confidence reflects how much evidence supports that strength estimate. Deduction chains these pairs: if A->B has truth (s1,c1) and B->C has (s2,c2), PLN derives A->C's truth value by combining them. This propagates uncertainty across the entire reasoning chain rather than making hard true/false decisions."
+    },
+    {
+      "order": 7,
+      "title": "LLM Integration & Module Import",
+      "description": "lib/lib_llm.metta bridges the symbolic MeTTa world to neural language models by defining MeTTa-callable functions for GPT/OpenRouter invocation, text embedding, and direct Python code injection into the runtime. lib/lib_import.metta provides the module system: static-import! loads local files, git-import! clones and loads remote repositories (enabling run.metta to pull OmegaClaw-Core), and use-module! manages namespace resolution. lib/lib_import.pl is the SWI-Prolog implementation backing this module system, adding qlf caching for compiled modules.",
+      "nodeIds": [
+        "file:lib/lib_llm.metta",
+        "file:lib/lib_import.metta",
+        "file:lib/lib_import.pl"
+      ]
+    },
+    {
+      "order": 8,
+      "title": "Python-Prolog Bridge (PeTTa)",
+      "description": "python/petta.py is the core Python API for the entire MeTTa runtime. It wraps SWI-Prolog via the janus_swi binding as a singleton, exposing load_metta_file and process_metta_string — the two primitives everything in the Python world uses to interact with the Prolog engine. python/HE/pettamorph.py is the Hyperon Experimental adapter that maps the Hyperon atom evaluation API onto PeTTa's runtime, allowing code written for the reference Hyperon implementation to run on this Prolog-backed engine. python/tests/test_petta.py validates file loading, string processing, and variable unification via pytest.",
+      "nodeIds": [
+        "file:python/petta.py",
+        "file:python/HE/pettamorph.py",
+        "file:python/tests/test_petta.py"
+      ],
+      "languageLesson": "janus_swi is a bidirectional Python-Prolog bridge: Python can call Prolog goals and receive Prolog term bindings as Python dicts, while Prolog can call Python functions. The singleton pattern in petta.py ensures only one Prolog engine is initialized per process, because SWI-Prolog's foreign language interface is not designed to be instantiated multiple times."
+    },
+    {
+      "order": 9,
+      "title": "Data Pipeline: Ingestion & Annotation",
+      "description": "The data pipeline is a four-stage ETL that feeds the AtomSpace with real ad intelligence. scripts/import_meta_api.py fetches campaign performance metrics (CTR, CPC, ROAS, spend, impressions) from the Meta Marketing API and writes them as structured JSON atoms to atoms/performance/. scripts/import_meta_creative.py fetches the matching creative metadata and raw image files. scripts/describe_creative_images.py then sends each image to Claude Sonnet vision and writes factual natural-language descriptions to atoms/creative/. This AI-annotated image description is what later allows PLN to reason symbolically about visual content.",
+      "nodeIds": [
+        "file:scripts/import_meta_api.py",
+        "file:scripts/import_meta_creative.py",
+        "file:scripts/describe_creative_images.py"
+      ]
+    },
+    {
+      "order": 10,
+      "title": "AtomSpace Builder & Performance Atoms",
+      "description": "scripts/build_atomspace.py is the pipeline's final stage: it combines performance atoms and AI-annotated creative descriptions, calls GPT-4o-mini to extract branding signals, and assembles the complete MeTTa knowledge graph that the reasoning engine will query. config:atoms/performance/ad_001.json shows exactly what a single performance atom looks like — a JSON record of CTR, CPC, ROAS, spend, and impression counts for one ad. scripts/synthesize_actions.py generates synthetic conversion funnel data for offline development when real Meta API credentials are unavailable.",
+      "nodeIds": [
+        "file:scripts/build_atomspace.py",
+        "config:atoms/performance/ad_001.json",
+        "file:scripts/synthesize_actions.py"
+      ]
+    },
+    {
+      "order": 11,
+      "title": "Vector Store",
+      "description": "chroma_db/chroma.sqlite3 is the SQLite metadata database that ChromaDB uses alongside its HNSW index files to persist vector collections. Semantic similarity search over ad atoms is stored here: when the PLN query bridge needs to find ads with similar creative or performance profiles, it queries ChromaDB rather than scanning all atoms with Prolog unification. This layer bridges the symbolic AtomSpace (Step 10) and the neural embedding world (Step 7's lib_llm.metta), enabling hybrid symbolic-subsymbolic retrieval.",
+      "nodeIds": [
+        "file:chroma_db/chroma.sqlite3"
+      ]
+    },
+    {
+      "order": 12,
+      "title": "Express Backend & PLN Query Bridge",
+      "description": "webapp/server.js is the Express HTTP server that ties all layers together for the web interface. It exposes REST endpoints for PLN specification, ad copy generation, and image generation, calling webapp/pln_query.py and webapp/gen_image.py as subprocesses. webapp/pln_query.py is a 712-line Python module implementing the PLN reasoning bridge: it reads AtomSpace atoms, computes atom strengths, extracts TF-IDF keywords, and produces confidence-weighted associative rules — the output that drives ad copy recommendations. webapp/gen_image.py takes the structured prompt JSON produced by the reasoning pipeline and calls the OpenAI images API to generate the final ad visual.",
+      "nodeIds": [
+        "file:webapp/server.js",
+        "file:webapp/pln_query.py",
+        "file:webapp/gen_image.py"
+      ],
+      "languageLesson": "Spawning Python from Node.js via child_process.spawn is a common pattern for mixing ecosystems when rewriting in a single language is impractical. The parent process sends JSON via stdin and reads JSON from stdout, with stderr captured for logging. This keeps the Python reasoning logic independent and directly testable without the Express layer."
+    },
+    {
+      "order": 13,
+      "title": "Frontend SPA & Authentication",
+      "description": "webapp/app.js is a 3507-line vanilla JavaScript SPA that handles everything the user sees: the dashboard, pipeline orchestration UI, PLN atom graph visualization, and ad output rendering. It depends on both webapp/server.js (for API calls) and webapp/supabase.js (for real-time data and user state). webapp/auth.js implements the client-side authentication modal supporting Google, Apple, and email-password flows via Supabase. webapp/auth-callback.html handles the OAuth PKCE redirect and creates the default workspace on first login. webapp/connect.html provides the post-login onboarding flow where users choose their data source: Meta, Shopify, CSV, or demo data.",
+      "nodeIds": [
+        "file:webapp/app.js",
+        "file:webapp/auth.js",
+        "file:webapp/auth-callback.html",
+        "file:webapp/connect.html"
+      ],
+      "languageLesson": "PKCE (Proof Key for Code Exchange) is the OAuth 2.0 flow designed for public clients like SPAs that cannot safely store a client secret. The auth-callback page receives the authorization code, verifies it against a locally generated code verifier, and exchanges it for a session token — all without a server-side secret."
+    },
+    {
+      "order": 14,
+      "title": "Frontend Shell & Design System",
+      "description": "webapp/index.html is the main SPA shell: a single HTML page with a sidebar navigation structure and a dynamic page container that app.js populates. webapp/style.css is the 3329-line design system underpinning every visible element — it defines custom CSS properties for theming, plus layout modules for the sidebar, dashboard cards, pipeline steps, and ad output panels. These two files set the visual contract that app.js renders into, separating structure and style from behavior.",
+      "nodeIds": [
+        "file:webapp/index.html",
+        "file:webapp/style.css"
+      ]
+    },
+    {
+      "order": 15,
+      "title": "Containerization & CI",
+      "description": "The Dockerfile packages the Express server into a single-stage container image exposed on port 8001, making the entire web application portable for Railway or any Docker host. The .github/workflows/language-check.yml GitHub Actions pipeline enforces English-only content across all committed files — a quality gate ensuring documentation stays consistent for the international team. The SETUP.md guide covers Windows-specific steps for getting OmegaClaw-Core and the PeTTa runtime running locally, bridging the gap between Docker deployment and native development.",
+      "nodeIds": [
+        "service:Dockerfile",
+        "pipeline:.github/workflows/language-check.yml",
+        "document:SETUP.md"
+      ],
+      "languageLesson": "GitHub Actions workflows use 'on' triggers to define when jobs run (push, pull_request, schedule). Each job runs in an isolated runner VM; steps within a job share the workspace. A linting or language-check workflow that exits non-zero blocks the PR from merging, enforcing team conventions without relying on individual discipline."
+    }
+  ]
+}

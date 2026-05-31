@@ -45,9 +45,17 @@ Output schema (atoms/creative/<ad_id>.json):
     }
 
 Usage:
+    # Default: fetch the newest --limit ads from the account.
     python scripts/import_meta_creative.py
     python scripts/import_meta_creative.py --limit 10 --dry-run
     python scripts/import_meta_creative.py --no-images   # skip downloads
+
+    # Recommended for a joinable dataset: fetch only the ads that already
+    # exist as performance atoms. Guarantees creative atoms join with
+    # performance atoms on ad_id (no silent set-mismatch — see
+    # docs/notes/2026-05-25-fix-ad-id-join.md).
+    python scripts/import_meta_api.py --days 90 --limit 200
+    python scripts/import_meta_creative.py --ad-ids-from atoms/performance/
 """
 
 import argparse
@@ -82,8 +90,10 @@ def http_get(url: str, params: dict | None, what: str) -> dict:
         if r.status_code == 200:
             return r.json()
         if r.status_code in (429, 500, 502, 503, 504) and attempt < 3:
-            wait = 2 ** attempt
-            print(f"  [retry {attempt}] {what} HTTP {r.status_code}, waiting {wait}s...")
+            wait = 2**attempt
+            print(
+                f"  [retry {attempt}] {what} HTTP {r.status_code}, waiting {wait}s..."
+            )
             time.sleep(wait)
             continue
         print(f"\n[ERROR] {what} {r.status_code}: {r.text[:300]}")
@@ -91,8 +101,16 @@ def http_get(url: str, params: dict | None, what: str) -> dict:
     return {}
 
 
-def fetch_ads(token: str, api_version: str, ad_account_id: str, limit: int) -> list[dict]:
-    """Paginate through /act_<id>/ads until we have `limit` ads or run out."""
+def fetch_ads(
+    token: str, api_version: str, ad_account_id: str, limit: int
+) -> list[dict]:
+    """Paginate through /act_<id>/ads until we have `limit` ads or run out.
+
+    Returns ads in Meta's default order (newest first). This is NOT joinable
+    with a separately-pulled /insights set: the two endpoints can return
+    disjoint ad sets when the account has more ads than `limit`. For a
+    joinable result, prefer `fetch_ads_by_ids` driven by `--ad-ids-from`.
+    """
     url = f"https://graph.facebook.com/{api_version}/{ad_account_id}/ads"
     params = {
         "fields": AD_FIELDS,
@@ -106,6 +124,60 @@ def fetch_ads(token: str, api_version: str, ad_account_id: str, limit: int) -> l
         url = payload.get("paging", {}).get("next")
         params = None  # next URL has auth + cursor baked in
     return collected[:limit]
+
+
+def read_ad_ids_from_dir(directory: Path) -> list[str]:
+    """Read ad_ids from JSON filenames in a directory.
+
+    Each `<ad_id>.json` in `directory` contributes its stem as an ad_id.
+    Used by `--ad-ids-from` to align the creative pull with an existing
+    set of atoms (typically `atoms/performance/`).
+    """
+    if not directory.exists() or not directory.is_dir():
+        return []
+    seen: set[str] = set()
+    out: list[str] = []
+    for p in sorted(directory.glob("*.json")):
+        ad_id = p.stem
+        if ad_id and ad_id not in seen:
+            seen.add(ad_id)
+            out.append(ad_id)
+    return out
+
+
+def fetch_ads_by_ids(
+    token: str, api_version: str, ad_ids: list[str], batch_size: int = 50
+) -> list[dict]:
+    """Batch-fetch ads by explicit ad_id list using the `?ids=` endpoint.
+
+    Returns ads in the SAME shape as `fetch_ads`. Order follows `ad_ids`.
+    Missing ads (Meta returns no entry for an unknown id) are silently
+    skipped — caller can compare lengths to detect drift.
+
+    Why batch endpoint: per-ad GET would be N requests; `?ids=a,b,c` returns
+    up to ~50 ads per request, which respects the rate-limit budget in ADR 0003.
+    """
+    collected: list[dict] = []
+    if not ad_ids:
+        return collected
+
+    for i in range(0, len(ad_ids), batch_size):
+        batch = ad_ids[i : i + batch_size]
+        url = f"https://graph.facebook.com/{api_version}/"
+        params = {
+            "ids": ",".join(batch),
+            "fields": AD_FIELDS,
+            "access_token": token,
+        }
+        payload = http_get(url, params, f"fetch_ads_by_ids[{i}:{i + len(batch)}]")
+        # payload shape: {"<ad_id>": {ad object}, ...}; preserve request order
+        for ad_id in batch:
+            ad_data = payload.get(ad_id)
+            if isinstance(ad_data, dict):
+                # Meta sometimes returns the id at the top level; sometimes not.
+                ad_data.setdefault("id", ad_id)
+                collected.append(ad_data)
+    return collected
 
 
 def collect_texts(items: list[dict] | None, key: str = "text") -> list[str]:
@@ -126,7 +198,7 @@ def collect_image_hashes(creative: dict) -> list[str]:
     hashes: list[str] = []
 
     feed = creative.get("asset_feed_spec") or {}
-    for img in (feed.get("images") or []):
+    for img in feed.get("images") or []:
         if isinstance(img, dict) and img.get("hash"):
             if img["hash"] not in hashes:
                 hashes.append(img["hash"])
@@ -166,16 +238,20 @@ def extract_fields(ad: dict) -> dict:
 
     # CTAs: feed.call_to_action_types[*] + link.call_to_action.type
     ctas: list[str] = []
-    for c in (feed.get("call_to_action_types") or []):
+    for c in feed.get("call_to_action_types") or []:
         if isinstance(c, str) and c not in ctas:
             ctas.append(c)
     cta_obj = link.get("call_to_action") or {}
-    if isinstance(cta_obj, dict) and cta_obj.get("type") and cta_obj["type"] not in ctas:
+    if (
+        isinstance(cta_obj, dict)
+        and cta_obj.get("type")
+        and cta_obj["type"] not in ctas
+    ):
         ctas.append(cta_obj["type"])
 
     # Link URLs: feed.link_urls[*].website_url + link.link
     link_urls: list[str] = []
-    for lu in (feed.get("link_urls") or []):
+    for lu in feed.get("link_urls") or []:
         if isinstance(lu, dict) and lu.get("website_url"):
             if lu["website_url"] not in link_urls:
                 link_urls.append(lu["website_url"])
@@ -196,7 +272,9 @@ def extract_fields(ad: dict) -> dict:
     }
 
 
-def resolve_hashes(token: str, api_version: str, ad_account_id: str, hashes: list[str]) -> dict[str, dict]:
+def resolve_hashes(
+    token: str, api_version: str, ad_account_id: str, hashes: list[str]
+) -> dict[str, dict]:
     """Resolve image_hashes to full URLs via /act_<id>/adimages.
     Returns a mapping: {hash: {url, permalink_url, width, height, name}}.
     """
@@ -210,7 +288,7 @@ def resolve_hashes(token: str, api_version: str, ad_account_id: str, hashes: lis
     }
     payload = http_get(url, params, "resolve_hashes")
     result: dict[str, dict] = {}
-    for img in (payload.get("data") or []):
+    for img in payload.get("data") or []:
         if isinstance(img, dict) and img.get("hash"):
             result[img["hash"]] = img
     return result
@@ -249,13 +327,13 @@ def download_image(url: str, ad_id: str, index: int, dry_run: bool) -> str | Non
                         f.write(chunk)
                 return f"images/{ad_id}_{index}{ext}"
             if r.status_code in (429, 500, 502, 503, 504) and attempt < 3:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
                 continue
             print(f"  [WARN] image download {r.status_code} for {ad_id}_{index}")
             return None
         except requests.RequestException as e:
             if attempt < 3:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
                 continue
             print(f"  [WARN] image download failed for {ad_id}_{index}: {e}")
             return None
@@ -290,7 +368,9 @@ def write_atom(atom: dict, dry_run: bool) -> bool:
         return True
     CREATIVE_DIR.mkdir(parents=True, exist_ok=True)
     out_path = CREATIVE_DIR / f"{ad_id}.json"
-    out_path.write_text(json.dumps(atom, indent=2, ensure_ascii=False), encoding="utf-8")
+    out_path.write_text(
+        json.dumps(atom, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
     return True
 
 
@@ -298,10 +378,28 @@ def main() -> None:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
 
-    parser = argparse.ArgumentParser(description="Import ad creatives from the Meta Marketing API.")
-    parser.add_argument("--limit", type=int, default=100, help="Max number of ads (safety, default 100)")
-    parser.add_argument("--dry-run", action="store_true", help="Show what would happen, write nothing")
+    parser = argparse.ArgumentParser(
+        description="Import ad creatives from the Meta Marketing API."
+    )
+    parser.add_argument(
+        "--limit", type=int, default=100, help="Max number of ads (safety, default 100)"
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Show what would happen, write nothing"
+    )
     parser.add_argument("--no-images", action="store_true", help="Skip image downloads")
+    parser.add_argument(
+        "--ad-ids-from",
+        type=str,
+        metavar="DIR",
+        default=None,
+        help=(
+            "Fetch only the ad_ids that appear as <ad_id>.json filenames in DIR "
+            "(e.g. atoms/performance/). Guarantees the creative atoms join with "
+            "the existing performance atoms. Without this flag, fetches the newest "
+            "--limit ads via /act_<id>/ads, which may not overlap with /insights."
+        ),
+    )
     args = parser.parse_args()
 
     load_dotenv(REPO_ROOT / ".env")
@@ -316,11 +414,38 @@ def main() -> None:
     print(f"Account:  {ad_account_id}")
     print(f"API:      {api_version}")
     print(f"Limit:    {args.limit} ads")
-    print(f"Images:   {'SKIP' if args.no_images else 'resolve hashes + download to images/'}")
-    print(f"Mode:     {'DRY-RUN (writing nothing)' if args.dry_run else 'LIVE (writing to atoms/creative/)'}")
-    print()
+    print(
+        f"Images:   {'SKIP' if args.no_images else 'resolve hashes + download to images/'}"
+    )
+    print(
+        f"Mode:     {'DRY-RUN (writing nothing)' if args.dry_run else 'LIVE (writing to atoms/creative/)'}"
+    )
 
-    ads = fetch_ads(token, api_version, ad_account_id, args.limit)
+    if args.ad_ids_from:
+        src = Path(args.ad_ids_from)
+        if not src.is_absolute():
+            src = REPO_ROOT / src
+        ad_ids = read_ad_ids_from_dir(src)
+        if not ad_ids:
+            print(f"\n[ERROR] No <ad_id>.json files found in {src}")
+            sys.exit(1)
+        ad_ids = ad_ids[: args.limit]
+        print(f"Source:   --ad-ids-from {src}")
+        print(f"IDs:      {len(ad_ids)} ad_ids (capped by --limit)")
+        print()
+        ads = fetch_ads_by_ids(token, api_version, ad_ids)
+        # Drift check: warn if Meta didn't return some of the requested ads
+        returned_ids = {a.get("id") for a in ads if a.get("id")}
+        missing = [aid for aid in ad_ids if aid not in returned_ids]
+        if missing:
+            print(
+                f"[WARN] {len(missing)} ad_ids did not return data from Meta "
+                f"(deleted, archived, or different account). First few: {missing[:5]}"
+            )
+    else:
+        print()
+        ads = fetch_ads(token, api_version, ad_account_id, args.limit)
+
     if not ads:
         print("No ads returned.")
         return
@@ -337,24 +462,34 @@ def main() -> None:
         # Resolve image_hashes → full URLs (one /adimages call per ad).
         images: list[dict] = []
         if fields["image_hashes"] and not args.no_images:
-            resolved = resolve_hashes(token, api_version, ad_account_id, fields["image_hashes"])
+            resolved = resolve_hashes(
+                token, api_version, ad_account_id, fields["image_hashes"]
+            )
             for idx, h in enumerate(fields["image_hashes"], start=1):
                 meta = resolved.get(h, {})
                 full_url = meta.get("url", "")
-                ref = download_image(full_url, ad_id, idx, args.dry_run) if full_url else None
-                images.append({
-                    "ref": ref or "",
-                    "url": full_url,
-                    "hash": h,
-                    "width": meta.get("width"),
-                    "height": meta.get("height"),
-                })
+                ref = (
+                    download_image(full_url, ad_id, idx, args.dry_run)
+                    if full_url
+                    else None
+                )
+                images.append(
+                    {
+                        "ref": ref or "",
+                        "url": full_url,
+                        "hash": h,
+                        "width": meta.get("width"),
+                        "height": meta.get("height"),
+                    }
+                )
                 if ref:
                     total_images += 1
         elif fields["image_hashes"]:
             # --no-images: still record what's there, but don't download
             for idx, h in enumerate(fields["image_hashes"], start=1):
-                images.append({"ref": "", "url": "", "hash": h, "width": None, "height": None})
+                images.append(
+                    {"ref": "", "url": "", "hash": h, "width": None, "height": None}
+                )
 
         atom = to_atom(ad, fields, images)
         if write_atom(atom, args.dry_run):
@@ -362,11 +497,15 @@ def main() -> None:
             n_h = len(fields["headlines"])
             n_b = len(fields["bodies"])
             n_i = len(images)
-            print(f"  {marker} {ad_id} — {(atom['ad_name'] or '')[:40]}  · {n_h}h/{n_b}b/{n_i}img")
+            print(
+                f"  {marker} {ad_id} — {(atom['ad_name'] or '')[:40]}  · {n_h}h/{n_b}b/{n_i}img"
+            )
             written += 1
 
     print()
-    print(f"Done: {written} atoms {'simulated' if args.dry_run else 'written'}, {total_images} images downloaded.")
+    print(
+        f"Done: {written} atoms {'simulated' if args.dry_run else 'written'}, {total_images} images downloaded."
+    )
     if not args.dry_run:
         print(f"Atoms:  {CREATIVE_DIR.resolve()}")
         if not args.no_images:

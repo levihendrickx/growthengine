@@ -25,6 +25,18 @@ const PORT = process.env.PORT || 8001;
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
+app.use('/assets', express.static(__dirname + '/assets'));
+app.use('/images', express.static(__dirname + '/images'));
+
+// ── Auth callback — redirect na Google/Apple login ───────────
+app.get('/auth/callback', (_req, res) => {
+  res.sendFile(__dirname + '/auth-callback.html');
+});
+
+// ── Connect page — eerste scherm na inloggen ──────────────────
+app.get('/connect', (_req, res) => {
+  res.sendFile(__dirname + '/connect.html');
+});
 
 // ── Health check ─────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
@@ -32,7 +44,15 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true, apiKey: hasKey });
 });
 
-// ── Ad generatie (gpt-4o-mini) ───────────────────────────────
+// ── Supabase config (public keys only — safe to expose) ───────
+app.get('/api/config', (_req, res) => {
+  res.json({
+    supabaseUrl:     process.env.SUPABASE_URL     || '',
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
+  });
+});
+
+// ── Ad generatie ─────────────────────────────────────────────
 app.post('/api/generate', async (req, res) => {
   const { product, count, instructions, patterns, brandAtom } = req.body;
 

@@ -306,23 +306,19 @@
     const btn = document.getElementById('am-btn-google');
     setBusy(btn, true);
     try {
-      if (!CFG.googleClientId) {
-        // Dev mode: simulate success
-        console.info('[Auth] Google — set CFG.googleClientId to enable real OAuth.');
-        await delay(900);
-        close();
-        return;
-      }
-      /* Production (Google Identity Services):
-         google.accounts.id.initialize({
-           client_id: CFG.googleClientId,
-           callback: onGoogleToken,
-           ux_mode: 'popup',
-         });
-         google.accounts.id.prompt();
-      */
+      // Wait for Supabase client to be ready (it loads async via /api/config)
+      const sb = await window.sbReady;
+      if (!sb) throw new Error('Supabase niet beschikbaar — controleer SUPABASE_URL en SUPABASE_ANON_KEY');
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/auth/callback',
+        }
+      });
+      if (error) throw error;
     } catch (err) {
       console.error('[Auth] Google error', err);
+      alert('Inloggen mislukt: ' + err.message);
     } finally {
       setBusy(btn, false);
     }
@@ -476,6 +472,37 @@
   }
 
   /* ─────────────────────────────────────────────────────────────
+     SIDEBAR USER STATE
+  ───────────────────────────────────────────────────────────── */
+  function updateSidebarForUser(user) {
+    const btn = document.getElementById('am-sidebar-open');
+    if (!btn) return;
+    if (user) {
+      const name  = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
+      const email = user.email || '';
+      btn.innerHTML = `
+        <span class="am-sidebar-avatar" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20a8 8 0 0 1 16 0"/>
+          </svg>
+        </span>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px">${name}</span>
+      `;
+      btn.title = email;
+      btn.removeEventListener('click', open);
+      btn.addEventListener('click', async () => {
+        if (confirm('Uitloggen?')) {
+          const sb = await window.sbReady;
+          if (sb) await sb.auth.signOut();
+          window.location.reload();
+        }
+      });
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────
      INIT
   ───────────────────────────────────────────────────────────── */
   function init() {
@@ -483,6 +510,20 @@
     addSidebarBtn();
     // Public API — lets other scripts trigger the modal
     window.authModal = { open, close };
+
+    // Check existing session on page load
+    if (window.sbReady) {
+      window.sbReady.then(sb => {
+        if (!sb) return;
+        sb.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user) updateSidebarForUser(session.user);
+        });
+        // Listen for future sign-in/out events
+        sb.auth.onAuthStateChange((_event, session) => {
+          updateSidebarForUser(session?.user || null);
+        });
+      });
+    }
   }
 
   if (document.readyState === 'loading') {

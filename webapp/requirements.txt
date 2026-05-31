@@ -1,0 +1,5 @@
+# Python packages used by the webapp subprocess scripts.
+# gen_image.py and gen_image_edit.py only need openai.
+# janus-swi (for PeTTa/PLN) is installed separately in the Dockerfile
+# because it requires SWI-Prolog to be present first.
+openai>=1.0,<2

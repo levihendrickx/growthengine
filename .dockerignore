@@ -1,0 +1,47 @@
+# ── Node modules (reinstalled inside image) ───────────────────
+node_modules
+webapp/node_modules
+**/node_modules
+
+# ── Secrets ────────────────────────────────────────────────────
+.env
+webapp/.env
+**/.env
+
+# ── Large git repos — not needed at runtime ───────────────────
+.git
+**/.git
+repos/
+# We only need lib_pln.metta from OmegaClaw-Core.
+# The Dockerfile copies it directly; exclude the rest.
+
+# ── PeTTa Prolog source & examples (optional for demo) ────────
+src/
+lib/
+examples/
+build.sh
+run.sh
+run.bat
+run.metta
+
+# ── Reference images (large; gallery uses them but not needed for core demo) ─
+sample_data/images/
+
+# ── Scripts & docs (not needed at runtime) ────────────────────
+scripts/
+docs/
+atoms/
+
+# ── Python cache ──────────────────────────────────────────────
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+
+# ── Misc ──────────────────────────────────────────────────────
+chroma_db
+*.log
+npm-debug.log*
+feedback_log.jsonl
+webapp/test_dalle.mjs
+deploy_to_railway.bat
